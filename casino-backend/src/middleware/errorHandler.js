@@ -52,9 +52,33 @@ const errorHandler = (err, req, res, next) => {
 };
 
 const notFound = (req, res, next) => {
-  const error = new Error(`Rota não encontrada - ${req.originalUrl}`);
+  // Registrar valores de URL para ajudar no diagnóstico quando uma rota não for encontrada
+  const msg = `Rota não encontrada - ${req.originalUrl}`;
+  // Inclui req.url e req.originalUrl para identificar possíveis diferenças (contém CR/LF, percent-encodings, etc.)
+  const error = new Error(msg);
   error.statusCode = 404;
   error.code = 'ROUTE_NOT_FOUND';
+  error.meta = {
+    url: req.url,
+    originalUrl: req.originalUrl,
+    method: req.method,
+  };
+
+  // Loga um aviso com mais contexto antes de encaminhar para o middleware de erro
+  try {
+    const logger = require('../utils/logger');
+    logger.warn('Rota não encontrada (diagnóstico)', {
+      message: msg,
+      url: req.url,
+      originalUrl: req.originalUrl,
+      method: req.method,
+      ip: req.ip,
+      userAgent: req.get('User-Agent'),
+    });
+  } catch (e) {
+    // Se o logger falhar por algum motivo, não bloquear a rota
+  }
+
   next(error);
 };
 

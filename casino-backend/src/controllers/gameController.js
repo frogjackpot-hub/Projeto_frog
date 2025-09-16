@@ -30,6 +30,17 @@ class GameController {
   static async getGame(req, res, next) {
     try {
       const { id } = req.params;
+
+      // Validação básica de UUID para evitar passar valores literais como ':id' ao Postgres
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(id)) {
+        return res.status(400).json({
+          success: false,
+          error: 'ID do jogo inválido',
+          code: 'INVALID_GAME_ID',
+        });
+      }
+
       const game = await Game.findById(id);
 
       if (!game) {
@@ -52,6 +63,15 @@ class GameController {
   static async playSlot(req, res, next) {
     try {
       const { gameId, amount } = req.body;
+      // Validar gameId
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(gameId)) {
+        return res.status(400).json({
+          success: false,
+          error: 'ID do jogo inválido',
+          code: 'INVALID_GAME_ID',
+        });
+      }
       const user = req.user;
 
       // Verificar se o jogo existe
@@ -142,6 +162,15 @@ class GameController {
   static async playRoulette(req, res, next) {
     try {
       const { gameId, amount, bet } = req.body;
+      // Validar gameId
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(gameId)) {
+        return res.status(400).json({
+          success: false,
+          error: 'ID do jogo inválido',
+          code: 'INVALID_GAME_ID',
+        });
+      }
       const user = req.user;
 
       // Verificar se o jogo existe

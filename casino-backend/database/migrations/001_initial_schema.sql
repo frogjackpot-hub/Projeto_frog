@@ -1,18 +1,19 @@
 -- Criação da tabela de usuários
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
     id UUID PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    balance DECIMAL(10,2) DEFAULT 0.00,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    balance NUMERIC(12,2) DEFAULT 0,
     role VARCHAR(20) DEFAULT 'player',
     is_active BOOLEAN DEFAULT true,
     is_verified BOOLEAN DEFAULT false,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
 );
+
 
 -- Criação da tabela de jogos
 CREATE TABLE IF NOT EXISTS games (
