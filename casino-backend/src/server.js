@@ -1,13 +1,38 @@
-const express = require('express');
-const app = express();
-const PORT = process.env.PORT || 3000;
+const app = require('./app');
+const config = require('./config');
+const logger = require('./utils/logger');
+const fs = require('fs');
+const path = require('path');
 
-app.use(express.json());
+// Criar diretório de logs se não existir
+const logsDir = path.join(__dirname, '../logs');
+if (!fs.existsSync(logsDir)) {
+  fs.mkdirSync(logsDir, { recursive: true });
+}
 
-app.get('/', (req, res) => {
-  res.send('Bem-vindo ao Backend do Cassino Online!');
+// Iniciar servidor
+const server = app.listen(config.port, '0.0.0.0', () => {
+  logger.info(`Servidor rodando na porta ${config.port}`, {
+    port: config.port,
+    environment: config.nodeEnv,
+  });
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  logger.info('SIGTERM recebido, encerrando servidor graciosamente');
+  server.close(() => {
+    logger.info('Servidor encerrado');
+    process.exit(0);
+  });
 });
+
+process.on('SIGINT', () => {
+  logger.info('SIGINT recebido, encerrando servidor graciosamente');
+  server.close(() => {
+    logger.info('Servidor encerrado');
+    process.exit(0);
+  });
+});
+
+module.exports = server;
