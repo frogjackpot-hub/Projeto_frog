@@ -34,6 +34,20 @@ app.use((req, res, next) => {
   next();
 });
 
+// Normalizar URL: remover caracteres de controle como CR/LF no início/fim
+app.use((req, res, next) => {
+  const original = req.url;
+  // Remove apenas caracteres de quebra de linha e retorno de carro no começo/fim
+  const cleaned = original.replace(/^[\r\n]+|[\r\n]+$/g, '');
+  if (cleaned !== original) {
+    logger.warn('URL normalizada (removidos caracteres de controle)', { original, cleaned, ip: req.ip });
+    // Atualiza req.url para o roteamento correto
+    req.url = cleaned;
+    // Note: req.originalUrl é uma propriedade definida pelo Express e não deve ser escrito diretamente
+  }
+  next();
+});
+
 // Rotas principais
 app.use('/api', routes);
 
