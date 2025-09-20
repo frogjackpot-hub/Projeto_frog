@@ -6,3 +6,4 @@ dist/
 logs/
 *.log
 *.env.*
+Add-Content -Path .gitignore -Value 'Tutorial Completo_ Desenvolvendo o Backend de um Cassino Online com Node.js_Express e Docker.pdf'

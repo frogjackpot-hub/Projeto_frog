@@ -1,3 +1,29 @@
-aqui vou colocar os comandos 
+# Iniciar ambiente de desenvolvimento
+docker compose up -d db
+npm run dev
 
-docker compose up --build 
+# Executar migrações
+npm run migrate
+
+# Executar seeds
+npm run seed
+
+# Executar testes
+npm test
+
+# Ver logs em tempo real
+tail -f logs/combined.log
+
+
+
+# Build e deploy
+docker compose -f docker-compose.prod.yml up -d --build
+
+# Backup do banco
+docker exec casino-db pg_dump -U user casino_db > backup_$(date +%Y%m%d).sql
+
+# Monitorar recursos
+docker stats
+
+# Ver logs de produção
+docker compose logs -f --tail=100
