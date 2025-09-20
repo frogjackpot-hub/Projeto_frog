@@ -39,6 +39,27 @@ class User {
       const result = await db.query(query, values);
       return new User(result.rows[0]);
     } catch (error) {
+      // Mapear violação de constraint única do Postgres para erro amigável
+      if (error && error.code === '23505') {
+        // error.detail normalmente contém algo como: Key (email)=(x) already exists.
+        const detail = error.detail || '';
+        let appError;
+
+        if (detail.includes('(email)') || (error.constraint && error.constraint.includes('email'))) {
+          appError = new Error('Email já está em uso');
+          appError.code = 'DUPLICATE_EMAIL';
+        } else if (detail.includes('(username)') || (error.constraint && error.constraint.includes('username'))) {
+          appError = new Error('Username já está em uso');
+          appError.code = 'DUPLICATE_USERNAME';
+        } else {
+          appError = new Error('Entrada duplicada');
+          appError.code = 'DUPLICATE_ENTRY';
+        }
+
+        appError.statusCode = 409;
+        throw appError;
+      }
+
       throw error;
     }
   }

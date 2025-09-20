@@ -1,2 +1,72 @@
-GET http://localhost:3000/
-Accept: application/json
+### Variáveis
+@baseUrl = http://localhost:3000/api
+@accessToken = 
+
+### Health Check
+GET {{baseUrl}}/health
+
+### Registrar usuário
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "teste@casino.com",
+  "username": "testuser",
+  "password": "Teste123!",
+  "firstName": "Usuário",
+  "lastName": "Teste"
+}
+
+### Login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "teste@casino.com",
+  "password": "Teste123!"
+}
+
+### Obter perfil (substitua o token)
+GET {{baseUrl}}/auth/profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+### Listar jogos
+GET {{baseUrl}}/games
+
+### Fazer depósito
+POST {{baseUrl}}/wallet/deposit
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+
+{
+  "amount": 100.00
+}
+
+### Verificar saldo
+GET {{baseUrl}}/wallet/balance
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+### Jogar slot
+POST {{baseUrl}}/games/slot/play
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+
+{
+  "gameId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "amount": 10.00
+}
+
+### Jogar roleta
+POST {{baseUrl}}/games/roulette/play
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+
+{
+  "gameId": "b2c3d4e5-f6g7-8901-bcde-f23456789012",
+  "amount": 20.00,
+  "bet": "red"
+}
+
+### Histórico de transações
+GET {{baseUrl}}/wallet/transactions
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...

@@ -7,6 +7,9 @@ const authenticateToken = async (req, res, next) => {
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
   if (!token) {
+    // Não logar token (não existe) — apenas contexto
+    const logger = require('../utils/logger');
+    logger.warn('Tentativa de acesso sem token', { url: req.url, method: req.method, ip: req.ip });
     return res.status(401).json({ 
       error: 'Token de acesso requerido',
       code: 'MISSING_TOKEN'
@@ -18,6 +21,10 @@ const authenticateToken = async (req, res, next) => {
     const user = await User.findById(decoded.userId);
     
     if (!user) {
+      const logger = require('../utils/logger');
+      // Logar apenas parte do token para diagnóstico (não vazar o token completo)
+      const tokenHint = token.length > 10 ? `...${token.slice(-6)}` : token;
+      logger.warn('Token válido mas usuário não encontrado', { url: req.url, method: req.method, ip: req.ip, tokenHint });
       return res.status(401).json({ 
         error: 'Usuário não encontrado',
         code: 'USER_NOT_FOUND'
@@ -27,13 +34,18 @@ const authenticateToken = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
+    const logger = require('../utils/logger');
+    const tokenHint = token && token.length > 10 ? `...${token.slice(-6)}` : token;
+
     if (error.name === 'TokenExpiredError') {
+      logger.warn('Token expirado', { url: req.url, method: req.method, ip: req.ip, tokenHint });
       return res.status(401).json({ 
         error: 'Token expirado',
         code: 'TOKEN_EXPIRED'
       });
     }
     
+    logger.warn('Token inválido', { url: req.url, method: req.method, ip: req.ip, tokenHint, error: error.message });
     return res.status(403).json({ 
       error: 'Token inválido',
       code: 'INVALID_TOKEN'

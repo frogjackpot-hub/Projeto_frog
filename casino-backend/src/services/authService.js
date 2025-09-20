@@ -28,7 +28,7 @@ class AuthService {
     const existingUserByEmail = await User.findByEmail(email);
     if (existingUserByEmail) {
       const error = new Error('Email já está em uso');
-      error.code = 'EMAIL_ALREADY_EXISTS';
+      error.code = 'DUPLICATE_EMAIL';
       error.statusCode = 409;
       throw error;
     }
@@ -37,7 +37,7 @@ class AuthService {
     const existingUserByUsername = await User.findByUsername(username);
     if (existingUserByUsername) {
       const error = new Error('Username já está em uso');
-      error.code = 'USERNAME_ALREADY_EXISTS';
+      error.code = 'DUPLICATE_USERNAME';
       error.statusCode = 409;
       throw error;
     }

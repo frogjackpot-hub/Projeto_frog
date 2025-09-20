@@ -1,14 +1,22 @@
 const logger = require('../utils/logger');
 
 const errorHandler = (err, req, res, next) => {
-  logger.error('Erro capturado pelo middleware:', {
+  // Escolher nível de log conforme status
+  const statusCodeForLog = err.statusCode || (err.code ? 400 : 500);
+  const logPayload = {
     error: err.message,
     stack: err.stack,
     url: req.url,
     method: req.method,
     ip: req.ip,
     userAgent: req.get('User-Agent'),
-  });
+  };
+
+  if (statusCodeForLog >= 500) {
+    logger.error('Erro capturado pelo middleware:', logPayload);
+  } else {
+    logger.warn('Erro de cliente capturado pelo middleware:', logPayload);
+  }
 
   // Erro de validação do Joi
   if (err.isJoi) {
@@ -19,12 +27,13 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
-  // Erro de banco de dados PostgreSQL
+  // Erro de banco de dados PostgreSQL (códigos padrão) ou códigos customizados
   if (err.code) {
+    // Se for um código PG (numérico string) tratar primeiro
     switch (err.code) {
       case '23505': // Violação de constraint única
         return res.status(409).json({
-          error: 'Dados já existem no sistema',
+          error: 'Entrada duplicada no banco de dados',
           code: 'DUPLICATE_ENTRY',
         });
       case '23503': // Violação de foreign key
@@ -37,6 +46,15 @@ const errorHandler = (err, req, res, next) => {
           error: 'Dados não atendem aos critérios',
           code: 'CONSTRAINT_VIOLATION',
         });
+      default:
+        // Se for um código customizado definido pela aplicação (ex: DUPLICATE_EMAIL)
+        if (err.statusCode && err.code && typeof err.code === 'string') {
+          return res.status(err.statusCode).json({
+            error: err.message,
+            code: err.code,
+            ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+          });
+        }
     }
   }
 
