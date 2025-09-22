@@ -1,0 +1,20 @@
+// Colors
+$color-white: #ffffff;
+$color-gray: #b0b0b0;
+$color-dark-gray: #757575;
+$color-gold: #ffd700;
+$color-gold-light: #ffed4e;
+$color-success: #4caf50;
+$color-error: #f44336;
+$color-warning: #ff9800;
+
+// Gradients
+$gradient-header: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+$gradient-gold: linear-gradient(45deg, $color-gold, $color-gold-light);
+
+// Transitions
+$transition-default: all 0.3s ease;
+
+// Breakpoints
+$breakpoint-mobile: 768px;
+$breakpoint-tablet: 1024px;

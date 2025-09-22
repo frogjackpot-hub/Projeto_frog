@@ -1,0 +1,40 @@
+@use './variables' as v;
+@use './mixins' as m;
+
+.register-form {
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    
+    @media (max-width: 480px) {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+  }
+  
+  .form-group {
+    margin-bottom: 1.5rem;
+    
+    label {
+      display: block;
+      color: #e0e0e0;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+    
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      @include m.form-input;
+    }
+  }
+  
+  .error-message {
+    color: v.$error-color;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    display: block;
+  }
+}

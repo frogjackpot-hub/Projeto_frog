@@ -1,0 +1,16 @@
+@use '../styles/variables' as *;
+
+.app-container {
+  padding: $spacing-xl;
+  text-align: center;
+  
+  h1 {
+    color: $primary-color;
+    margin-bottom: $spacing-md;
+  }
+  
+  p {
+    margin-bottom: $spacing-xl;
+    color: $text-secondary;
+  }
+}

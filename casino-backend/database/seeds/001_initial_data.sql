@@ -10,8 +10,9 @@ INSERT INTO games (id, name, type, min_bet, max_bet, rtp, description, rules) VA
     'Um slot machine clássico com 3 rolos e símbolos tradicionais',
     '{"paylines": 1, "reels": 3, "symbols": ["🍒", "🍋", "🍊", "🍇", "⭐", "💎", "7️⃣"]}'
 ),
+
 (
-    'b2c3d4e5-f6g7-8901-bcde-f23456789012',
+    'b2c3d4e5-f6a7-8901-bcde-f23456789012',
     'Roleta Europeia',
     'roulette',
     5.00,
@@ -21,7 +22,7 @@ INSERT INTO games (id, name, type, min_bet, max_bet, rtp, description, rules) VA
     '{"type": "european", "numbers": 37, "zero_count": 1}'
 ),
 (
-    'c3d4e5f6-g7h8-9012-cdef-345678901234',
+    'c3d4e5f6-a7b8-9012-cdef-345678901234',
     'Blackjack Clássico',
     'blackjack',
     10.00,
@@ -31,13 +32,13 @@ INSERT INTO games (id, name, type, min_bet, max_bet, rtp, description, rules) VA
     '{"decks": 6, "dealer_stands_on": "soft_17", "blackjack_pays": "3:2"}'
 );
 
--- Inserir usuário administrador padrão (senha: Admin123!)
+-- Inserir usuário administrador padrão (senha: Ti43!@#$)
 INSERT INTO users (id, email, username, password, first_name, last_name, balance, role, is_verified) VALUES
 (
-    'd4e5f6g7-h8i9-0123-defg-456789012345',
-    'admin@casino.com',
+    'd4e5f6a7-b8c9-0123-defa-456789012345',
+    'admin@gmail.com',
     'admin',
-    '$2a$12$LQv3c1yqBw2jo6H1PAmi/.jigocJ9cxHljs8J/RCBbkUbdwQr19hS',
+    '$2a$12$zCqPJXy.2j0Dtb0A64fPRuleXTx3Cz5K2FQggbZDGdINz/ifeiwCe',
     'Administrador',
     'Sistema',
     10000.00,

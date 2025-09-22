@@ -1,0 +1,62 @@
+<div class="quick-actions">
+  <h2>Ações Rápidas</h2>
+  
+  <div class="actions-grid">
+    <button class="action-btn deposit-btn" routerLink="/wallet/deposit">
+      <div class="action-icon">💳</div>
+      <div class="action-content">
+        <span class="action-title">Depositar</span>
+        <span class="action-subtitle">Adicionar fundos</span>
+      </div>
+    </button>
+    
+    <button class="action-btn withdraw-btn" routerLink="/wallet/withdraw">
+      <div class="action-icon">💸</div>
+      <div class="action-content">
+        <span class="action-title">Sacar</span>
+        <span class="action-subtitle">Retirar fundos</span>
+      </div>
+    </button>
+    
+    <button class="action-btn games-btn" routerLink="/games">
+      <div class="action-icon">🎮</div>
+      <div class="action-content">
+        <span class="action-title">Jogos</span>
+        <span class="action-subtitle">Explorar jogos</span>
+      </div>
+    </button>
+    
+    <button class="action-btn profile-btn" routerLink="/dashboard/profile">
+      <div class="action-icon">👤</div>
+      <div class="action-content">
+        <span class="action-title">Perfil</span>
+        <span class="action-subtitle">Editar perfil</span>
+      </div>
+    </button>
+  </div>
+  
+  <div class="featured-games" *ngIf="featuredGames.length > 0">
+    <h3>Jogos em Destaque</h3>
+    <div class="games-list">
+      <div 
+        *ngFor="let game of featuredGames" 
+        class="game-card"
+        (click)="playGame(game)"
+      >
+        <div class="game-icon">
+          <span *ngIf="game.type === 'slot'">🎰</span>
+          <span *ngIf="game.type === 'roulette'">🎡</span>
+          <span *ngIf="game.type === 'blackjack'">🃏</span>
+          <span *ngIf="game.type === 'poker'">♠️</span>
+        </div>
+        <div class="game-info">
+          <span class="game-name">{{ game.name }}</span>
+          <span class="game-rtp">RTP: {{ game.rtp }}%</span>
+        </div>
+        <div class="game-bet-range">
+          <span>{{ game.minBet | appCurrency }} - {{ game.maxBet | appCurrency }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

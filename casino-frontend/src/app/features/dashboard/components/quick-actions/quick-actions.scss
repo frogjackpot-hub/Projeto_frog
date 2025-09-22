@@ -1,0 +1,189 @@
+.quick-actions {
+  background: rgba(42, 42, 42, 0.6);
+  border-radius: 16px;
+  padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  height: fit-content;
+  
+  h2 {
+    color: #ffffff;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+  }
+  
+  h3 {
+    color: #ffffff;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+  }
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #ffffff;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  }
+  
+  &.deposit-btn:hover {
+    border-color: rgba(76, 175, 80, 0.5);
+    box-shadow: 0 8px 24px rgba(76, 175, 80, 0.2);
+  }
+  
+  &.withdraw-btn:hover {
+    border-color: rgba(244, 67, 54, 0.5);
+    box-shadow: 0 8px 24px rgba(244, 67, 54, 0.2);
+  }
+  
+  &.games-btn:hover {
+    border-color: rgba(255, 215, 0, 0.5);
+    box-shadow: 0 8px 24px rgba(255, 215, 0, 0.2);
+  }
+  
+  &.profile-btn:hover {
+    border-color: rgba(33, 150, 243, 0.5);
+    box-shadow: 0 8px 24px rgba(33, 150, 243, 0.2);
+  }
+}
+
+.action-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  background: rgba(255, 215, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.action-content {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  
+  .action-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .action-subtitle {
+    color: #b0b0b0;
+    font-size: 0.9rem;
+  }
+}
+
+.featured-games {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 1.5rem;
+}
+
+.games-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.game-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 215, 0, 0.3);
+    transform: translateX(4px);
+  }
+}
+
+.game-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  background: rgba(255, 215, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.game-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  
+  .game-name {
+    color: #ffffff;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+  }
+  
+  .game-rtp {
+    color: #4caf50;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+}
+
+.game-bet-range {
+  color: #b0b0b0;
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+// Responsividade
+@media (max-width: 1024px) {
+  .quick-actions {
+    margin-bottom: 2rem;
+  }
+  
+  .actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .actions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-btn {
+    padding: 0.875rem;
+  }
+  
+  .action-icon {
+    width: 45px;
+    height: 45px;
+    font-size: 1.3rem;
+  }
+}

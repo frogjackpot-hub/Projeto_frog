@@ -1,0 +1,31 @@
+@use './mixins' as m;
+
+.form-actions {
+  margin: 2rem 0 1.5rem;
+  
+  .register-btn {
+    width: 100%;
+    padding: 0.875rem 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    background: linear-gradient(45deg, #ffd700, #ffed4e);
+    color: #000000;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &:hover:not(:disabled) {
+      background: linear-gradient(45deg, #ffed4e, #ffd700);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(255, 215, 0, 0.3);
+    }
+    
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+  }
+}

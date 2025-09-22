@@ -1,0 +1,74 @@
+<div class="login-container">
+  <div class="login-header">
+    <h2>Entrar na sua conta</h2>
+    <p>Bem-vindo de volta! Entre para continuar jogando.</p>
+  </div>
+
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+    <div class="form-group">
+      <label for="email">E-mail</label>
+      <input
+        id="email"
+        type="email"
+        formControlName="email"
+        placeholder="Digite seu e-mail"
+        [class.error]="isFieldInvalid('email')"
+      >
+      <div class="error-message" *ngIf="isFieldInvalid('email')">
+        <span *ngIf="loginForm.get('email')?.errors?.['required']">
+          E-mail é obrigatório
+        </span>
+        <span *ngIf="loginForm.get('email')?.errors?.['email']">
+          E-mail deve ter um formato válido
+        </span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="password">Senha</label>
+      <div class="password-input">
+        <input
+          id="password"
+          [type]="showPassword ? 'text' : 'password'"
+          formControlName="password"
+          placeholder="Digite sua senha"
+          [class.error]="isFieldInvalid('password')"
+        >
+        <button
+          type="button"
+          class="password-toggle"
+          (click)="togglePasswordVisibility()"
+          aria-label="Mostrar/ocultar senha"
+        >
+          {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+        </button>
+      </div>
+      <div class="error-message" *ngIf="isFieldInvalid('password')">
+        <span *ngIf="loginForm.get('password')?.errors?.['required']">
+          Senha é obrigatória
+        </span>
+        <span *ngIf="loginForm.get('password')?.errors?.['minlength']">
+          Senha deve ter pelo menos 6 caracteres
+        </span>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button
+        type="submit"
+        class="btn btn-primary login-btn"
+        [disabled]="loginForm.invalid || isSubmitting"
+      >
+        <span *ngIf="!isSubmitting">Entrar</span>
+        <span *ngIf="isSubmitting">Entrando...</span>
+      </button>
+    </div>
+
+    <div class="form-footer">
+      <p>
+        Não tem uma conta?
+        <a routerLink="/auth/register" class="register-link">Cadastre-se aqui</a>
+      </p>
+    </div>
+  </form>
+</div>

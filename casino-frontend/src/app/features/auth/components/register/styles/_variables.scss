@@ -1,0 +1,20 @@
+// Variáveis específicas do componente de registro
+$register-max-width: 500px;
+$input-height: 48px;
+$checkbox-size: 22px;
+$strength-bar-height: 4px;
+
+// Cores
+$input-border-color: rgba(255, 255, 255, 0.1);
+$input-bg-color: rgba(255, 255, 255, 0.05);
+$input-focus-color: #ffd700;
+$error-color: #f44336;
+$text-primary: #ffffff;
+$text-secondary: #b0b0b0;
+
+// Checkbox
+$checkbox-border-radius: 6px;
+$checkbox-border-color: rgba(255, 255, 255, 0.2);
+$checkbox-hover-border-color: rgba(255, 215, 0, 0.5);
+$checkbox-bg-checked: linear-gradient(135deg, #ffd700, #ffed4e);
+$checkbox-mark-color: #000;

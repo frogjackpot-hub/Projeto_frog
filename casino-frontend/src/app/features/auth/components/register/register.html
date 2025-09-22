@@ -1,0 +1,180 @@
+<div class="register-container">
+  <div class="register-header">
+    <h2>Criar nova conta</h2>
+    <p>Junte-se a nós e comece a jogar hoje mesmo!</p>
+  </div>
+
+  <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="firstName">Nome</label>
+        <input
+          id="firstName"
+          type="text"
+          formControlName="firstName"
+          placeholder="Seu nome"
+          [class.error]="isFieldInvalid('firstName')"
+        >
+        <div class="error-message" *ngIf="isFieldInvalid('firstName')">
+          <span *ngIf="registerForm.get('firstName')?.errors?.['required']">
+            Nome é obrigatório
+          </span>
+          <span *ngIf="registerForm.get('firstName')?.errors?.['minlength']">
+            Nome deve ter pelo menos 2 caracteres
+          </span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="lastName">Sobrenome</label>
+        <input
+          id="lastName"
+          type="text"
+          formControlName="lastName"
+          placeholder="Seu sobrenome"
+          [class.error]="isFieldInvalid('lastName')"
+        >
+        <div class="error-message" *ngIf="isFieldInvalid('lastName')">
+          <span *ngIf="registerForm.get('lastName')?.errors?.['required']">
+            Sobrenome é obrigatório
+          </span>
+          <span *ngIf="registerForm.get('lastName')?.errors?.['minlength']">
+            Sobrenome deve ter pelo menos 2 caracteres
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="username">Nome de usuário</label>
+      <input
+        id="username"
+        type="text"
+        formControlName="username"
+        placeholder="Escolha um nome de usuário"
+        [class.error]="isFieldInvalid('username')"
+      >
+      <div class="error-message" *ngIf="isFieldInvalid('username')">
+        <span *ngIf="registerForm.get('username')?.errors?.['required']">
+          Nome de usuário é obrigatório
+        </span>
+        <span *ngIf="registerForm.get('username')?.errors?.['minlength']">
+          Nome de usuário deve ter pelo menos 3 caracteres
+        </span>
+        <span *ngIf="registerForm.get('username')?.errors?.['pattern']">
+          Nome de usuário deve conter apenas letras, números e underscore
+        </span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="email">E-mail</label>
+      <input
+        id="email"
+        type="email"
+        formControlName="email"
+        placeholder="Digite seu e-mail"
+        [class.error]="isFieldInvalid('email')"
+      >
+      <div class="error-message" *ngIf="isFieldInvalid('email')">
+        <span *ngIf="registerForm.get('email')?.errors?.['required']">
+          E-mail é obrigatório
+        </span>
+        <span *ngIf="registerForm.get('email')?.errors?.['email']">
+          E-mail deve ter um formato válido
+        </span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="password">Senha</label>
+      <div class="password-input">
+        <input
+          id="password"
+          [type]="showPassword ? 'text' : 'password'"
+          formControlName="password"
+          placeholder="Crie uma senha segura"
+          [class.error]="isFieldInvalid('password')"
+        >
+        <button
+          type="button"
+          class="password-toggle"
+          (click)="togglePasswordVisibility()"
+          aria-label="Mostrar/ocultar senha"
+        >
+          {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+        </button>
+      </div>
+      <div class="password-strength" *ngIf="registerForm.get('password')?.value">
+        <div class="strength-bar">
+          <div 
+            class="strength-fill" 
+            [ngClass]="'strength-' + getPasswordStrength()"
+            [style.width.%]="getPasswordStrengthPercentage()"
+          ></div>
+        </div>
+        <span class="strength-text">{{ getPasswordStrengthText() }}</span>
+      </div>
+      <div class="error-message" *ngIf="isFieldInvalid('password')">
+        <span *ngIf="registerForm.get('password')?.errors?.['required']">
+          Senha é obrigatória
+        </span>
+        <span *ngIf="registerForm.get('password')?.errors?.['minlength']">
+          Senha deve ter pelo menos 8 caracteres
+        </span>
+        <span *ngIf="registerForm.get('password')?.errors?.['pattern']">
+          Senha deve conter pelo menos uma letra maiúscula, uma minúscula e um número
+        </span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="confirmPassword">Confirmar senha</label>
+      <input
+        id="confirmPassword"
+        type="password"
+        formControlName="confirmPassword"
+        placeholder="Digite a senha novamente"
+        [class.error]="isFieldInvalid('confirmPassword')"
+      >
+      <div class="error-message" *ngIf="isFieldInvalid('confirmPassword')">
+        <span *ngIf="registerForm.get('confirmPassword')?.errors?.['required']">
+          Confirmação de senha é obrigatória
+        </span>
+        <span *ngIf="registerForm.get('confirmPassword')?.errors?.['passwordMismatch']">
+          As senhas não coincidem
+        </span>
+      </div>
+    </div>
+
+    <div class="form-group checkbox-group">
+      <label class="checkbox-label">
+        <input type="checkbox" formControlName="acceptTerms" [class.error]="isFieldInvalid('acceptTerms')">
+        <span class="checkmark"></span><span class="terms-text">Eu aceito os <a href="#" class="terms-link">termos de uso</a> e a <a href="#" class="terms-link">política de privacidade</a> do Casino Online</span>
+      </label>
+      <div class="error-message" *ngIf="isFieldInvalid('acceptTerms')">
+        <span *ngIf="registerForm.get('acceptTerms')?.errors?.['required']">
+          Você deve aceitar os termos de uso
+        </span>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button
+        type="submit"
+        class="btn btn-primary register-btn"
+        [disabled]="registerForm.invalid || isSubmitting"
+      >
+        <span *ngIf="!isSubmitting">Criar conta</span>
+        <span *ngIf="isSubmitting">Criando conta...</span>
+      </button>
+    </div>
+
+    <div class="form-footer">
+      <p>
+        Já tem uma conta?
+        <a routerLink="/auth/login" class="login-link">Entre aqui</a>
+      </p>
+    </div>
+  </form>
+</div>

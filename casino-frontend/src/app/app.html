@@ -1,0 +1,6 @@
+<router-outlet></router-outlet>
+<app-notification></app-notification>
+<app-loading-spinner 
+  [show]="(isLoading$ | async) ?? false" 
+  message="Carregando...">
+</app-loading-spinner>

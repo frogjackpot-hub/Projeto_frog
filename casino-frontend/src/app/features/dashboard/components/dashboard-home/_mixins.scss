@@ -1,0 +1,18 @@
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin card-base {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, .1);
+  transition: all .3s ease;
+}
+
+@mixin circle-icon($size: 40px) {
+  width: $size;
+  height: $size;
+  border-radius: 50%;
+  @include flex-center;
+}

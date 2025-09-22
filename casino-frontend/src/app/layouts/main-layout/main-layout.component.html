@@ -1,0 +1,45 @@
+<div class="main-layout">
+  <header class="main-header">
+    <div class="header-content">
+      <div class="logo-section">
+        <h1 class="logo" routerLink="/dashboard">🎰 Casino Online</h1>
+      </div>
+      
+      <nav class="main-nav">
+        <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+        <a routerLink="/games" routerLinkActive="active">Jogos</a>
+        <a routerLink="/wallet" routerLinkActive="active">Carteira</a>
+      </nav>
+      
+      <div class="user-section">
+        <div class="balance" *ngIf="currentUser">
+          <span class="balance-label">Saldo:</span>
+          <span class="balance-value">{{ currentUser.balance | appCurrency }}</span>
+        </div>
+        
+        <div class="user-menu" *ngIf="currentUser">
+          <button class="user-btn" (click)="toggleUserMenu()">
+            <span>{{ currentUser.firstName }}</span>
+            <span class="dropdown-arrow">▼</span>
+          </button>
+          
+          <div class="user-dropdown" *ngIf="showUserMenu">
+            <a routerLink="/dashboard/profile">Perfil</a>
+            <a routerLink="/wallet/transactions">Transações</a>
+            <button (click)="logout()">Sair</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+  
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+  
+  <footer class="main-footer">
+    <div class="footer-content">
+      <p>&copy; 2024 Casino Online. Jogue com responsabilidade.</p>
+    </div>
+  </footer>
+</div>

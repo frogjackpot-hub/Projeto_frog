@@ -12,10 +12,16 @@ services:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
-
+    # Adicione essas configurações para maior estabilidade
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d casino_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
   backend:
     build:
-      context: .
+      context: ./casino-backend
       dockerfile: Dockerfile
     restart: always
     environment:
@@ -25,10 +31,20 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
-      - .:/app
+      - ./casino-backend:/app
       - /app/node_modules
+
+  frontend:
+    build:
+      context: ./casino-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
 
 volumes:
   db_data:
