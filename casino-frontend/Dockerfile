@@ -8,7 +8,7 @@ RUN npm ci --legacy-peer-deps || npm install --no-audit --no-fund
 
 # Copiar o restante dos arquivos e gerar build de produção
 COPY . .
-RUN npm run build --configuration=production
+RUN npm run build
 
 # Etapa 2: servir com NGINX
 FROM nginx:alpine
