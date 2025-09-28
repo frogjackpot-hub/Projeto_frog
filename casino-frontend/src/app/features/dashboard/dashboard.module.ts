@@ -1,4 +1,6 @@
-import { Injectable } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Injectable, NgModule } from '@angular/core';
+import { RouterModule } from '@angular/router';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { Game } from '../../core/models/game.model';
@@ -6,6 +8,8 @@ import { Transaction } from '../../core/models/transaction.model';
 import { User } from '../../core/models/user.model';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
+import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { DASHBOARD_ROUTES } from './dashboard.routes';
 
 export interface DashboardStats {
   totalGamesPlayed: number;
@@ -101,3 +105,8 @@ export class DashboardService {
     );
   }
 }
+
+@NgModule({
+  imports: [CommonModule, RouterModule.forChild(DASHBOARD_ROUTES), DashboardComponent],
+})
+export class DashboardModule {}

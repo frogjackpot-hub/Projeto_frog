@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -11,7 +11,7 @@ import { CurrencyPipe } from '../../shared/pipes/currency.pipe';
   templateUrl: './main-layout.component.html',
   styleUrls: ['./main-layout.component.scss'],
   standalone: true,
-  imports: [CommonModule, RouterModule, CurrencyPipe]
+  imports: [CommonModule, NgIf, RouterModule, CurrencyPipe]
 })
 export class MainLayoutComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;

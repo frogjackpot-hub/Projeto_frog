@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { Component, Input } from '@angular/core';
 
 @Component({
@@ -6,7 +6,7 @@ import { Component, Input } from '@angular/core';
   templateUrl: './loading-spinner.component.html',
   styleUrls: ['./loading-spinner.component.scss'],
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule, NgIf]
 })
 export class LoadingSpinnerComponent {
   @Input() show: boolean = false;
