@@ -1,16 +1,18 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
 
-const routes: Routes = [
-  // Adicione aqui as rotas de jogos
-];
+import { SharedModule } from '../../shared/shared-module';
+import { GamesListComponent } from './components/games-list/games-list';
+import { GamesRoutingModule } from './games-routing.module';
 
 @NgModule({
-  declarations: [],
+  declarations: [
+    GamesListComponent
+  ],
   imports: [
     CommonModule,
-    RouterModule.forChild(routes)
+    GamesRoutingModule,
+    SharedModule
   ]
 })
 export class GamesModule { }

@@ -1,0 +1,33 @@
+
+<div class="games-list">
+  <div class="games-header">
+    <h1>Jogos Disponíveis</h1>
+    <p>Escolha seu jogo favorito e comece a jogar!</p>
+  </div>
+  
+  <div class="games-grid">
+    <div class="game-card" *ngFor="let game of games">
+      <div class="game-icon">
+        <span *ngIf="game.type === 'slot'">🎰</span>
+        <span *ngIf="game.type === 'roulette'">🎡</span>
+        <span *ngIf="game.type === 'blackjack'">🃏</span>
+        <span *ngIf="game.type === 'poker'">♠️</span>
+      </div>
+      <div class="game-info">
+        <h3>{{ game.name }}</h3>
+        <p>{{ game.description }}</p>
+        <div class="game-stats">
+          <span class="rtp">RTP: {{ game.rtp }}%</span>
+          <span class="bet-range">{{ game.minBet | appCurrency }} - {{ game.maxBet | appCurrency }}</span>
+        </div>
+      </div>
+      <button class="play-btn" (click)="playGame(game)">
+        Jogar Agora
+      </button>
+    </div>
+  </div>
+  
+  <div *ngIf="games.length === 0" class="empty-state">
+    <p>Nenhum jogo disponível no momento.</p>
+  </div>
+</div>
