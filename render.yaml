@@ -31,7 +31,7 @@ services:
   - type: web
     name: casino-frontend
     runtime: static
-    buildCommand: cd casino-frontend && rm -rf node_modules package-lock.json && npm install && npx ng build --configuration=production
+    buildCommand: cd casino-frontend && npm ci && npm run build:prod
     staticPublishPath: casino-frontend/dist/casino-frontend/browser
     pullRequestPreviewsEnabled: true
     headers:
