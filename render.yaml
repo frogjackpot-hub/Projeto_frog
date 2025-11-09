@@ -31,7 +31,6 @@ services:
   - type: web
     name: casino-frontend
     runtime: static
-    plan: free
     buildCommand: cd casino-frontend && npm ci && npm run build:prod
     staticPublishPath: casino-frontend/dist/casino-frontend/browser
     pullRequestPreviewsEnabled: true
