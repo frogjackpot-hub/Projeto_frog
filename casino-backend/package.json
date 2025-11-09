@@ -9,7 +9,9 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "migrate": "node database/migrate.js",
-    "seed": "node database/seed.js"
+    "seed": "node database/seed.js",
+    "build": "echo 'No build step required for Node.js'",
+    "postinstall": "npm run migrate"
   },
   "keywords": [
     "casino",
