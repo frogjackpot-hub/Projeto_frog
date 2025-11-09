@@ -6,9 +6,9 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci --legacy-peer-deps || npm install --no-audit --no-fund
 
-# Copiar o restante dos arquivos e gerar build de produção
+# Copiar o restante dos arquivos e gerar build de desenvolvimento
 COPY . .
-RUN npm run build
+RUN npm run build -- --configuration=development
 
 # Etapa 2: servir com NGINX
 FROM nginx:alpine

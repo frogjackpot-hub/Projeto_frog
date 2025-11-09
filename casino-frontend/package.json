@@ -5,6 +5,8 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:prod": "ng build --configuration=production",
+    "build:analyze": "ng build --configuration=production --stats-json && npx webpack-bundle-analyzer dist/casino-frontend/stats.json",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
@@ -27,6 +29,7 @@
     "@angular/forms": "^20.1.0",
     "@angular/platform-browser": "^20.1.0",
     "@angular/router": "^20.1.0",
+    "@angular/service-worker": "^20.1.2",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

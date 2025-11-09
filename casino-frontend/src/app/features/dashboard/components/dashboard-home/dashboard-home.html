@@ -83,7 +83,7 @@
       <div class="activity-content">
         <div *ngIf="activeTab === 'transactions'" class="transactions-list">
           <div 
-            *ngFor="let transaction of recentActivity?.transactions" 
+            *ngFor="let transaction of recentActivity?.transactions; trackBy: trackByTransactionId" 
             class="transaction-item"
           >
             <div class="transaction-icon" [ngClass]="'icon-' + transaction.type">
@@ -107,7 +107,7 @@
         </div>
         
         <div *ngIf="activeTab === 'games'" class="games-list">
-          <div *ngFor="let game of recentActivity?.games" class="game-item">
+          <div *ngFor="let game of recentActivity?.games; trackBy: trackByGameId" class="game-item">
             <div class="game-info">
               <span class="game-name">{{ game.name }}</span>
               <span class="game-date">{{ game.playedAt | appDateFormat:'relative' }}</span>

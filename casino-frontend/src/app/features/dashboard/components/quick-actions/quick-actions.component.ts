@@ -1,5 +1,5 @@
 import { CommonModule, NgFor, NgIf } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { Game } from '../../../../core/models/game.model';
@@ -11,7 +11,8 @@ import { DashboardService } from '../../services/dashboard.service';
   standalone: true,
   imports: [CommonModule, NgIf, NgFor, RouterModule, CurrencyPipe],
   templateUrl: './quick-actions.html',
-  styleUrls: ['./quick-actions.scss']
+  styleUrls: ['./quick-actions.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class QuickActionsComponent implements OnInit, OnDestroy {
   featuredGames: Game[] = [];
@@ -42,6 +43,10 @@ export class QuickActionsComponent implements OnInit, OnDestroy {
         }
       })
     );
+  }
+
+  trackByGameId(index: number, game: Game): string {
+    return game.id;
   }
 
   playGame(game: Game): void {

@@ -6,7 +6,7 @@
   </div>
   
   <div class="games-grid">
-    <div class="game-card" *ngFor="let game of games">
+    <div class="game-card" *ngFor="let game of games; trackBy: trackByGameId">
       <div class="game-icon">
         <span *ngIf="game.type === 'slot'">🎰</span>
         <span *ngIf="game.type === 'roulette'">🎡</span>

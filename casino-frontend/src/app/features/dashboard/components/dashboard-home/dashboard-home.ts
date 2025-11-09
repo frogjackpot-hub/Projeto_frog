@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { User } from '../../../../core/models/user.model';
@@ -20,7 +20,8 @@ import { QuickActionsComponent } from '../quick-actions/quick-actions.component'
     QuickActionsComponent,
   ],
   templateUrl: './dashboard-home.html',
-  styleUrls: ['./dashboard-home.scss']
+  styleUrls: ['./dashboard-home.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardHomeComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;
@@ -106,5 +107,14 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
       default:
         return '';
     }
+  }
+
+  // TrackBy functions para otimização de performance
+  trackByTransactionId(index: number, transaction: any): string {
+    return transaction.id;
+  }
+
+  trackByGameId(index: number, game: any): string {
+    return game.id;
   }
 }

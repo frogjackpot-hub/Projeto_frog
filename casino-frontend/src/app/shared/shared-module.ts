@@ -7,6 +7,9 @@ import { RouterModule } from '@angular/router';
 import { LoadingSpinnerComponent } from './components/loading-spinner/loading-spinner.component';
 import { NotificationComponent } from './components/notification/notification.component';
 
+// Directives
+import { LazyLoadDirective } from './directives/lazy-load.directive';
+
 // Pipes
 import { CurrencyPipe } from './pipes/currency.pipe';
 import { DateFormatPipe } from './pipes/date-format.pipe';
@@ -18,9 +21,10 @@ import { DateFormatPipe } from './pipes/date-format.pipe';
     FormsModule,
     RouterModule,
     
-    // Componentes e Pipes Standalone
+    // Componentes, Diretivas e Pipes Standalone
     LoadingSpinnerComponent,
     NotificationComponent,
+    LazyLoadDirective,
     CurrencyPipe,
     DateFormatPipe
   ],
@@ -34,6 +38,9 @@ import { DateFormatPipe } from './pipes/date-format.pipe';
     // Components
     LoadingSpinnerComponent,
     NotificationComponent,
+    
+    // Directives
+    LazyLoadDirective,
     
     // Pipes
     CurrencyPipe,

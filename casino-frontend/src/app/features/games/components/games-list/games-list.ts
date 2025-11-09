@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Game } from '../../../../core/models/game.model';
 import { ApiService } from '../../../../core/services/api.service';
@@ -8,7 +8,8 @@ import { NotificationService } from '../../../../core/services/notification.serv
   selector: 'app-games-list',
   standalone: false,
   templateUrl: './games-list.html',
-  styleUrls: ['./games-list.scss']
+  styleUrls: ['./games-list.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GamesListComponent implements OnInit {
   games: Game[] = [];
@@ -38,6 +39,10 @@ export class GamesListComponent implements OnInit {
         );
       }
     });
+  }
+
+  trackByGameId(index: number, game: Game): string {
+    return game.id;
   }
 
   playGame(game: Game): void {

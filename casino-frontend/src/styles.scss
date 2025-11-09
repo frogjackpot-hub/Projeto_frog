@@ -140,3 +140,20 @@ a {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+// Lazy Loading
+img[appLazyLoad] {
+  transition: opacity 0.3s ease-in-out;
+  opacity: 0.7;
+  filter: blur(2px);
+  
+  &.loaded {
+    opacity: 1;
+    filter: none;
+  }
+  
+  &.error {
+    opacity: 0.5;
+    filter: grayscale(100%);
+  }
+}

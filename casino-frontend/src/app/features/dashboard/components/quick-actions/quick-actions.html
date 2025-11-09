@@ -39,7 +39,7 @@
     <h3>Jogos em Destaque</h3>
     <div class="games-list">
       <div 
-        *ngFor="let game of featuredGames" 
+        *ngFor="let game of featuredGames; trackBy: trackByGameId" 
         class="game-card"
         (click)="playGame(game)"
       >
