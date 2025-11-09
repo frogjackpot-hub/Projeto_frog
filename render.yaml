@@ -23,10 +23,7 @@ services:
       - key: JWT_SECRET
         generateValue: true # Gera um valor aleatório seguro
       - key: CORS_ORIGIN
-        fromService:
-          type: web
-          name: casino-frontend
-          property: url
+        sync: false # Configurar manualmente após deploy
     autoDeploy: true
     rootDir: .
 
@@ -34,7 +31,6 @@ services:
   - type: web
     name: casino-frontend
     runtime: static
-    region: oregon
     plan: free
     buildCommand: cd casino-frontend && npm ci && npm run build:prod
     staticPublishPath: casino-frontend/dist/casino-frontend/browser
