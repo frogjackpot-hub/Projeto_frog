@@ -4,3 +4,6 @@
   [show]="(isLoading$ | async) ?? false" 
   message="Carregando...">
 </app-loading-spinner>
+
+<!-- Modal de usuário bloqueado -->
+<app-blocked-user-modal *ngIf="showBlockedModal$ | async"></app-blocked-user-modal>

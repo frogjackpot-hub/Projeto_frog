@@ -1,40 +1,18 @@
-import { ApplicationRef, ComponentRef, createComponent, EnvironmentInjector, Injectable } from '@angular/core';
-import { BlockedUserModalComponent } from '../components/blocked-user-modal/blocked-user-modal.component';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BlockedUserService {
-  private modalRef: ComponentRef<BlockedUserModalComponent> | null = null;
-
-  constructor(
-    private appRef: ApplicationRef,
-    private injector: EnvironmentInjector
-  ) {}
+  private showModalSubject = new BehaviorSubject<boolean>(false);
+  public showModal$ = this.showModalSubject.asObservable();
 
   showBlockedModal(): void {
-    // Se já existe um modal aberto, não abre outro
-    if (this.modalRef) {
-      return;
-    }
-
-    // Criar o componente dinamicamente
-    this.modalRef = createComponent(BlockedUserModalComponent, {
-      environmentInjector: this.injector
-    });
-
-    // Adicionar ao DOM
-    document.body.appendChild(this.modalRef.location.nativeElement);
-    
-    // Registrar no ApplicationRef
-    this.appRef.attachView(this.modalRef.hostView);
+    this.showModalSubject.next(true);
   }
 
   closeModal(): void {
-    if (this.modalRef) {
-      this.appRef.detachView(this.modalRef.hostView);
-      this.modalRef.destroy();
-      this.modalRef = null;
-    }
+    this.showModalSubject.next(false);
   }
 }

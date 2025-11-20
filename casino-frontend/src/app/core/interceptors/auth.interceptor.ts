@@ -44,16 +44,13 @@ export class AuthInterceptor implements HttpInterceptor {
       catchError(error => {
         // Verificar se o usuário foi bloqueado (403 com code USER_BLOCKED)
         if (error.status === 403 && error.error?.code === 'USER_BLOCKED') {
-          // Limpar autenticação
-          this.authService.logout();
-          
-          // Mostrar modal de bloqueio
+          // Mostrar modal PRIMEIRO
           this.blockedUserService.showBlockedModal();
           
-          // Redirecionar para login após delay
+          // Limpar autenticação DEPOIS (após 1 segundo para o modal renderizar)
           setTimeout(() => {
-            this.router.navigate(['/auth/login']);
-          }, 3000);
+            this.authService.clearAuthDataOnly();
+          }, 1000);
           
           return throwError(() => error);
         }

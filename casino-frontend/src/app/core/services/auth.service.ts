@@ -158,16 +158,21 @@ export class AuthService {
    * Tratar usuário bloqueado
    */
   private handleBlockedUser(): void {
-    // Limpar dados de autenticação
-    this.clearAuthData();
-    
-    // Mostrar modal de bloqueio
+    // Mostrar modal PRIMEIRO
     this.blockedUserService.showBlockedModal();
     
-    // Redirecionar para login após 3 segundos
+    // Limpar dados de autenticação DEPOIS (após 1 segundo)
     setTimeout(() => {
-      this.router.navigate(['/auth/login']);
-    }, 3000);
+      this.clearAuthData();
+    }, 1000);
+  }
+
+  /**
+   * Limpa dados de autenticação sem fazer logout no servidor
+   * (usado quando usuário já foi deslogado pelo backend)
+   */
+  public clearAuthDataOnly(): void {
+    this.clearAuthData();
   }
 
   /**
