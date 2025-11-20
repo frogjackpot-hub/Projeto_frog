@@ -12,7 +12,7 @@ class User {
     this.lastName = data.last_name;
     this.balance = data.balance || 0;
     this.role = data.role || 'player';
-    this.isActive = data.is_active !== false;
+    this.isActive = data.is_active === true || data.is_active === 1;
     this.isVerified = data.is_verified || false;
     this.createdAt = data.created_at;
     this.updatedAt = data.updated_at;

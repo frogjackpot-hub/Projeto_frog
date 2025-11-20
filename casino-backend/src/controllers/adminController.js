@@ -131,14 +131,29 @@ class AdminController {
     try {
       const db = require('../config/database');
       const result = await db.query(
-        'SELECT id, email, username, first_name, last_name, balance, role, is_active, created_at FROM users ORDER BY created_at DESC'
+        'SELECT id, email, username, first_name, last_name, balance, role, is_active, is_verified, created_at, updated_at FROM users ORDER BY created_at DESC'
       );
+
+      // Converter snake_case para camelCase
+      const users = result.rows.map(user => ({
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        balance: parseFloat(user.balance),
+        role: user.role,
+        isActive: user.is_active,
+        isVerified: user.is_verified,
+        createdAt: user.created_at,
+        updatedAt: user.updated_at
+      }));
 
       logger.info(`Admin ${req.user.email} listou todos os usuários`);
 
       res.json({
         success: true,
-        data: result.rows
+        data: users
       });
     } catch (error) {
       logger.error('Erro ao listar usuários:', error);
