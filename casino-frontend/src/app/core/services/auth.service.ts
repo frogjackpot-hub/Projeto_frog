@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
+import { BlockedUserService } from '../../shared/services/blocked-user.service';
 import { AuthResponse, LoginRequest, RegisterRequest, User } from '../models/user.model';
 import { ApiService } from './api.service';
 
@@ -14,7 +16,11 @@ export class AuthService {
   public currentUser$ = this.currentUserSubject.asObservable();
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
-  constructor(private apiService: ApiService) {
+  constructor(
+    private apiService: ApiService,
+    private blockedUserService: BlockedUserService,
+    private router: Router
+  ) {
     this.checkAuthStatus();
   }
 
@@ -123,17 +129,45 @@ export class AuthService {
       map(response => {
         if (response.success && response.data) {
           const user = response.data.user;
+          
+          // Verificar se o usuário foi bloqueado
+          if (!user.isActive) {
+            this.handleBlockedUser();
+            return null;
+          }
+          
           this.currentUserSubject.next(user);
           localStorage.setItem('currentUser', JSON.stringify(user));
           return user;
         }
         return null;
       }),
-      catchError(() => {
-        this.logout();
+      catchError((error) => {
+        // Verificar se o erro é por conta bloqueada
+        if (error?.error?.message?.includes('bloqueado') || error?.error?.message?.includes('bloqueada')) {
+          this.handleBlockedUser();
+        } else {
+          this.logout();
+        }
         return of(null);
       })
     );
+  }
+
+  /**
+   * Tratar usuário bloqueado
+   */
+  private handleBlockedUser(): void {
+    // Limpar dados de autenticação
+    this.clearAuthData();
+    
+    // Mostrar modal de bloqueio
+    this.blockedUserService.showBlockedModal();
+    
+    // Redirecionar para login após 3 segundos
+    setTimeout(() => {
+      this.router.navigate(['/auth/login']);
+    }, 3000);
   }
 
   /**
