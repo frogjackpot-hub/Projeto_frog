@@ -69,7 +69,11 @@ export class DashboardService {
         
         return { transactions, games };
       }),
-      tap(activity => this.recentActivitySubject.next(activity))
+      tap(activity => {
+        this.recentActivitySubject.next(activity);
+        // Atualizar o saldo do usuário sempre que houver novas transações
+        this.authService.refreshUserData().subscribe();
+      })
     );
   }
 

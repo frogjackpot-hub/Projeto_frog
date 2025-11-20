@@ -12,8 +12,11 @@ const app = express();
 // Middleware de segurança
 app.use(helmet());
 
-// CORS
+// CORS - Configurar antes de outras rotas
 app.use(cors(config.cors));
+
+// Tratar requisições OPTIONS explicitamente
+app.options('*', cors(config.cors));
 
 // Rate limiting
 const limiter = rateLimit(config.rateLimit);

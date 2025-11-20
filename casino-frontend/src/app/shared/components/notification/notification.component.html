@@ -1,9 +1,8 @@
 <div class="notifications-container">
   <div 
     *ngFor="let notification of notifications" 
-    class="notification"
+    class="notification notification-slide-in"
     [ngClass]="'notification-' + notification.type"
-    [@slideIn]
   >
     <div class="notification-content">
       <div class="notification-header">

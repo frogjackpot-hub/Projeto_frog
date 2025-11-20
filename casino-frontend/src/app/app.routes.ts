@@ -25,6 +25,12 @@ export const routes: Routes = [
     ]
   },
   
+  // Rotas administrativas
+  {
+    path: 'admin',
+    loadChildren: () => import('./features/admin/admin.routes').then(m => m.adminRoutes)
+  },
+  
   // Rotas principais (requerem autenticação)
   {
     path: '',

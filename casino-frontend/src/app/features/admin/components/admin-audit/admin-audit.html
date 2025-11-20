@@ -1,0 +1,71 @@
+<div class="admin-audit">
+  <div class="page-header">
+    <h1>Logs de Auditoria</h1>
+    <button class="refresh-btn" (click)="loadAuditLogs()" [disabled]="isLoading">
+      🔄 Atualizar
+    </button>
+  </div>
+
+  <div class="filters-section">
+    <div class="filter-group">
+      <label>Ação:</label>
+      <select [(ngModel)]="filterAction" (change)="applyFilters()">
+        <option value="">Todas</option>
+        <option *ngFor="let action of actions" [value]="action">{{ getActionLabel(action) }}</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Recurso:</label>
+      <select [(ngModel)]="filterResource" (change)="applyFilters()">
+        <option value="">Todos</option>
+        <option *ngFor="let resource of resources" [value]="resource">{{ resource }}</option>
+      </select>
+    </div>
+
+    <button class="clear-btn" (click)="clearFilters()">
+      🗑️ Limpar Filtros
+    </button>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-container">
+    <p>Carregando logs...</p>
+  </div>
+
+  <div *ngIf="!isLoading && filteredLogs.length > 0" class="logs-container">
+    <div *ngFor="let log of filteredLogs" class="log-card">
+      <div class="log-header">
+        <span class="log-action" [ngClass]="getActionClass(log.action)">
+          {{ getActionLabel(log.action) }}
+        </span>
+        <span class="log-date">{{ log.createdAt | date: 'dd/MM/yyyy HH:mm:ss' }}</span>
+      </div>
+      
+      <div class="log-body">
+        <div class="log-info">
+          <span class="info-label">Administrador:</span>
+          <span class="info-value">{{ log.adminEmail }} ({{ log.adminUsername }})</span>
+        </div>
+        
+        <div class="log-info" *ngIf="log.resourceType">
+          <span class="info-label">Recurso:</span>
+          <span class="info-value">{{ log.resourceType }} - {{ log.resourceId }}</span>
+        </div>
+
+        <div class="log-info" *ngIf="log.ipAddress">
+          <span class="info-label">IP:</span>
+          <span class="info-value">{{ log.ipAddress }}</span>
+        </div>
+
+        <div class="log-details" *ngIf="log.details">
+          <span class="info-label">Detalhes:</span>
+          <pre>{{ log.details | json }}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading && filteredLogs.length === 0" class="empty-state">
+    <p>Nenhum log encontrado com os filtros aplicados</p>
+  </div>
+</div>

@@ -1,0 +1,45 @@
+<div class="admin-config">
+  <div class="page-header">
+    <h1>Configurações do Cassino</h1>
+    <button class="save-btn" (click)="saveConfig()" [disabled]="isSaving || isLoading">
+      {{ isSaving ? '💾 Salvando...' : '💾 Salvar Configurações' }}
+    </button>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-container">
+    <p>Carregando configurações...</p>
+  </div>
+
+  <div *ngIf="!isLoading" class="config-grid">
+    <div *ngFor="let config of configs" class="config-card">
+      <div class="config-header">
+        <h3>{{ config.key }}</h3>
+      </div>
+      
+      <div class="config-body">
+        <p class="config-description">{{ config.description }}</p>
+        
+        <div class="config-input">
+          <input 
+            *ngIf="typeof getConfigValue(config) === 'number' || typeof getConfigValue(config) === 'string'"
+            [type]="typeof getConfigValue(config) === 'number' ? 'number' : 'text'"
+            [value]="getConfigValue(config)"
+            (input)="updateConfigValue(config, $any($event.target).value)"
+            step="0.01"
+          />
+          
+          <textarea 
+            *ngIf="typeof getConfigValue(config) === 'object'"
+            [value]="getConfigValue(config) | json"
+            (input)="updateConfigValue(config, $any($event.target).value)"
+            rows="4"
+          ></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading && configs.length === 0" class="empty-state">
+    <p>Nenhuma configuração disponível</p>
+  </div>
+</div>

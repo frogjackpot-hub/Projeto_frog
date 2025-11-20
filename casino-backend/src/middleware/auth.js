@@ -31,6 +31,25 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
+    // Verificar se o usuário está ativo (não bloqueado)
+    // Exceção: permitir que admins acessem /admin/users/:id/toggle-status mesmo bloqueados
+    const isToggleStatusRoute = req.url.includes('/toggle-status');
+    if (!user.isActive && !isToggleStatusRoute) {
+      const logger = require('../utils/logger');
+      const tokenHint = token.length > 10 ? `...${token.slice(-6)}` : token;
+      logger.warn('Tentativa de acesso com usuário bloqueado', { 
+        url: req.url, 
+        method: req.method, 
+        ip: req.ip, 
+        userId: user.id,
+        tokenHint 
+      });
+      return res.status(403).json({ 
+        error: 'Sua conta foi bloqueada. Entre em contato com o suporte.',
+        code: 'USER_BLOCKED'
+      });
+    }
+
     req.user = user;
     next();
   } catch (error) {
@@ -73,7 +92,31 @@ const requireRole = (roles) => {
   };
 };
 
+/**
+ * Middleware específico para proteger rotas de administrador
+ */
+const requireAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ 
+      error: 'Usuário não autenticado',
+      code: 'NOT_AUTHENTICATED'
+    });
+  }
+
+  if (req.user.role !== 'admin') {
+    const logger = require('../utils/logger');
+    logger.warn(`Tentativa de acesso admin negada para usuário: ${req.user.id}`);
+    return res.status(403).json({ 
+      error: 'Acesso negado. Apenas administradores.',
+      code: 'ADMIN_ONLY'
+    });
+  }
+
+  next();
+};
+
 module.exports = {
   authenticateToken,
   requireRole,
+  requireAdmin,
 };

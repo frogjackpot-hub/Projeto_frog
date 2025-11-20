@@ -1,0 +1,56 @@
+<div class="admin-games">
+  <div class="page-header">
+    <h1>Estatísticas de Jogos</h1>
+    <div class="period-selector">
+      <button [class.active]="period === 'all'" (click)="changePeriod('all')">Todos</button>
+      <button [class.active]="period === 'today'" (click)="changePeriod('today')">Hoje</button>
+      <button [class.active]="period === 'month'" (click)="changePeriod('month')">Mês</button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-container">
+    <p>Carregando estatísticas...</p>
+  </div>
+
+  <div *ngIf="!isLoading && games.length > 0" class="games-grid">
+    <div *ngFor="let game of games" class="game-card">
+      <div class="game-header">
+        <h3>{{ game.name }}</h3>
+        <span class="game-type">{{ game.type }}</span>
+      </div>
+      
+      <div class="game-stats">
+        <div class="stat-item">
+          <span class="label">Total Apostado:</span>
+          <span class="value">{{ game.totalWagered | appCurrency }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="label">Total Pago:</span>
+          <span class="value">{{ game.totalWins | appCurrency }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="label">Lucro:</span>
+          <span class="value profit" [class.positive]="game.profit > 0">
+            {{ game.profit | appCurrency }}
+          </span>
+        </div>
+        <div class="stat-item">
+          <span class="label">Apostas:</span>
+          <span class="value">{{ game.totalBets }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="label">RTP:</span>
+          <span class="value">{{ game.rtp }}%</span>
+        </div>
+        <div class="stat-item">
+          <span class="label">Win Rate:</span>
+          <span class="value">{{ game.winRate }}%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading && games.length === 0" class="empty-state">
+    <p>Nenhuma estatística disponível para o período selecionado</p>
+  </div>
+</div>

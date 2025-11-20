@@ -1,6 +1,5 @@
-import { animate, style, transition, trigger } from '@angular/animations';
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Notification, NotificationService } from '../../../core/services/notification.service';
 
@@ -10,28 +9,24 @@ import { Notification, NotificationService } from '../../../core/services/notifi
   styleUrls: ['./notification.component.scss'],
   standalone: true,
   imports: [CommonModule],
-  animations: [
-    trigger('slideIn', [
-      transition(':enter', [
-        style({ transform: 'translateX(100%)', opacity: 0 }),
-        animate('300ms ease-in', style({ transform: 'translateX(0%)', opacity: 1 }))
-      ]),
-      transition(':leave', [
-        animate('300ms ease-out', style({ transform: 'translateX(100%)', opacity: 0 }))
-      ])
-    ])
-  ]
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NotificationComponent implements OnInit, OnDestroy {
   notifications: Notification[] = [];
   private subscription: Subscription = new Subscription();
 
-  constructor(private notificationService: NotificationService) {}
+  constructor(
+    private notificationService: NotificationService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.subscription.add(
       this.notificationService.notifications$.subscribe(
-        notifications => this.notifications = notifications
+        notifications => {
+          this.notifications = notifications;
+          this.cdr.markForCheck();
+        }
       )
     );
   }
@@ -42,5 +37,6 @@ export class NotificationComponent implements OnInit, OnDestroy {
 
   removeNotification(id: string): void {
     this.notificationService.remove(id);
+    this.cdr.markForCheck();
   }
 }

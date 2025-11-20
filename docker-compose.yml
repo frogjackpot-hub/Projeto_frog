@@ -26,6 +26,10 @@ services:
       NODE_ENV: development
       DATABASE_URL: postgres://user:password@db:5432/casino_db
       JWT_SECRET: supersecretjwtkey
+      ADMIN_EMAIL: admin@casino.com
+      ADMIN_PASSWORD: Admin@123
+      CORS_ORIGIN: "http://localhost:4200,http://127.0.0.1:4200"
+      LOG_LEVEL: info
     ports:
       - "3000:3000"
     depends_on:

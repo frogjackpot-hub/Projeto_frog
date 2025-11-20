@@ -112,11 +112,13 @@ export class AuthService {
     );
   }
 
-  getCurrentUser(): Observable<User | null> {
-    if (this.currentUserSubject.value) {
+  getCurrentUser(forceRefresh: boolean = false): Observable<User | null> {
+    // Se não forçar refresh e já tem usuário, retorna o cached
+    if (!forceRefresh && this.currentUserSubject.value) {
       return of(this.currentUserSubject.value);
     }
 
+    // Busca os dados atualizados do servidor
     return this.apiService.get<{ user: User }>('auth/profile').pipe(
       map(response => {
         if (response.success && response.data) {
@@ -134,8 +136,19 @@ export class AuthService {
     );
   }
 
+  /**
+   * Força atualização do usuário (útil após operações que alteram o saldo)
+   */
+  refreshUserData(): Observable<User | null> {
+    return this.getCurrentUser(true);
+  }
+
   private setAuthData(authData: AuthResponse['data']): void {
     const { user, tokens } = authData;
+    
+    // Limpar tokens de admin se existirem
+    localStorage.removeItem('admin_token');
+    localStorage.removeItem('admin_user');
     
     localStorage.setItem('accessToken', tokens.accessToken);
     localStorage.setItem('refreshToken', tokens.refreshToken);

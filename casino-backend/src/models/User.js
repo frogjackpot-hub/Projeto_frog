@@ -126,6 +126,107 @@ class User {
     }
   }
 
+  static async findAll() {
+    const query = 'SELECT * FROM users ORDER BY created_at DESC';
+    
+    try {
+      const result = await db.query(query);
+      return result.rows.map(row => new User(row));
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async findByIdWithInactive(id) {
+    const query = 'SELECT * FROM users WHERE id = $1';
+    
+    try {
+      const result = await db.query(query, [id]);
+      return result.rows.length > 0 ? new User(result.rows[0]) : null;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async update(id, updates) {
+    const allowedFields = ['first_name', 'last_name', 'email', 'username'];
+    const updateFields = [];
+    const values = [];
+    let valueIndex = 1;
+
+    Object.keys(updates).forEach(key => {
+      if (allowedFields.includes(key)) {
+        updateFields.push(`${key} = $${valueIndex}`);
+        values.push(updates[key]);
+        valueIndex++;
+      }
+    });
+
+    if (updateFields.length === 0) {
+      throw new Error('Nenhum campo válido para atualizar');
+    }
+
+    updateFields.push('updated_at = NOW()');
+    values.push(id);
+
+    const query = `
+      UPDATE users 
+      SET ${updateFields.join(', ')}
+      WHERE id = $${valueIndex}
+      RETURNING *
+    `;
+
+    try {
+      const result = await db.query(query, values);
+      return result.rows.length > 0 ? new User(result.rows[0]) : null;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async updateBalance(id, amount, description = '') {
+    const query = `
+      UPDATE users 
+      SET balance = balance + $1, updated_at = NOW()
+      WHERE id = $2
+      RETURNING *
+    `;
+
+    try {
+      const result = await db.query(query, [amount, id]);
+      return result.rows.length > 0 ? new User(result.rows[0]) : null;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async toggleStatus(id) {
+    const query = `
+      UPDATE users 
+      SET is_active = NOT is_active, updated_at = NOW()
+      WHERE id = $1
+      RETURNING *
+    `;
+
+    try {
+      const result = await db.query(query, [id]);
+      return result.rows.length > 0 ? new User(result.rows[0]) : null;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async delete(id) {
+    const query = 'DELETE FROM users WHERE id = $1 RETURNING *';
+
+    try {
+      const result = await db.query(query, [id]);
+      return result.rows.length > 0;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   toJSON() {
     const { password, ...userWithoutPassword } = this;
     return userWithoutPassword;

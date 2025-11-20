@@ -5,6 +5,8 @@ const router = express.Router();
 const authRoutes = require('./auth');
 const gameRoutes = require('./games');
 const walletRoutes = require('./wallet');
+const dashboardRoutes = require('./dashboard');
+const adminRoutes = require('./admin');
 
 // Rota de health check
 router.get('/health', (req, res) => {
@@ -20,5 +22,7 @@ router.get('/health', (req, res) => {
 router.use('/auth', authRoutes);
 router.use('/games', gameRoutes);
 router.use('/wallet', walletRoutes);
+router.use('/dashboard', dashboardRoutes);
+router.use('/admin', adminRoutes);
 
 module.exports = router;

@@ -1,0 +1,121 @@
+<div class="admin-dashboard">
+  <!-- Sidebar Navigation -->
+  <nav class="admin-sidebar">
+    <div class="sidebar-header">
+      <h2>🎰 Admin</h2>
+    </div>
+    <ul class="sidebar-menu">
+      <li><a routerLink="/admin/dashboard" routerLinkActive="active">📊 Dashboard</a></li>
+      <li><a routerLink="/admin/users" routerLinkActive="active">👥 Usuários</a></li>
+      <li><a routerLink="/admin/games" routerLinkActive="active">🎮 Jogos</a></li>
+      <li><a routerLink="/admin/config" routerLinkActive="active">⚙️ Configurações</a></li>
+      <li><a routerLink="/admin/audit" routerLinkActive="active">📋 Auditoria</a></li>
+    </ul>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="admin-content">
+    <!-- Header -->
+    <header class="admin-header">
+      <div class="header-content">
+        <div class="brand">
+          <h1>🎰 Painel Administrativo</h1>
+        </div>
+        <div class="admin-info" *ngIf="currentAdmin">
+          <span class="admin-name">{{ currentAdmin.firstName }} {{ currentAdmin.lastName }}</span>
+          <button class="logout-btn" (click)="logout()">
+            🚪 Sair
+          </button>
+        </div>
+      </div>
+    </header>
+
+  <!-- Estatísticas -->
+  <section class="stats-section">
+    <h2>Estatísticas do Sistema</h2>
+    
+    <div *ngIf="isLoadingStats" class="loading">
+      <span class="spinner"></span>
+      Carregando estatísticas...
+    </div>
+
+    <div *ngIf="!isLoadingStats && stats" class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-info">
+          <h3>Total de Usuários</h3>
+          <p class="stat-value">{{ stats.totalUsers }}</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">💳</div>
+        <div class="stat-info">
+          <h3>Total de Transações</h3>
+          <p class="stat-value">{{ stats.totalTransactions }}</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-info">
+          <h3>Volume Financeiro</h3>
+          <p class="stat-value">{{ stats.totalAmount | appCurrency }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Lista de Usuários -->
+  <section class="users-section">
+    <div class="section-header">
+      <h2>Usuários Cadastrados</h2>
+      <button class="refresh-btn" (click)="loadUsers()" [disabled]="isLoadingUsers">
+        🔄 Atualizar
+      </button>
+    </div>
+
+    <div *ngIf="isLoadingUsers" class="loading">
+      <span class="spinner"></span>
+      Carregando usuários...
+    </div>
+
+    <div *ngIf="!isLoadingUsers && users.length > 0" class="users-table-container">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Email</th>
+            <th>Username</th>
+            <th>Saldo</th>
+            <th>Função</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of users">
+            <td>{{ user.firstName }} {{ user.lastName }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.username }}</td>
+            <td class="balance">{{ user.balance | appCurrency }}</td>
+            <td>
+              <span class="role-badge" [class.role-admin]="user.role === 'admin'">
+                {{ user.role === 'admin' ? '👑 Admin' : '🎮 Jogador' }}
+              </span>
+            </td>
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(user)">
+                {{ getUserStatusBadge(user) }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="!isLoadingUsers && users.length === 0" class="empty-state">
+      <p>Nenhum usuário encontrado</p>
+    </div>
+  </section>
+  </div>
+</div>

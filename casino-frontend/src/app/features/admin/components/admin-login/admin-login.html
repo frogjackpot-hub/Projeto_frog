@@ -1,0 +1,74 @@
+<div class="admin-login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="admin-icon">🔐</div>
+      <h1>Painel Administrativo</h1>
+      <p>Faça login para acessar o sistema</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <!-- Email -->
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="admin@casino.com"
+          [class.error]="hasError('email')"
+          autocomplete="email"
+        />
+        <span class="error-message" *ngIf="hasError('email')">
+          {{ getErrorMessage('email') }}
+        </span>
+      </div>
+
+      <!-- Senha -->
+      <div class="form-group">
+        <label for="password">Senha</label>
+        <div class="password-input">
+          <input
+            id="password"
+            [type]="showPassword ? 'text' : 'password'"
+            formControlName="password"
+            placeholder="••••••••"
+            [class.error]="hasError('password')"
+            autocomplete="current-password"
+          />
+          <button
+            type="button"
+            class="toggle-password"
+            (click)="togglePasswordVisibility()"
+            tabindex="-1"
+          >
+            {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+          </button>
+        </div>
+        <span class="error-message" *ngIf="hasError('password')">
+          {{ getErrorMessage('password') }}
+        </span>
+      </div>
+
+      <!-- Botão de login -->
+      <button
+        type="submit"
+        class="login-btn"
+        [disabled]="isSubmitting || loginForm.invalid"
+      >
+        <span *ngIf="!isSubmitting">Entrar</span>
+        <span *ngIf="isSubmitting" class="loading">
+          <span class="spinner"></span>
+          Entrando...
+        </span>
+      </button>
+    </form>
+
+    <div class="login-footer">
+      <p>
+        <a routerLink="/">← Voltar ao site</a>
+      </p>
+    </div>
+  </div>
+
+  <div class="background-pattern"></div>
+</div>

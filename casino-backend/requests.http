@@ -70,3 +70,32 @@ Content-Type: application/json
 ### Histórico de transações
 GET {{baseUrl}}/wallet/transactions
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+### ========================================
+### ROTAS DE ADMINISTRADOR
+### ========================================
+
+### Login Admin
+POST {{baseUrl}}/admin/login
+Content-Type: application/json
+
+{
+  "email": "admin@casino.com",
+  "password": "Admin@123"
+}
+
+### Obter Perfil Admin
+GET {{baseUrl}}/admin/profile
+Authorization: Bearer {{accessToken}}
+
+### Listar Todos os Usuários (Admin)
+GET {{baseUrl}}/admin/users
+Authorization: Bearer {{accessToken}}
+
+### Obter Estatísticas do Sistema (Admin)
+GET {{baseUrl}}/admin/stats
+Authorization: Bearer {{accessToken}}
+
+### Logout Admin
+POST {{baseUrl}}/admin/logout
+Authorization: Bearer {{accessToken}}

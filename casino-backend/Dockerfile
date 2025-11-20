@@ -8,6 +8,10 @@ RUN npm install
 
 COPY . .
 
+# Dar permissão de execução ao script
+RUN chmod +x docker-entrypoint.sh
+
 EXPOSE 3000
 
-CMD [ "npm", "start" ]
+# Usar o script de inicialização
+CMD [ "sh", "docker-entrypoint.sh" ]

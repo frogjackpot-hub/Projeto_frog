@@ -1,0 +1,224 @@
+<div class="admin-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <span class="icon">🎰</span>
+      <h2>Admin</h2>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <a routerLink="/admin/dashboard" routerLinkActive="active" class="nav-item">
+        <span class="icon">📊</span>
+        Dashboard
+      </a>
+      <a routerLink="/admin/users" routerLinkActive="active" class="nav-item">
+        <span class="icon">👥</span>
+        Usuários
+      </a>
+      <a routerLink="/admin/games" routerLinkActive="active" class="nav-item">
+        <span class="icon">🎮</span>
+        Jogos
+      </a>
+      <a routerLink="/admin/config" routerLinkActive="active" class="nav-item">
+        <span class="icon">⚙️</span>
+        Configurações
+      </a>
+      <a routerLink="/admin/audit" routerLinkActive="active" class="nav-item">
+        <span class="icon">📋</span>
+        Auditoria
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="top-bar">
+      <div class="page-title">
+        <span class="icon">🎰</span>
+        <h1>Painel Administrativo</h1>
+      </div>
+      <div class="admin-info">
+        <span class="admin-label">Administrador Sistema</span>
+        <button class="logout-btn" (click)="logout()">🚪 Sair</button>
+      </div>
+    </div>
+
+    <div class="admin-users">
+      <div class="page-header">
+        <h1>Gestão de Usuários</h1>
+        <button class="refresh-btn" (click)="loadUsers()" [disabled]="isLoading">
+          🔄 Atualizar
+        </button>
+      </div>
+
+  <div class="filters-section">
+    <div class="search-box">
+      <input 
+        type="text" 
+        placeholder="Buscar por nome, email ou username..." 
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="onSearchChange()"
+      />
+    </div>
+
+    <div class="filter-buttons">
+      <button 
+        [class.active]="filterStatus === 'all'" 
+        (click)="filterStatus = 'all'; onFilterChange()">
+        Todos
+      </button>
+      <button 
+        [class.active]="filterStatus === 'active'" 
+        (click)="filterStatus = 'active'; onFilterChange()">
+        Ativos
+      </button>
+      <button 
+        [class.active]="filterStatus === 'inactive'" 
+        (click)="filterStatus = 'inactive'; onFilterChange()">
+        Bloqueados
+      </button>
+      <button 
+        [class.active]="filterStatus === 'player'" 
+        (click)="filterStatus = 'player'; onFilterChange()">
+        Jogadores
+      </button>
+      <button 
+        [class.active]="filterStatus === 'admin'" 
+        (click)="filterStatus = 'admin'; onFilterChange()">
+        Administradores
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-container">
+    <p>Carregando usuários...</p>
+  </div>
+
+  <div *ngIf="!isLoading && filteredUsers.length > 0" class="users-table-container">
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Username</th>
+          <th>Saldo</th>
+          <th>Função</th>
+          <th>Status</th>
+          <th>Data de Cadastro</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of filteredUsers">
+          <td>{{ user.firstName }} {{ user.lastName }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.username }}</td>
+          <td class="balance">{{ user.balance | appCurrency }}</td>
+          <td>
+            <span class="role-badge" [class.role-admin]="user.role === 'admin'">
+              {{ user.role === 'admin' ? '👑 Admin' : '🎮 Jogador' }}
+            </span>
+          </td>
+          <td>
+            <span class="status-badge" [ngClass]="getStatusClass(user)">
+              {{ getUserStatusBadge(user) }}
+            </span>
+          </td>
+          <td>{{ user.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+          <td class="actions">
+            <button class="btn-edit" (click)="openEditModal(user)" title="Editar">
+              ✏️
+            </button>
+            <button class="btn-balance-add" (click)="openBalanceModal(user, 'add')" title="Adicionar Saldo">
+              💰+
+            </button>
+            <button class="btn-balance-remove" (click)="openBalanceModal(user, 'remove')" title="Remover Saldo">
+              💰-
+            </button>
+            <button 
+              class="btn-toggle" 
+              (click)="toggleUserStatus(user)" 
+              [title]="user.isActive ? 'Bloquear' : 'Desbloquear'">
+              {{ user.isActive ? '🔒' : '🔓' }}
+            </button>
+            <button 
+              *ngIf="user.role !== 'admin'"
+              class="btn-delete" 
+              (click)="deleteUser(user)" 
+              title="Deletar">
+              🗑️
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="!isLoading && filteredUsers.length === 0" class="empty-state">
+    <p>Nenhum usuário encontrado com os filtros aplicados</p>
+  </div>
+
+  <!-- Modal de Edição -->
+  <div class="modal-overlay" *ngIf="showEditModal" (click)="closeEditModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Editar Usuário</h2>
+        <button class="close-btn" (click)="closeEditModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nome</label>
+          <input type="text" [(ngModel)]="editForm.firstName" />
+        </div>
+        <div class="form-group">
+          <label>Sobrenome</label>
+          <input type="text" [(ngModel)]="editForm.lastName" />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" [(ngModel)]="editForm.email" />
+        </div>
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" [(ngModel)]="editForm.username" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeEditModal()">Cancelar</button>
+        <button class="btn-save" (click)="saveUserChanges()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Saldo -->
+  <div class="modal-overlay" *ngIf="showBalanceModal" (click)="closeBalanceModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ balanceForm.operation === 'add' ? 'Adicionar' : 'Remover' }} Saldo</h2>
+        <button class="close-btn" (click)="closeBalanceModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="user-info" *ngIf="selectedUser">
+          Usuário: <strong>{{ selectedUser.username }}</strong><br>
+          Saldo atual: <strong>{{ selectedUser.balance | appCurrency }}</strong>
+        </p>
+        <div class="form-group">
+          <label>Valor</label>
+          <input type="number" [(ngModel)]="balanceForm.amount" min="0" step="0.01" />
+        </div>
+        <div class="form-group">
+          <label>Descrição (opcional)</label>
+          <textarea [(ngModel)]="balanceForm.description" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeBalanceModal()">Cancelar</button>
+        <button class="btn-save" (click)="saveBalanceChanges()">
+          {{ balanceForm.operation === 'add' ? 'Adicionar' : 'Remover' }}
+        </button>
+      </div>
+    </div>
+  </div>
+    </div>
+  </main>
+</div>

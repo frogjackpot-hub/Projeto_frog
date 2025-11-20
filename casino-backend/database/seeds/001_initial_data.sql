@@ -32,13 +32,16 @@ INSERT INTO games (id, name, type, min_bet, max_bet, rtp, description, rules) VA
     '{"decks": 6, "dealer_stands_on": "soft_17", "blackjack_pays": "3:2"}'
 );
 
--- Inserir usuário administrador padrão (senha: Ti43!@#$)
+-- Inserir usuário administrador padrão
+-- Email: admin@casino.com
+-- Senha: Admin@123
+-- IMPORTANTE: Altere a senha após o primeiro login!
 INSERT INTO users (id, email, username, password, first_name, last_name, balance, role, is_verified) VALUES
 (
     'd4e5f6a7-b8c9-0123-defa-456789012345',
-    'admin@gmail.com',
+    'admin@casino.com',
     'admin',
-    '$2a$12$zCqPJXy.2j0Dtb0A64fPRuleXTx3Cz5K2FQggbZDGdINz/ifeiwCe',
+    '$2a$12$SrpZG8Qu9Ws/FWBz/GcDA.6P2gKU6EVG0Zii4ItGB8Owlkid8NhGq',
     'Administrador',
     'Sistema',
     10000.00,
