@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { BlockedUserService } from '../../shared/services/blocked-user.service';
 import { AuthResponse, LoginRequest, RegisterRequest, User } from '../models/user.model';
 import { ApiService } from './api.service';
 
@@ -12,16 +11,71 @@ import { ApiService } from './api.service';
 export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
+  private statusCheckInterval: any = null;
 
   public currentUser$ = this.currentUserSubject.asObservable();
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
   constructor(
     private apiService: ApiService,
-    private blockedUserService: BlockedUserService,
     private router: Router
   ) {
     this.checkAuthStatus();
+    this.setupStorageListener();
+    // Verificação periódica desabilitada - confiar apenas no interceptor
+    // this.startStatusCheck();
+  }
+
+  /**
+   * Configurar listener para sincronizar autenticação entre abas
+   */
+  private setupStorageListener(): void {
+    window.addEventListener('storage', (event) => {
+      // Detectar mudanças no token de acesso
+      if (event.key === 'accessToken' || event.key === 'admin_token') {
+        // Se o token foi removido ou alterado, verificar o estado
+        this.checkAuthStatus();
+        
+        // Se foi login de admin, deslogar usuário comum
+        if (event.key === 'admin_token' && event.newValue) {
+          this.clearAuthData();
+          this.router.navigate(['/auth/login']);
+        }
+        
+        // Se o token de usuário foi removido, deslogar
+        if (event.key === 'accessToken' && !event.newValue) {
+          this.clearAuthData();
+          this.router.navigate(['/auth/login']);
+        }
+      }
+      
+      // Detectar evento customizado de logout
+      if (event.key === 'auth_event') {
+        const eventData = event.newValue ? JSON.parse(event.newValue) : null;
+        
+        if (eventData?.type === 'logout') {
+          this.clearAuthData();
+          this.router.navigate(['/auth/login']);
+        }
+        
+        if (eventData?.type === 'admin_login') {
+          this.clearAuthData();
+          this.router.navigate(['/auth/login']);
+        }
+      }
+      
+      // Detectar quando usuário é bloqueado pelo admin
+      if (event.key === 'user_blocked') {
+        const blockedUserId = event.newValue;
+        const currentUser = this.currentUserValue;
+        
+        // Se o ID corresponde ao usuário atual, bloquear
+        if (currentUser && currentUser.id === blockedUserId) {
+          console.log('Usuário foi bloqueado pelo administrador');
+          this.handleBlockedUser();
+        }
+      }
+    });
   }
 
   private checkAuthStatus(): void {
@@ -34,9 +88,14 @@ export class AuthService {
         this.currentUserSubject.next(user);
         this.isAuthenticatedSubject.next(true);
       } catch (error) {
+        console.log('⚠️ Erro ao validar dados do usuário - Limpando sessão');
         this.clearAuthData();
       }
     } else {
+      // Token inválido ou ausente
+      if (token || userData) {
+        console.log('⚠️ Token expirado ou inválido - Limpando sessão');
+      }
       this.clearAuthData();
     }
   }
@@ -155,16 +214,76 @@ export class AuthService {
   }
 
   /**
+   * Iniciar verificação periódica de status do usuário
+   * Verifica a cada 30 segundos se o usuário ainda está ativo
+   */
+  private startStatusCheck(): void {
+    // Limpar qualquer verificação anterior
+    if (this.statusCheckInterval) {
+      clearInterval(this.statusCheckInterval);
+    }
+    
+    // Verificar a cada 30 segundos
+    this.statusCheckInterval = setInterval(() => {
+      const currentUser = this.currentUserValue;
+      const token = localStorage.getItem('accessToken');
+      
+      // Só verificar se houver usuário logado
+      if (currentUser && token && !this.isTokenExpired()) {
+        this.checkUserStatus();
+      }
+    }, 30000); // 30 segundos
+  }
+  
+  /**
+   * Verificar status do usuário no servidor
+   */
+  private checkUserStatus(): void {
+    this.apiService.get<{ user: User }>('auth/profile').subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          const user = response.data.user;
+          
+          // Verificar se o usuário foi bloqueado
+          if (!user.isActive) {
+            console.log('Usuário foi bloqueado - deslogando automaticamente');
+            this.handleBlockedUser();
+          }
+        }
+      },
+      error: (error) => {
+        // Se houver erro de autenticação, pode ser que o usuário foi bloqueado
+        if (error?.status === 401 || error?.status === 403) {
+          const errorMessage = error?.error?.message || '';
+          if (errorMessage.includes('bloqueado') || errorMessage.includes('bloqueada')) {
+            this.handleBlockedUser();
+          }
+        }
+      }
+    });
+  }
+
+  /**
    * Tratar usuário bloqueado
    */
   private handleBlockedUser(): void {
-    // Mostrar modal PRIMEIRO
-    this.blockedUserService.showBlockedModal();
+    console.log('🚫 BLOQUEIO DETECTADO - Redirecionando para login');
     
-    // Limpar dados de autenticação DEPOIS (após 1 segundo)
-    setTimeout(() => {
-      this.clearAuthData();
-    }, 1000);
+    // Parar verificação de status
+    if (this.statusCheckInterval) {
+      clearInterval(this.statusCheckInterval);
+      this.statusCheckInterval = null;
+    }
+    
+    // Limpar dados de autenticação IMEDIATAMENTE
+    this.clearAuthData();
+    
+    // Marcar que o usuário foi bloqueado
+    localStorage.setItem('user_blocked_reason', 'Sua conta foi bloqueada pelo administrador.');
+    
+    // Forçar redirecionamento IMEDIATO para login
+    console.log('🔄 Redirecionando para tela de login...');
+    window.location.href = '/auth/login?blocked=true';
   }
 
   /**
@@ -193,17 +312,45 @@ export class AuthService {
     localStorage.setItem('refreshToken', tokens.refreshToken);
     localStorage.setItem('currentUser', JSON.stringify(user));
     
+    // Notificar outras abas sobre o login
+    this.notifyOtherTabs('login');
+    
     this.currentUserSubject.next(user);
     this.isAuthenticatedSubject.next(true);
+    
+    // Iniciar verificação de status
+    this.startStatusCheck();
   }
 
   private clearAuthData(): void {
+    // Parar verificação de status
+    if (this.statusCheckInterval) {
+      clearInterval(this.statusCheckInterval);
+      this.statusCheckInterval = null;
+    }
+    
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('currentUser');
     
+    // Notificar outras abas sobre o logout
+    this.notifyOtherTabs('logout');
+    
     this.currentUserSubject.next(null);
     this.isAuthenticatedSubject.next(false);
+  }
+
+  /**
+   * Notificar outras abas sobre mudanças de autenticação
+   */
+  private notifyOtherTabs(type: 'login' | 'logout'): void {
+    const event = {
+      type,
+      timestamp: Date.now()
+    };
+    localStorage.setItem('auth_event', JSON.stringify(event));
+    // Remover o evento após um breve período para permitir nova detecção
+    setTimeout(() => localStorage.removeItem('auth_event'), 100);
   }
 
   isTokenExpired(): boolean {

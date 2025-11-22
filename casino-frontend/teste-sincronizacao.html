@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Sincronização entre Abas</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            opacity: 0.8;
+            margin-bottom: 30px;
+        }
+        
+        .info-box {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .status-label {
+            font-weight: bold;
+        }
+        
+        .status-value {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        
+        .logged-in {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .logged-out {
+            background: #f44336;
+            color: white;
+        }
+        
+        .instructions {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .instructions h3 {
+            margin-top: 0;
+        }
+        
+        .instructions ol {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .event-log {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+        
+        .event-log-entry {
+            padding: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .event-log-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .timestamp {
+            color: #ffd700;
+            margin-right: 10px;
+        }
+        
+        .event-type {
+            color: #4caf50;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Teste de Sincronização entre Abas</h1>
+        <p class="subtitle">Abra esta página em múltiplas abas para testar a sincronização</p>
+        
+        <div class="info-box">
+            <div class="status">
+                <span class="status-label">Usuário Comum:</span>
+                <span id="userStatus" class="status-value logged-out">Deslogado</span>
+            </div>
+            
+            <div class="status">
+                <span class="status-label">Admin:</span>
+                <span id="adminStatus" class="status-value logged-out">Deslogado</span>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>📋 Instruções de Teste:</h3>
+            <ol>
+                <li>Abra esta página em <strong>duas ou mais abas</strong></li>
+                <li>No <strong>console do navegador (F12)</strong>, execute os comandos abaixo</li>
+                <li>Observe como as outras abas <strong>atualizam automaticamente</strong></li>
+            </ol>
+            
+            <h3>🧪 Comandos de Teste:</h3>
+            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 5px; font-family: monospace;">
+                <p><strong>Simular Login de Usuário Comum:</strong></p>
+                <code>localStorage.setItem('accessToken', 'fake-user-token-' + Date.now());</code>
+                
+                <p style="margin-top: 15px;"><strong>Simular Login de Admin:</strong></p>
+                <code>localStorage.setItem('admin_token', 'fake-admin-token-' + Date.now());</code>
+                
+                <p style="margin-top: 15px;"><strong>Simular Logout de Usuário:</strong></p>
+                <code>localStorage.removeItem('accessToken');</code>
+                
+                <p style="margin-top: 15px;"><strong>Simular Logout de Admin:</strong></p>
+                <code>localStorage.removeItem('admin_token');</code>
+            </div>
+        </div>
+        
+        <div class="event-log">
+            <h3 style="margin-top: 0;">📝 Log de Eventos:</h3>
+            <div id="eventLog"></div>
+        </div>
+        
+        <button onclick="clearLog()">🗑️ Limpar Log</button>
+    </div>
+
+    <script>
+        // Função para formatar timestamp
+        function formatTime() {
+            const now = new Date();
+            return now.toLocaleTimeString('pt-BR');
+        }
+        
+        // Função para adicionar entrada no log
+        function addLogEntry(type, message) {
+            const logDiv = document.getElementById('eventLog');
+            const entry = document.createElement('div');
+            entry.className = 'event-log-entry';
+            entry.innerHTML = `
+                <span class="timestamp">[${formatTime()}]</span>
+                <span class="event-type">${type}</span>
+                <span>${message}</span>
+            `;
+            logDiv.insertBefore(entry, logDiv.firstChild);
+            
+            // Limitar a 50 entradas
+            while (logDiv.children.length > 50) {
+                logDiv.removeChild(logDiv.lastChild);
+            }
+        }
+        
+        // Função para atualizar status
+        function updateStatus() {
+            const userToken = localStorage.getItem('accessToken');
+            const adminToken = localStorage.getItem('admin_token');
+            
+            const userStatus = document.getElementById('userStatus');
+            const adminStatus = document.getElementById('adminStatus');
+            
+            if (userToken) {
+                userStatus.textContent = 'Logado ✓';
+                userStatus.className = 'status-value logged-in';
+            } else {
+                userStatus.textContent = 'Deslogado ✗';
+                userStatus.className = 'status-value logged-out';
+            }
+            
+            if (adminToken) {
+                adminStatus.textContent = 'Logado ✓';
+                adminStatus.className = 'status-value logged-in';
+            } else {
+                adminStatus.textContent = 'Deslogado ✗';
+                adminStatus.className = 'status-value logged-out';
+            }
+        }
+        
+        // Função para limpar log
+        function clearLog() {
+            document.getElementById('eventLog').innerHTML = '';
+            addLogEntry('SYSTEM', 'Log limpo');
+        }
+        
+        // Listener de eventos de storage
+        window.addEventListener('storage', (event) => {
+            console.log('Storage Event Detectado:', event);
+            
+            if (event.key === 'accessToken') {
+                if (event.newValue) {
+                    addLogEntry('USER LOGIN', 'Usuário comum fez login em outra aba');
+                } else if (event.oldValue) {
+                    addLogEntry('USER LOGOUT', 'Usuário comum fez logout em outra aba');
+                }
+            }
+            
+            if (event.key === 'admin_token') {
+                if (event.newValue) {
+                    addLogEntry('ADMIN LOGIN', 'Admin fez login em outra aba');
+                } else if (event.oldValue) {
+                    addLogEntry('ADMIN LOGOUT', 'Admin fez logout em outra aba');
+                }
+            }
+            
+            updateStatus();
+        });
+        
+        // Verificar status inicial
+        updateStatus();
+        
+        // Log inicial
+        addLogEntry('SYSTEM', 'Sistema de sincronização iniciado');
+        addLogEntry('INFO', 'Abra esta página em múltiplas abas para testar');
+        
+        // Atualizar status a cada segundo
+        setInterval(updateStatus, 1000);
+        
+        // Adicionar informações úteis ao console
+        console.log('%c🔄 Sistema de Sincronização de Abas', 'font-size: 20px; font-weight: bold; color: #667eea;');
+        console.log('%cCole os comandos abaixo para testar:', 'font-size: 14px; color: #764ba2;');
+        console.log('');
+        console.log('%cSimular Login de Usuário:', 'font-weight: bold;');
+        console.log("localStorage.setItem('accessToken', 'fake-user-token-' + Date.now());");
+        console.log('');
+        console.log('%cSimular Login de Admin:', 'font-weight: bold;');
+        console.log("localStorage.setItem('admin_token', 'fake-admin-token-' + Date.now());");
+        console.log('');
+        console.log('%cSimular Logout:', 'font-weight: bold;');
+        console.log("localStorage.removeItem('accessToken'); // Usuário");
+        console.log("localStorage.removeItem('admin_token'); // Admin");
+    </script>
+</body>
+</html>

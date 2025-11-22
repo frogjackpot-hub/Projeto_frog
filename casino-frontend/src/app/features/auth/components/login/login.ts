@@ -17,6 +17,7 @@ export class LoginComponent implements OnInit {
   isSubmitting = false;
   showPassword = false;
   returnUrl = '/dashboard';
+  blockedMessage: string | null = null;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -31,6 +32,33 @@ export class LoginComponent implements OnInit {
   ngOnInit(): void {
     // Obter URL de retorno dos parâmetros de query
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
+    
+    // Verificar se o usuário foi bloqueado
+    this.checkBlockedStatus();
+  }
+  
+  private checkBlockedStatus(): void {
+    // Verificar parâmetro de query
+    const isBlocked = this.route.snapshot.queryParams['blocked'];
+    
+    // Verificar localStorage
+    const blockedReason = localStorage.getItem('user_blocked_reason');
+    
+    if (isBlocked === 'true' || blockedReason) {
+      this.blockedMessage = blockedReason || 'Sua conta foi bloqueada. Entre em contato com o suporte.';
+      
+      // Mostrar notificação
+      this.notificationService.error(
+        'Conta Bloqueada',
+        this.blockedMessage
+      );
+      
+      // Limpar a mensagem após 10 segundos
+      setTimeout(() => {
+        this.blockedMessage = null;
+        localStorage.removeItem('user_blocked_reason');
+      }, 10000);
+    }
   }
 
   private createLoginForm(): FormGroup {
@@ -76,6 +104,25 @@ export class LoginComponent implements OnInit {
         error: (error) => {
           this.isSubmitting = false;
           console.error('Login error:', error);
+          
+          // Verificar se o usuário está bloqueado
+          const isBlocked = error?.error?.code === 'USER_BLOCKED' ||
+                           error?.error?.message?.includes('bloqueada') ||
+                           error?.error?.message?.includes('bloqueado') ||
+                           error?.error?.error?.includes('bloqueada') ||
+                           error?.error?.error?.includes('bloqueado');
+          
+          if (isBlocked) {
+            this.blockedMessage = 'Sua conta foi bloqueada. Entre em contato com o suporte para mais informações.';
+            this.notificationService.error(
+              'Conta Bloqueada',
+              this.blockedMessage
+            );
+            setTimeout(() => {
+              this.blockedMessage = null;
+            }, 10000);
+            return;
+          }
           
           let errorMessage = 'Erro interno do servidor';
           

@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { AdminService, AuditLog } from '../../../../core/services/admin.service';
 import { NotificationService } from '../../../../core/services/notification.service';
@@ -10,14 +11,14 @@ import { NotificationService } from '../../../../core/services/notification.serv
   templateUrl: './admin-audit.html',
   styleUrls: ['./admin-audit.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule]
+  imports: [CommonModule, FormsModule, RouterModule]
 })
 export class AdminAuditComponent implements OnInit, OnDestroy {
   logs: AuditLog[] = [];
   filteredLogs: AuditLog[] = [];
   filterAction: string = '';
   filterResource: string = '';
-  isLoading = true;
+  isLoading = false;
   private destroy$ = new Subject<void>();
 
   // Opções de filtro
@@ -27,11 +28,20 @@ export class AdminAuditComponent implements OnInit, OnDestroy {
 
   constructor(
     private adminService: AdminService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private cdr: ChangeDetectorRef,
+    private ngZone: NgZone
   ) {}
 
   ngOnInit(): void {
-    this.loadAuditLogs();
+    // Usar setTimeout para garantir que o carregamento não seja bloqueado
+    this.ngZone.runOutsideAngular(() => {
+      setTimeout(() => {
+        this.ngZone.run(() => {
+          this.loadAuditLogs();
+        });
+      }, 50);
+    });
   }
 
   ngOnDestroy(): void {
@@ -41,6 +51,8 @@ export class AdminAuditComponent implements OnInit, OnDestroy {
 
   loadAuditLogs(): void {
     this.isLoading = true;
+    this.cdr.detectChanges();
+    
     const filters: any = {
       limit: 100,
       offset: 0
@@ -53,14 +65,36 @@ export class AdminAuditComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: any) => {
-          if (response.success && response.data) {
-            this.logs = response.data.logs;
-            this.filteredLogs = this.logs;
+          console.log('Resposta dos logs:', response);
+          
+          // Trata diferentes formatos de resposta
+          if (response.success) {
+            if (response.data?.logs) {
+              this.logs = response.data.logs;
+            } else if (Array.isArray(response.data)) {
+              this.logs = response.data;
+            } else {
+              this.logs = [];
+            }
+          } else {
+            this.logs = [];
           }
+          
+          this.filteredLogs = this.logs;
           this.isLoading = false;
+          this.cdr.detectChanges();
+          
+          // Se não houver logs, mostra mensagem informativa (não erro)
+          if (this.logs.length === 0) {
+            console.log('Nenhum log de auditoria encontrado');
+          }
         },
-        error: () => {
+        error: (error) => {
+          console.error('Erro ao carregar logs:', error);
           this.isLoading = false;
+          this.logs = [];
+          this.filteredLogs = [];
+          this.cdr.detectChanges();
           this.notificationService.error('Erro', 'Não foi possível carregar os logs de auditoria');
         }
       });

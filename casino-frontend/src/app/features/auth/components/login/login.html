@@ -4,6 +4,16 @@
     <p>Bem-vindo de volta! Entre para continuar jogando.</p>
   </div>
 
+  <!-- Mensagem de conta bloqueada -->
+  <div class="blocked-alert" *ngIf="blockedMessage">
+    <div class="blocked-icon">🚫</div>
+    <div class="blocked-content">
+      <h3>Conta Bloqueada</h3>
+      <p>{{ blockedMessage }}</p>
+      <p class="blocked-support">Entre em contato com o suporte: <strong>suporte@casino.com</strong></p>
+    </div>
+  </div>
+
   <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
     <div class="form-group">
       <label for="email">E-mail</label>
@@ -69,6 +79,12 @@
         Não tem uma conta?
         <a routerLink="/auth/register" class="register-link">Cadastre-se aqui</a>
       </p>
+      <div class="admin-access-link">
+        <a routerLink="/admin/login" class="admin-link">
+          <span class="admin-icon">🔐</span>
+          Acesso Administrativo
+        </a>
+      </div>
     </div>
   </form>
 </div>

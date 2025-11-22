@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Bloqueio Automático de Usuário</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        
+        .card h2 {
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 10px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .status-label {
+            font-weight: 600;
+        }
+        
+        .status-value {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .status-active {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .status-blocked {
+            background: #f44336;
+            color: white;
+        }
+        
+        .status-unknown {
+            background: #ff9800;
+            color: white;
+        }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-simulate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-simulate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-clear {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-clear:hover {
+            background: #d32f2f;
+        }
+        
+        .event-log {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        
+        .event-entry {
+            padding: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .event-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .timestamp {
+            color: #ffd700;
+            font-weight: bold;
+        }
+        
+        .event-type {
+            color: #4caf50;
+            font-weight: bold;
+            margin: 0 10px;
+        }
+        
+        .event-type.blocked {
+            color: #f44336;
+        }
+        
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 15px;
+        }
+        
+        .instructions ol {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .alert {
+            background: rgba(255, 152, 0, 0.2);
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+        
+        .alert strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-box {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚫 Teste de Bloqueio Automático</h1>
+            <p>Sistema de deslogamento automático quando usuário é bloqueado</p>
+        </div>
+        
+        <div class="grid">
+            <!-- Status Card -->
+            <div class="card">
+                <h2>📊 Status Atual</h2>
+                <div class="status-item">
+                    <span class="status-label">Usuário:</span>
+                    <span id="userStatus" class="status-value status-unknown">Desconhecido</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Token:</span>
+                    <span id="tokenStatus" class="status-value status-unknown">Não encontrado</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Última Verificação:</span>
+                    <span id="lastCheck" class="status-value" style="background: #2196f3;">Nunca</span>
+                </div>
+            </div>
+            
+            <!-- Actions Card -->
+            <div class="card">
+                <h2>⚙️ Ações de Teste</h2>
+                <button class="btn-simulate" onclick="simulateLogin()">
+                    🔓 Simular Login
+                </button>
+                <button class="btn-simulate" onclick="simulateBlock()">
+                    🚫 Simular Bloqueio
+                </button>
+                <button class="btn-simulate" onclick="simulateUnblock()">
+                    ✅ Simular Desbloqueio
+                </button>
+                <button class="btn-clear" onclick="clearAll()">
+                    🗑️ Limpar Tudo
+                </button>
+            </div>
+        </div>
+        
+        <!-- Stats Card -->
+        <div class="card">
+            <h2>📈 Estatísticas</h2>
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-value" id="eventCount">0</div>
+                    <div class="stat-label">Eventos Detectados</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="blockCount">0</div>
+                    <div class="stat-label">Bloqueios</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="checkCount">0</div>
+                    <div class="stat-label">Verificações</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Event Log Card -->
+        <div class="card">
+            <h2>📝 Log de Eventos</h2>
+            <div class="event-log" id="eventLog">
+                <div class="event-entry">
+                    <span class="timestamp">[Aguardando eventos...]</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Instructions -->
+        <div class="instructions">
+            <h3>📋 Como Testar:</h3>
+            <ol>
+                <li><strong>Abra esta página em múltiplas abas/janelas</strong></li>
+                <li><strong>Clique em "Simular Login"</strong> para simular que um usuário está logado</li>
+                <li><strong>Em outra aba, clique em "Simular Bloqueio"</strong></li>
+                <li><strong>Observe todas as abas</strong> - elas devem detectar o bloqueio instantaneamente</li>
+                <li><strong>Verifique o log de eventos</strong> em cada aba para ver a sincronização</li>
+            </ol>
+            
+            <div class="alert">
+                <strong>⚠️ Atenção:</strong>
+                Esta é apenas uma simulação. No sistema real, o bloqueio é feito pelo painel administrativo e a detecção acontece automaticamente através dos serviços Angular.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let eventCount = 0;
+        let blockCount = 0;
+        let checkCount = 0;
+        let currentUserId = null;
+        
+        // Gerar ID único para este "usuário"
+        function generateUserId() {
+            return 'user-' + Math.random().toString(36).substr(2, 9);
+        }
+        
+        // Formatar timestamp
+        function formatTime() {
+            const now = new Date();
+            return now.toLocaleTimeString('pt-BR');
+        }
+        
+        // Adicionar entrada no log
+        function addLogEntry(type, message, isBlocked = false) {
+            const logDiv = document.getElementById('eventLog');
+            const entry = document.createElement('div');
+            entry.className = 'event-entry';
+            
+            const eventClass = isBlocked ? 'event-type blocked' : 'event-type';
+            entry.innerHTML = `
+                <span class="timestamp">[${formatTime()}]</span>
+                <span class="${eventClass}">${type}</span>
+                <span>${message}</span>
+            `;
+            
+            logDiv.insertBefore(entry, logDiv.firstChild);
+            
+            // Limitar a 50 entradas
+            while (logDiv.children.length > 50) {
+                logDiv.removeChild(logDiv.lastChild);
+            }
+            
+            // Atualizar contador
+            eventCount++;
+            document.getElementById('eventCount').textContent = eventCount;
+        }
+        
+        // Atualizar status visual
+        function updateStatus() {
+            const token = localStorage.getItem('accessToken');
+            const userData = localStorage.getItem('currentUser');
+            const lastCheck = localStorage.getItem('lastStatusCheck');
+            
+            const userStatus = document.getElementById('userStatus');
+            const tokenStatus = document.getElementById('tokenStatus');
+            const lastCheckEl = document.getElementById('lastCheck');
+            
+            if (userData) {
+                try {
+                    const user = JSON.parse(userData);
+                    currentUserId = user.id;
+                    
+                    if (user.isActive) {
+                        userStatus.textContent = 'Ativo ✓';
+                        userStatus.className = 'status-value status-active';
+                    } else {
+                        userStatus.textContent = 'Bloqueado ✗';
+                        userStatus.className = 'status-value status-blocked';
+                    }
+                } catch (e) {
+                    userStatus.textContent = 'Erro';
+                    userStatus.className = 'status-value status-unknown';
+                }
+            } else {
+                userStatus.textContent = 'Não Logado';
+                userStatus.className = 'status-value status-unknown';
+                currentUserId = null;
+            }
+            
+            if (token) {
+                tokenStatus.textContent = 'Presente ✓';
+                tokenStatus.className = 'status-value status-active';
+            } else {
+                tokenStatus.textContent = 'Ausente ✗';
+                tokenStatus.className = 'status-value status-blocked';
+            }
+            
+            if (lastCheck) {
+                lastCheckEl.textContent = new Date(parseInt(lastCheck)).toLocaleTimeString('pt-BR');
+            }
+        }
+        
+        // Simular login
+        function simulateLogin() {
+            const userId = generateUserId();
+            const userData = {
+                id: userId,
+                email: 'teste@email.com',
+                username: 'usuario_teste',
+                isActive: true
+            };
+            
+            localStorage.setItem('accessToken', 'fake-token-' + Date.now());
+            localStorage.setItem('currentUser', JSON.stringify(userData));
+            
+            addLogEntry('LOGIN', `Usuário ${userId} fez login`);
+            updateStatus();
+        }
+        
+        // Simular bloqueio
+        function simulateBlock() {
+            const userData = localStorage.getItem('currentUser');
+            
+            if (!userData) {
+                alert('Faça login primeiro!');
+                return;
+            }
+            
+            try {
+                const user = JSON.parse(userData);
+                user.isActive = false;
+                
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                localStorage.setItem('user_blocked', user.id);
+                
+                addLogEntry('BLOQUEIO', `Usuário ${user.id} foi bloqueado pelo admin`, true);
+                blockCount++;
+                document.getElementById('blockCount').textContent = blockCount;
+                
+                // Simular remoção do evento após 1 segundo
+                setTimeout(() => {
+                    localStorage.removeItem('user_blocked');
+                }, 1000);
+                
+                updateStatus();
+            } catch (e) {
+                console.error('Erro ao simular bloqueio:', e);
+            }
+        }
+        
+        // Simular desbloqueio
+        function simulateUnblock() {
+            const userData = localStorage.getItem('currentUser');
+            
+            if (!userData) {
+                alert('Faça login primeiro!');
+                return;
+            }
+            
+            try {
+                const user = JSON.parse(userData);
+                user.isActive = true;
+                
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                
+                addLogEntry('DESBLOQUEIO', `Usuário ${user.id} foi desbloqueado`);
+                updateStatus();
+            } catch (e) {
+                console.error('Erro ao simular desbloqueio:', e);
+            }
+        }
+        
+        // Limpar tudo
+        function clearAll() {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('user_blocked');
+            localStorage.removeItem('lastStatusCheck');
+            
+            document.getElementById('eventLog').innerHTML = '<div class="event-entry"><span class="timestamp">[Log limpo]</span></div>';
+            
+            eventCount = 0;
+            blockCount = 0;
+            checkCount = 0;
+            
+            document.getElementById('eventCount').textContent = 0;
+            document.getElementById('blockCount').textContent = 0;
+            document.getElementById('checkCount').textContent = 0;
+            
+            addLogEntry('SYSTEM', 'Todos os dados foram limpos');
+            updateStatus();
+        }
+        
+        // Listener de storage events
+        window.addEventListener('storage', (event) => {
+            console.log('Storage Event:', event);
+            
+            if (event.key === 'user_blocked' && event.newValue) {
+                const blockedUserId = event.newValue;
+                
+                if (currentUserId && currentUserId === blockedUserId) {
+                    addLogEntry('⚠️ ALERTA', 'Você foi bloqueado em outra aba!', true);
+                    
+                    // Simular logout após 1 segundo (como no sistema real)
+                    setTimeout(() => {
+                        localStorage.removeItem('accessToken');
+                        localStorage.removeItem('currentUser');
+                        addLogEntry('LOGOUT', 'Deslogado automaticamente devido ao bloqueio', true);
+                        updateStatus();
+                    }, 1000);
+                } else {
+                    addLogEntry('BLOQUEIO', `Outro usuário (${blockedUserId}) foi bloqueado`, true);
+                }
+                
+                blockCount++;
+                document.getElementById('blockCount').textContent = blockCount;
+                updateStatus();
+            }
+            
+            if (event.key === 'accessToken') {
+                if (event.newValue) {
+                    addLogEntry('LOGIN', 'Login detectado em outra aba');
+                } else {
+                    addLogEntry('LOGOUT', 'Logout detectado em outra aba');
+                }
+                updateStatus();
+            }
+        });
+        
+        // Verificação periódica (simulando)
+        setInterval(() => {
+            const userData = localStorage.getItem('currentUser');
+            
+            if (userData) {
+                try {
+                    const user = JSON.parse(userData);
+                    
+                    if (!user.isActive) {
+                        addLogEntry('VERIFICAÇÃO', 'Usuário bloqueado detectado na verificação periódica', true);
+                    }
+                    
+                    checkCount++;
+                    document.getElementById('checkCount').textContent = checkCount;
+                    localStorage.setItem('lastStatusCheck', Date.now().toString());
+                    updateStatus();
+                } catch (e) {
+                    console.error('Erro na verificação:', e);
+                }
+            }
+        }, 30000); // 30 segundos (como no sistema real)
+        
+        // Inicialização
+        updateStatus();
+        addLogEntry('SYSTEM', 'Sistema de bloqueio automático iniciado');
+        addLogEntry('INFO', 'Abra esta página em múltiplas abas para testar a sincronização');
+        
+        // Mensagem no console
+        console.log('%c🚫 Sistema de Bloqueio Automático', 'font-size: 20px; font-weight: bold; color: #f44336;');
+        console.log('%cAbra esta página em múltiplas abas e teste os botões!', 'font-size: 14px;');
+    </script>
+</body>
+</html>

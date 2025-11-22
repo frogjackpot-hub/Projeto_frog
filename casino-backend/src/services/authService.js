@@ -71,6 +71,14 @@ class AuthService {
       throw error;
     }
 
+    // Verificar se o usuário está bloqueado
+    if (!user.isActive) {
+      const error = new Error('Sua conta foi bloqueada. Entre em contato com o suporte.');
+      error.code = 'USER_BLOCKED';
+      error.statusCode = 403;
+      throw error;
+    }
+
     const tokens = this.generateTokens(user);
 
     return {

@@ -1,71 +1,159 @@
-<div class="admin-audit">
-  <div class="page-header">
-    <h1>Logs de Auditoria</h1>
-    <button class="refresh-btn" (click)="loadAuditLogs()" [disabled]="isLoading">
-      🔄 Atualizar
-    </button>
-  </div>
-
-  <div class="filters-section">
-    <div class="filter-group">
-      <label>Ação:</label>
-      <select [(ngModel)]="filterAction" (change)="applyFilters()">
-        <option value="">Todas</option>
-        <option *ngFor="let action of actions" [value]="action">{{ getActionLabel(action) }}</option>
-      </select>
+<div class="admin-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <span class="icon">🎰</span>
+      <h2>Admin Panel</h2>
     </div>
+    
+    <nav class="sidebar-nav">
+      <a routerLink="/admin" class="nav-item">
+        <span class="icon">📊</span>
+        <span>Dashboard</span>
+      </a>
+      <a routerLink="/admin/users" class="nav-item">
+        <span class="icon">👥</span>
+        <span>Usuários</span>
+      </a>
+      <a routerLink="/admin/games" class="nav-item">
+        <span class="icon">🎮</span>
+        <span>Jogos</span>
+      </a>
+      <a routerLink="/admin/audit" class="nav-item active">
+        <span class="icon">📋</span>
+        <span>Auditoria</span>
+      </a>
+      <a routerLink="/admin/config" class="nav-item">
+        <span class="icon">⚙️</span>
+        <span>Configurações</span>
+      </a>
+    </nav>
+  </aside>
 
-    <div class="filter-group">
-      <label>Recurso:</label>
-      <select [(ngModel)]="filterResource" (change)="applyFilters()">
-        <option value="">Todos</option>
-        <option *ngFor="let resource of resources" [value]="resource">{{ resource }}</option>
-      </select>
-    </div>
-
-    <button class="clear-btn" (click)="clearFilters()">
-      🗑️ Limpar Filtros
-    </button>
-  </div>
-
-  <div *ngIf="isLoading" class="loading-container">
-    <p>Carregando logs...</p>
-  </div>
-
-  <div *ngIf="!isLoading && filteredLogs.length > 0" class="logs-container">
-    <div *ngFor="let log of filteredLogs" class="log-card">
-      <div class="log-header">
-        <span class="log-action" [ngClass]="getActionClass(log.action)">
-          {{ getActionLabel(log.action) }}
-        </span>
-        <span class="log-date">{{ log.createdAt | date: 'dd/MM/yyyy HH:mm:ss' }}</span>
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="page-title">
+        <span class="icon">📋</span>
+        <h1>Logs de Auditoria</h1>
       </div>
       
-      <div class="log-body">
-        <div class="log-info">
-          <span class="info-label">Administrador:</span>
-          <span class="info-value">{{ log.adminEmail }} ({{ log.adminUsername }})</span>
-        </div>
-        
-        <div class="log-info" *ngIf="log.resourceType">
-          <span class="info-label">Recurso:</span>
-          <span class="info-value">{{ log.resourceType }} - {{ log.resourceId }}</span>
-        </div>
-
-        <div class="log-info" *ngIf="log.ipAddress">
-          <span class="info-label">IP:</span>
-          <span class="info-value">{{ log.ipAddress }}</span>
-        </div>
-
-        <div class="log-details" *ngIf="log.details">
-          <span class="info-label">Detalhes:</span>
-          <pre>{{ log.details | json }}</pre>
-        </div>
+      <div class="top-bar-actions">
+        <button class="refresh-btn" (click)="loadAuditLogs()" [disabled]="isLoading">
+          <span class="icon">🔄</span>
+          <span>Atualizar</span>
+        </button>
       </div>
     </div>
-  </div>
 
-  <div *ngIf="!isLoading && filteredLogs.length === 0" class="empty-state">
-    <p>Nenhum log encontrado com os filtros aplicados</p>
-  </div>
+    <!-- Content Area -->
+    <div class="content-area">
+      <!-- Filters Section -->
+      <div class="filters-card">
+        <div class="filters-header">
+          <h3>🔍 Filtros</h3>
+        </div>
+        <div class="filters-content">
+          <div class="filter-group">
+            <label>Ação:</label>
+            <select [(ngModel)]="filterAction" (change)="applyFilters()">
+              <option value="">Todas as ações</option>
+              <option *ngFor="let action of actions" [value]="action">{{ getActionLabel(action) }}</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label>Recurso:</label>
+            <select [(ngModel)]="filterResource" (change)="applyFilters()">
+              <option value="">Todos os recursos</option>
+              <option *ngFor="let resource of resources" [value]="resource">{{ resource }}</option>
+            </select>
+          </div>
+
+          <button class="clear-btn" (click)="clearFilters()">
+            <span class="icon">🗑️</span>
+            <span>Limpar Filtros</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading">
+        <div class="spinner"></div>
+        <span>Carregando logs de auditoria...</span>
+      </div>
+
+      <!-- Logs Container -->
+      <div *ngIf="!isLoading && filteredLogs.length > 0" class="logs-container">
+        <div *ngFor="let log of filteredLogs" class="log-card">
+          <div class="log-header">
+            <div class="log-header-left">
+              <span class="log-action" [ngClass]="getActionClass(log.action)">
+                {{ getActionLabel(log.action) }}
+              </span>
+              <span class="log-admin">{{ log.adminEmail }}</span>
+            </div>
+            <span class="log-date">{{ log.createdAt | date: 'dd/MM/yyyy HH:mm:ss' }}</span>
+          </div>
+          
+          <div class="log-body">
+            <div class="log-grid">
+              <div class="log-info-item">
+                <span class="info-icon">👤</span>
+                <div class="info-content">
+                  <span class="info-label">Administrador</span>
+                  <span class="info-value">{{ log.adminUsername }}</span>
+                </div>
+              </div>
+              
+              <div class="log-info-item" *ngIf="log.resourceType">
+                <span class="info-icon">📦</span>
+                <div class="info-content">
+                  <span class="info-label">Recurso</span>
+                  <span class="info-value">{{ log.resourceType }}</span>
+                </div>
+              </div>
+
+              <div class="log-info-item" *ngIf="log.ipAddress">
+                <span class="info-icon">🌐</span>
+                <div class="info-content">
+                  <span class="info-label">Endereço IP</span>
+                  <span class="info-value">{{ log.ipAddress }}</span>
+                </div>
+              </div>
+
+              <div class="log-info-item" *ngIf="log.resourceId">
+                <span class="info-icon">🔑</span>
+                <div class="info-content">
+                  <span class="info-label">ID do Recurso</span>
+                  <span class="info-value">{{ log.resourceId }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="log-details" *ngIf="log.details">
+              <div class="details-header">
+                <span class="info-icon">📄</span>
+                <span class="details-title">Detalhes Adicionais</span>
+              </div>
+              <pre class="details-content">{{ log.details | json }}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoading && filteredLogs.length === 0" class="empty-state">
+        <span class="empty-icon">📭</span>
+        <h3 *ngIf="filterAction || filterResource">Nenhum log encontrado</h3>
+        <h3 *ngIf="!filterAction && !filterResource">Nenhum log de auditoria registrado</h3>
+        <p *ngIf="filterAction || filterResource">Não há logs que correspondam aos filtros aplicados. Tente ajustar os filtros ou limpe-os para ver todos os logs.</p>
+        <p *ngIf="!filterAction && !filterResource">Ainda não há logs de auditoria no sistema. Os logs serão registrados automaticamente quando ações administrativas forem realizadas.</p>
+        <button class="clear-btn" (click)="clearFilters()" *ngIf="filterAction || filterResource">
+          Limpar Filtros
+        </button>
+      </div>
+    </div>
+  </main>
 </div>

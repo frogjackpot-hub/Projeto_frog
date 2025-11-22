@@ -2,8 +2,7 @@ import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/c
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, throwError } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
-import { BlockedUserService } from '../../shared/services/blocked-user.service';
+import { catchError } from 'rxjs/operators';
 import { AdminService } from '../services/admin.service';
 import { AuthService } from '../services/auth.service';
 
@@ -12,8 +11,7 @@ export class AuthInterceptor implements HttpInterceptor {
   constructor(
     private authService: AuthService,
     private adminService: AdminService,
-    private router: Router,
-    private blockedUserService: BlockedUserService
+    private router: Router
   ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -42,50 +40,50 @@ export class AuthInterceptor implements HttpInterceptor {
 
     return next.handle(req).pipe(
       catchError(error => {
-        // Verificar se o usuário foi bloqueado (403 com code USER_BLOCKED)
-        if (error.status === 403 && error.error?.code === 'USER_BLOCKED') {
-          // Mostrar modal PRIMEIRO
-          this.blockedUserService.showBlockedModal();
+        console.log('HTTP Error interceptado:', error.status, error.error);
+        
+        // Verificar se o usuário foi bloqueado (403 com code USER_BLOCKED ou mensagem de bloqueio)
+        const isBlocked = error.status === 403 && 
+          (error.error?.code === 'USER_BLOCKED' || 
+           error.error?.message?.includes('bloqueada') ||
+           error.error?.message?.includes('bloqueado') ||
+           error.error?.error?.includes('bloqueada') ||
+           error.error?.error?.includes('bloqueado'));
+        
+        if (isBlocked) {
+          console.log('❌ Usuário BLOQUEADO detectado - Redirecionando para login');
           
-          // Limpar autenticação DEPOIS (após 1 segundo para o modal renderizar)
-          setTimeout(() => {
-            this.authService.clearAuthDataOnly();
-          }, 1000);
+          // Limpar IMEDIATAMENTE os dados de autenticação
+          this.authService.clearAuthDataOnly();
+          
+          // Marcar que o usuário foi bloqueado
+          localStorage.setItem('user_blocked_reason', 'Sua conta foi bloqueada pelo administrador.');
+          
+          // Redirecionar IMEDIATAMENTE para login com parâmetro de bloqueio
+          window.location.href = '/auth/login?blocked=true';
           
           return throwError(() => error);
         }
         
         if (error.status === 401) {
+          console.log('⛔ 401 DETECTADO - Limpando sessão e redirecionando...');
+          
+          // Limpar dados de autenticação
+          this.authService.clearAuthDataOnly();
+          
           // Verificar se é rota admin
           if (req.url.includes('/admin/')) {
-            // Redirecionar para login admin
-            this.router.navigate(['/admin/login']);
+            console.log('→ Redirecionando para /admin/login');
+            setTimeout(() => window.location.href = '/admin/login', 0);
             return throwError(() => error);
           }
-
-          // Token expirado, tentar renovar (usuário regular)
-          if (this.authService.isTokenExpired()) {
-            return this.authService.refreshToken().pipe(
-              switchMap(success => {
-                if (success) {
-                  // Reenviar a requisição original com o novo token
-                  const token = localStorage.getItem('accessToken');
-                  const authReq = req.clone({
-                    setHeaders: {
-                      Authorization: `Bearer ${token}`
-                    }
-                  });
-                  return next.handle(authReq);
-                } else {
-                  // Falha ao renovar token, redirecionar para login
-                  this.authService.logout();
-                  this.router.navigate(['/auth/login']);
-                  return throwError(() => error);
-                }
-              })
-            );
-          }
+          
+          // Para usuário comum - REDIRECIONAR IMEDIATAMENTE
+          console.log('→ Redirecionando para /auth/login');
+          setTimeout(() => window.location.href = '/auth/login', 0);
+          return throwError(() => error);
         }
+        
         return throwError(() => error);
       })
     );

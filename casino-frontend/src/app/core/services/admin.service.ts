@@ -100,7 +100,38 @@ export class AdminService {
   public currentAdmin$ = this.currentAdminSubject.asObservable();
   public isAdminAuthenticated$ = this.isAdminAuthenticatedSubject.asObservable();
 
-  constructor(private apiService: ApiService) {}
+  constructor(private apiService: ApiService) {
+    this.setupStorageListener();
+  }
+
+  /**
+   * Configurar listener para sincronizar autenticação entre abas
+   */
+  private setupStorageListener(): void {
+    window.addEventListener('storage', (event) => {
+      // Detectar mudanças no token de admin
+      if (event.key === 'admin_token') {
+        if (event.newValue) {
+          // Token de admin foi adicionado, atualizar estado
+          this.currentAdminSubject.next(this.getStoredAdmin());
+          this.isAdminAuthenticatedSubject.next(true);
+        } else {
+          // Token de admin foi removido, limpar estado
+          this.currentAdminSubject.next(null);
+          this.isAdminAuthenticatedSubject.next(false);
+        }
+      }
+      
+      // Detectar evento customizado de admin
+      if (event.key === 'admin_event') {
+        const eventData = event.newValue ? JSON.parse(event.newValue) : null;
+        
+        if (eventData?.type === 'logout') {
+          this.clearAdminData();
+        }
+      }
+    });
+  }
 
   /**
    * Verifica se existe token de admin no localStorage
@@ -147,6 +178,9 @@ export class AdminService {
           localStorage.setItem(this.ADMIN_TOKEN_KEY, response.data.accessToken);
           localStorage.setItem(this.ADMIN_USER_KEY, JSON.stringify(response.data.user));
           
+          // Notificar outras abas sobre login de admin (para deslogar usuários comuns)
+          this.notifyOtherTabs('admin_login');
+          
           // Atualizar subjects
           this.currentAdminSubject.next(response.data.user);
           this.isAdminAuthenticatedSubject.next(true);
@@ -161,6 +195,8 @@ export class AdminService {
   logout(): Observable<ApiResponse<any>> {
     return this.apiService.post('/admin/logout', {}).pipe(
       tap(() => {
+        // Notificar outras abas sobre logout de admin
+        this.notifyOtherTabs('logout');
         this.clearAdminData();
       })
     );
@@ -181,6 +217,24 @@ export class AdminService {
     
     this.currentAdminSubject.next(null);
     this.isAdminAuthenticatedSubject.next(false);
+  }
+
+  /**
+   * Notificar outras abas sobre mudanças de autenticação de admin
+   */
+  private notifyOtherTabs(type: 'admin_login' | 'logout'): void {
+    const event = {
+      type,
+      timestamp: Date.now()
+    };
+    localStorage.setItem('admin_event', JSON.stringify(event));
+    // Também notificar pelo auth_event para garantir que usuários comuns sejam deslogados
+    if (type === 'admin_login') {
+      localStorage.setItem('auth_event', JSON.stringify({ type: 'admin_login', timestamp: Date.now() }));
+      setTimeout(() => localStorage.removeItem('auth_event'), 100);
+    }
+    // Remover o evento após um breve período para permitir nova detecção
+    setTimeout(() => localStorage.removeItem('admin_event'), 100);
   }
 
   /**
@@ -238,7 +292,33 @@ export class AdminService {
    * Bloquear/Desbloquear usuário
    */
   toggleUserStatus(id: string): Observable<ApiResponse<any>> {
-    return this.apiService.patch(`/admin/users/${id}/toggle-status`, {});
+    return this.apiService.patch(`/admin/users/${id}/toggle-status`, {}).pipe(
+      tap(response => {
+        if (response.success && response.data) {
+          const isBlocked = !response.data.isActive;
+          
+          // Se o usuário foi bloqueado, notificar todas as abas
+          if (isBlocked) {
+            this.notifyUserBlocked(id);
+          }
+        }
+      })
+    );
+  }
+
+  /**
+   * Notificar outras abas que um usuário foi bloqueado
+   */
+  private notifyUserBlocked(userId: string): void {
+    console.log('Notificando outras abas sobre bloqueio do usuário:', userId);
+    
+    // Armazenar o ID do usuário bloqueado no localStorage
+    localStorage.setItem('user_blocked', userId);
+    
+    // Remover após um breve período
+    setTimeout(() => {
+      localStorage.removeItem('user_blocked');
+    }, 1000);
   }
 
   /**
