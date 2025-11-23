@@ -20,6 +20,7 @@ export class AdminAuditComponent implements OnInit, OnDestroy {
   filterResource: string = '';
   isLoading = false;
   private destroy$ = new Subject<void>();
+  private expandedDetails = new Set<string>();
 
   // Opções de filtro
   actions = ['UPDATE_USER', 'DELETE_USER', 'ADD_BALANCE', 'REMOVE_BALANCE', 'BLOCK_USER', 'UNBLOCK_USER', 
@@ -136,5 +137,146 @@ export class AdminAuditComponent implements OnInit, OnDestroy {
       return 'action-success';
     }
     return 'action-info';
+  }
+
+  /**
+   * Extrair informações do navegador do User Agent
+   */
+  getBrowserInfo(userAgent: string): string {
+    if (!userAgent) return 'Desconhecido';
+    
+    if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) {
+      return 'Chrome';
+    } else if (userAgent.includes('Firefox')) {
+      return 'Firefox';
+    } else if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) {
+      return 'Safari';
+    } else if (userAgent.includes('Edg')) {
+      return 'Edge';
+    } else if (userAgent.includes('Opera') || userAgent.includes('OPR')) {
+      return 'Opera';
+    }
+    
+    return 'Outro navegador';
+  }
+
+  /**
+   * Verificar se há detalhes para exibir
+   */
+  hasDetails(details: any): boolean {
+    if (!details) return false;
+    if (typeof details === 'string') {
+      try {
+        details = JSON.parse(details);
+      } catch {
+        return false;
+      }
+    }
+    return Object.keys(details).length > 0;
+  }
+
+  /**
+   * Alternar expansão dos detalhes
+   */
+  toggleDetails(logId: string): void {
+    if (this.expandedDetails.has(logId)) {
+      this.expandedDetails.delete(logId);
+    } else {
+      this.expandedDetails.add(logId);
+    }
+  }
+
+  /**
+   * Verificar se os detalhes estão expandidos
+   */
+  isDetailsExpanded(logId: string): boolean {
+    return this.expandedDetails.has(logId);
+  }
+
+  /**
+   * Formatar detalhes para exibição
+   */
+  formatDetails(details: any): any {
+    if (!details) return {};
+    
+    if (typeof details === 'string') {
+      try {
+        details = JSON.parse(details);
+      } catch {
+        return { 'Informação': details };
+      }
+    }
+
+    const formatted: any = {};
+    
+    // Mapeamento de traduções
+    const translations: any = {
+      'amount': '💰 Valor',
+      'description': '📝 Descrição',
+      'reason': '📋 Motivo',
+      'duration': '⏱️ Duração',
+      'code': '🎟️ Código do Bônus',
+      'type': '🏷️ Tipo',
+      'value': '💵 Valor do Bônus',
+      'field': '🔧 Campo Alterado',
+      'old_value': '❌ Valor Anterior',
+      'new_value': '✅ Valor Novo',
+      'new_status': '✅ Novo Status',
+      'previous_status': '❌ Status Anterior',
+      'success': '✔️ Sucesso',
+      'method': '🔐 Método',
+      'min_deposit': '💳 Depósito Mínimo',
+      'max_amount': '💰 Valor Máximo',
+      'percentage': '📊 Porcentagem',
+      'enabled': '🔓 Habilitado'
+    };
+    
+    for (const key in details) {
+      if (details.hasOwnProperty(key)) {
+        const value = details[key];
+        const translatedKey = translations[key.toLowerCase()] || this.formatKey(key);
+        
+        if (typeof value === 'object' && value !== null) {
+          formatted[translatedKey] = JSON.stringify(value, null, 2);
+        } else if (typeof value === 'boolean') {
+          formatted[translatedKey] = value ? 'Sim' : 'Não';
+        } else {
+          formatted[translatedKey] = value;
+        }
+      }
+    }
+    
+    return formatted;
+  }
+
+  /**
+   * Formatar chave para exibição
+   */
+  private formatKey(key: string): string {
+    return key
+      .replace(/_/g, ' ')
+      .replace(/([A-Z])/g, ' $1')
+      .trim()
+      .replace(/\b\w/g, l => l.toUpperCase());
+  }
+
+  /**
+   * Copiar texto para área de transferência
+   */
+  copyToClipboard(text: string): void {
+    if (!text) {
+      this.notificationService.error('Erro', 'Nenhum texto para copiar');
+      return;
+    }
+
+    navigator.clipboard.writeText(text).then(
+      () => {
+        this.notificationService.success('Sucesso', 'ID copiado para área de transferência!');
+      },
+      (err) => {
+        console.error('Erro ao copiar:', err);
+        this.notificationService.error('Erro', 'Não foi possível copiar o ID');
+      }
+    );
   }
 }

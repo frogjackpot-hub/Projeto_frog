@@ -86,58 +86,98 @@
 
       <!-- Logs Container -->
       <div *ngIf="!isLoading && filteredLogs.length > 0" class="logs-container">
-        <div *ngFor="let log of filteredLogs" class="log-card">
+        <div *ngFor="let log of filteredLogs; let i = index" class="log-card">
           <div class="log-header">
-            <div class="log-header-left">
-              <span class="log-action" [ngClass]="getActionClass(log.action)">
-                {{ getActionLabel(log.action) }}
-              </span>
-              <span class="log-admin">{{ log.adminEmail }}</span>
+            <div class="log-header-main">
+              <div class="log-number">#{{ filteredLogs.length - i }}</div>
+              <div class="log-header-info">
+                <div class="log-header-top">
+                  <span class="log-action" [ngClass]="getActionClass(log.action)">
+                    {{ getActionLabel(log.action) }}
+                  </span>
+                  <span class="log-resource-badge" *ngIf="log.resourceType">
+                    {{ log.resourceType }}
+                  </span>
+                </div>
+                <div class="log-header-bottom">
+                  <span class="log-admin-info">
+                    <span class="admin-icon">👤</span>
+                    <strong>{{ log.adminUsername }}</strong> ({{ log.adminEmail }})
+                  </span>
+                </div>
+              </div>
             </div>
-            <span class="log-date">{{ log.createdAt | date: 'dd/MM/yyyy HH:mm:ss' }}</span>
+            <div class="log-header-meta">
+              <div class="log-date">
+                <span class="date-icon">📅</span>
+                <span>{{ log.createdAt | date: 'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="log-time">
+                <span class="time-icon">🕐</span>
+                <span>{{ log.createdAt | date: 'HH:mm:ss' }}</span>
+              </div>
+            </div>
           </div>
           
           <div class="log-body">
             <div class="log-grid">
-              <div class="log-info-item">
-                <span class="info-icon">👤</span>
-                <div class="info-content">
-                  <span class="info-label">Administrador</span>
-                  <span class="info-value">{{ log.adminUsername }}</span>
-                </div>
-              </div>
-              
-              <div class="log-info-item" *ngIf="log.resourceType">
-                <span class="info-icon">📦</span>
-                <div class="info-content">
-                  <span class="info-label">Recurso</span>
-                  <span class="info-value">{{ log.resourceType }}</span>
-                </div>
-              </div>
-
-              <div class="log-info-item" *ngIf="log.ipAddress">
+              <div class="log-info-item" [title]="'Endereço de onde a ação foi realizada: ' + log.ipAddress">
                 <span class="info-icon">🌐</span>
                 <div class="info-content">
                   <span class="info-label">Endereço IP</span>
-                  <span class="info-value">{{ log.ipAddress }}</span>
+                  <span class="info-value clickable" (click)="copyToClipboard(log.ipAddress)">
+                    {{ log.ipAddress }}
+                  </span>
                 </div>
               </div>
 
-              <div class="log-info-item" *ngIf="log.resourceId">
+              <div class="log-info-item" [title]="'Clique para copiar: ' + log.resourceId">
                 <span class="info-icon">🔑</span>
                 <div class="info-content">
-                  <span class="info-label">ID do Recurso</span>
-                  <span class="info-value">{{ log.resourceId }}</span>
+                  <span class="info-label">ID do Item Modificado</span>
+                  <span class="info-value clickable" (click)="copyToClipboard(log.resourceId)">
+                    {{ log.resourceId ? (log.resourceId.length > 30 ? log.resourceId.substring(0, 30) + '...' : log.resourceId) : 'N/A' }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="log-info-item" [title]="log.userAgent">
+                <span class="info-icon">💻</span>
+                <div class="info-content">
+                  <span class="info-label">Navegador</span>
+                  <span class="info-value">
+                    {{ log.userAgent ? getBrowserInfo(log.userAgent) : 'Não disponível' }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="log-info-item" [title]="'Clique para copiar: ' + log.id">
+                <span class="info-icon">🆔</span>
+                <div class="info-content">
+                  <span class="info-label">ID do Registro</span>
+                  <span class="info-value small-text clickable" (click)="copyToClipboard(log.id)">
+                    {{ log.id.substring(0, 13) }}...
+                  </span>
                 </div>
               </div>
             </div>
 
-            <div class="log-details" *ngIf="log.details">
+            <div class="log-details" *ngIf="log.details && hasDetails(log.details)">
               <div class="details-header">
                 <span class="info-icon">📄</span>
-                <span class="details-title">Detalhes Adicionais</span>
+                <span class="details-title">Informações Detalhadas</span>
+                <button class="toggle-details-btn" (click)="toggleDetails(log.id)">
+                  {{ isDetailsExpanded(log.id) ? '▼ Ocultar' : '▶ Expandir' }}
+                </button>
               </div>
-              <pre class="details-content">{{ log.details | json }}</pre>
+              <div class="details-content-wrapper" *ngIf="isDetailsExpanded(log.id)">
+                <div class="details-content formatted">
+                  <div class="detail-item" *ngFor="let item of formatDetails(log.details) | keyvalue">
+                    <span class="detail-key">{{ item.key }}:</span>
+                    <span class="detail-value">{{ item.value }}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
