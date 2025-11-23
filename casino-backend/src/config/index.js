@@ -6,14 +6,18 @@ module.exports = {
   databaseUrl: process.env.DATABASE_URL,
   jwt: require('./jwt'),
   cors: {
-    // Em desenvolvimento, permite localhost nas portas comuns
+    // Em produção e desenvolvimento
     origin: process.env.CORS_ORIGIN 
       ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
-      : ['http://localhost:4200', 'http://localhost:3000', 'http://127.0.0.1:4200'],
+      : process.env.NODE_ENV === 'production'
+        ? [process.env.FRONTEND_URL, 'https://projeto-frog.onrender.com']
+        : ['http://localhost:4200', 'http://localhost:3000', 'http://127.0.0.1:4200'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
     exposedHeaders: ['Authorization'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204
   },
   rateLimit: {
     windowMs: 15 * 60 * 1000, // 15 minutos
