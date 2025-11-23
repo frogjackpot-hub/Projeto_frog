@@ -4,6 +4,14 @@ const logger = require('../utils/logger');
 class AuthController {
   static async register(req, res, next) {
     try {
+      // Log dos dados recebidos (sem senha)
+      logger.info('Tentativa de registro', {
+        body: {
+          ...req.body,
+          password: '***'
+        }
+      });
+
       const result = await AuthService.register(req.body);
       
       logger.info('Novo usuário registrado', {
@@ -18,6 +26,11 @@ class AuthController {
         data: result,
       });
     } catch (error) {
+      logger.error('Erro no registro', {
+        error: error.message,
+        code: error.code,
+        statusCode: error.statusCode
+      });
       next(error);
     }
   }

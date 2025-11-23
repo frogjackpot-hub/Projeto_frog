@@ -2,15 +2,23 @@ const Joi = require('joi');
 
 const validate = (schema) => {
   return (req, res, next) => {
-    const { error } = schema.validate(req.body);
+    const { error } = schema.validate(req.body, { abortEarly: false });
     
     if (error) {
       const errorDetails = error.details.map(detail => ({
         field: detail.path.join('.'),
         message: detail.message,
       }));
+
+      // Log para debug
+      const logger = require('../utils/logger');
+      logger.warn('Erro de validação', {
+        body: req.body,
+        errors: errorDetails
+      });
       
       return res.status(400).json({
+        success: false,
         error: 'Dados de entrada inválidos',
         code: 'VALIDATION_ERROR',
         details: errorDetails,
