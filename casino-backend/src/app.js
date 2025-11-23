@@ -9,6 +9,9 @@ const logger = require('./utils/logger');
 
 const app = express();
 
+// Trust proxy - necessário para Render.com e rate limiting
+app.set('trust proxy', 1);
+
 // Middleware de segurança
 app.use(helmet());
 
