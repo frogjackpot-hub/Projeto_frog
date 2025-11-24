@@ -23,7 +23,7 @@ export class AdminAuditComponent implements OnInit, OnDestroy {
   private expandedDetails = new Set<string>();
 
   // Opções de filtro
-  actions = ['UPDATE_USER', 'DELETE_USER', 'ADD_BALANCE', 'REMOVE_BALANCE', 'BLOCK_USER', 'UNBLOCK_USER', 
+  actions = ['ADMIN_LOGIN', 'ADMIN_LOGOUT', 'UPDATE_USER', 'DELETE_USER', 'ADD_BALANCE', 'REMOVE_BALANCE', 'BLOCK_USER', 'UNBLOCK_USER', 
              'UPDATE_GAME', 'UPDATE_TRANSACTION', 'UPDATE_CONFIG', 'CREATE_BONUS', 'UPDATE_BONUS', 'DELETE_BONUS'];
   resources = ['user', 'game', 'transaction', 'config', 'bonus'];
 
@@ -113,6 +113,8 @@ export class AdminAuditComponent implements OnInit, OnDestroy {
 
   getActionLabel(action: string): string {
     const labels: any = {
+      'ADMIN_LOGIN': 'Login Administrativo',
+      'ADMIN_LOGOUT': 'Logout Administrativo',
       'UPDATE_USER': 'Atualizar Usuário',
       'DELETE_USER': 'Deletar Usuário',
       'ADD_BALANCE': 'Adicionar Saldo',
@@ -135,6 +137,9 @@ export class AdminAuditComponent implements OnInit, OnDestroy {
     }
     if (action.includes('CREATE') || action.includes('ADD') || action.includes('UNBLOCK')) {
       return 'action-success';
+    }
+    if (action.includes('LOGIN') || action.includes('LOGOUT')) {
+      return 'action-warning';
     }
     return 'action-info';
   }

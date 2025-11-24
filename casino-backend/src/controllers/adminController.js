@@ -49,6 +49,25 @@ class AdminController {
       // Gerar tokens
       const { accessToken, refreshToken } = AuthService.generateTokens(user);
 
+      // Registrar log de auditoria para login do admin
+      try {
+        await AuditLog.create({
+          adminId: user.id,
+          action: 'ADMIN_LOGIN',
+          resourceType: 'user',
+          resourceId: user.id,
+          ipAddress: req.ip || req.connection?.remoteAddress || 'unknown',
+          userAgent: req.get('user-agent') || 'unknown',
+          details: {
+            email: user.email,
+            username: user.username
+          }
+        });
+      } catch (auditError) {
+        logger.error('Erro ao registrar log de auditoria para login admin:', auditError);
+        // Não falhar o login se o log falhar
+      }
+
       logger.info(`Admin logado com sucesso: ${user.email}`);
 
       res.json({
@@ -78,6 +97,25 @@ class AdminController {
    */
   static async logout(req, res, next) {
     try {
+      // Registrar log de auditoria para logout do admin
+      try {
+        await AuditLog.create({
+          adminId: req.user.id,
+          action: 'ADMIN_LOGOUT',
+          resourceType: 'user',
+          resourceId: req.user.id,
+          ipAddress: req.ip || req.connection?.remoteAddress || 'unknown',
+          userAgent: req.get('user-agent') || 'unknown',
+          details: {
+            email: req.user.email,
+            username: req.user.username
+          }
+        });
+      } catch (auditError) {
+        logger.error('Erro ao registrar log de auditoria para logout admin:', auditError);
+        // Não falhar o logout se o log falhar
+      }
+
       // O token será removido no frontend
       // Aqui podemos adicionar lógica de blacklist se necessário
       logger.info(`Admin deslogado: ${req.user.email}`);
