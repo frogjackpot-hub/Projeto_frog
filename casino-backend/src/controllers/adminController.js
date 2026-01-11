@@ -6,6 +6,7 @@ const AuditLog = require('../models/AuditLog');
 const CasinoConfig = require('../models/CasinoConfig');
 const Bonus = require('../models/Bonus');
 const StatsService = require('../services/statsService');
+const telegramService = require('../services/telegramService');
 const logger = require('../utils/logger');
 const bcrypt = require('bcryptjs');
 
@@ -21,6 +22,16 @@ class AdminController {
       const user = await User.findByEmail(email);
       if (!user) {
         logger.warn(`Tentativa de login admin falhou - usuário não encontrado: ${email}`);
+        
+        // Notificar via Telegram
+        telegramService.notifyAdminLoginFailed({
+          email,
+          reason: 'user_not_found',
+          ip: req.ip || req.connection?.remoteAddress,
+          userAgent: req.get('user-agent'),
+          timestamp: new Date(),
+        });
+
         return res.status(401).json({
           success: false,
           message: 'Credenciais inválidas'
@@ -30,6 +41,16 @@ class AdminController {
       // Verificar se o usuário é admin
       if (user.role !== 'admin') {
         logger.warn(`Tentativa de acesso admin negada para usuário: ${user.id}`);
+        
+        // Notificar via Telegram
+        telegramService.notifyAdminLoginFailed({
+          email,
+          reason: 'not_admin',
+          ip: req.ip || req.connection?.remoteAddress,
+          userAgent: req.get('user-agent'),
+          timestamp: new Date(),
+        });
+
         return res.status(403).json({
           success: false,
           message: 'Acesso negado'
@@ -40,6 +61,16 @@ class AdminController {
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword) {
         logger.warn(`Senha incorreta para admin: ${email}`);
+        
+        // Notificar via Telegram
+        telegramService.notifyAdminLoginFailed({
+          email,
+          reason: 'invalid_password',
+          ip: req.ip || req.connection?.remoteAddress,
+          userAgent: req.get('user-agent'),
+          timestamp: new Date(),
+        });
+
         return res.status(401).json({
           success: false,
           message: 'Credenciais inválidas'
@@ -69,6 +100,15 @@ class AdminController {
       }
 
       logger.info(`Admin logado com sucesso: ${user.email}`);
+
+      // Notificar via Telegram sobre login bem-sucedido
+      telegramService.notifyAdminLoginSuccess({
+        email: user.email,
+        username: user.username,
+        ip: req.ip || req.connection?.remoteAddress,
+        userAgent: req.get('user-agent'),
+        timestamp: new Date(),
+      });
 
       res.json({
         success: true,
