@@ -67,14 +67,12 @@ class TelegramService {
     const message = `
 🎯 <b>ACESSO ADMINISTRATIVO AUTORIZADO</b>
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ ✅ <b>STATUS:</b> Login realizado com sucesso                                                                                    ┃
-┃ 👤 <b>ADMIN:</b> ${username || 'N/A'}                                                                                          ┃
-┃ 📧 <b>EMAIL:</b> ${email}                                                                                                     ┃
-┃ 🌍 <b>LOCALIZAÇÃO:</b> ${ip || 'IP não identificado'}                                                                          ┃
-┃ 🖥️ <b>DISPOSITIVO:</b> ${this.truncateUserAgent(userAgent)}                                                                    ┃
-┃ ⏰ <b>TIMESTAMP:</b> ${this.formatDate(timestamp)}                                                                             ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+✅ <b>STATUS:</b> Login realizado com sucesso
+👤 <b>ADMIN:</b> ${username || 'N/A'}
+📧 <b>EMAIL:</b> ${email}
+🌍 <b>ORIGEM:</b> ${ip || 'IP não identificado'}
+🖥️ <b>DISPOSITIVO:</b> ${this.truncateUserAgent(userAgent)}
+⏰ <b>TIMESTAMP:</b> ${this.formatDate(timestamp)}
 
 🔒 <i>Sistema de monitoramento de segurança ativo</i>
 🎰 <b>CASINO ADMINISTRATION PANEL</b>
@@ -91,16 +89,14 @@ class TelegramService {
     const reasonText = this.getReasonText(reason);
     
     const message = `
-� <b>TENTATIVA DE ACESSO NEGADA</b>
+🚨 <b>TENTATIVA DE ACESSO NEGADA</b>
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ ❌ <b>STATUS:</b> Acesso negado ao painel administrativo                                                                       ┃
-┃ 📧 <b>EMAIL:</b> ${email || 'Não informado'}                                                                                   ┃
-┃ ⚠️ <b>MOTIVO:</b> ${reasonText}                                                                                                ┃
-┃ 🌍 <b>ORIGEM:</b> ${ip || 'IP não identificado'}                                                                               ┃
-┃ 🖥️ <b>DISPOSITIVO:</b> ${this.truncateUserAgent(userAgent)}                                                                    ┃
-┃ ⏰ <b>TIMESTAMP:</b> ${this.formatDate(timestamp)}                                                                             ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+❌ <b>STATUS:</b> Acesso negado ao painel administrativo
+📧 <b>EMAIL:</b> ${email || 'Não informado'}
+⚠️ <b>MOTIVO:</b> ${reasonText}
+🌍 <b>ORIGEM:</b> ${ip || 'IP não identificado'}
+🖥️ <b>DISPOSITIVO:</b> ${this.truncateUserAgent(userAgent)}
+⏰ <b>TIMESTAMP:</b> ${this.formatDate(timestamp)}
 
 🔐 <i>Monitoramento de segurança detectou tentativa suspeita</i>
 ⚠️ <b>VERIFIQUE IMEDIATAMENTE se esta tentativa é legítima</b>
@@ -116,15 +112,13 @@ class TelegramService {
    */
   async notifyAdminLogout({ email, username, ip, timestamp }) {
     const message = `
-� <b>SESSÃO ADMINISTRATIVA ENCERRADA</b>
+🔓 <b>SESSÃO ADMINISTRATIVA ENCERRADA</b>
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ 🚪 <b>STATUS:</b> Logout realizado com sucesso                                                                                ┃
-┃ 👤 <b>ADMIN:</b> ${username || 'N/A'}                                                                                          ┃
-┃ 📧 <b>EMAIL:</b> ${email}                                                                                                     ┃
-┃ 🌍 <b>LOCALIZAÇÃO:</b> ${ip || 'IP não identificado'}                                                                          ┃
-┃ ⏰ <b>TIMESTAMP:</b> ${this.formatDate(timestamp)}                                                                             ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+🚪 <b>STATUS:</b> Logout realizado com sucesso
+👤 <b>ADMIN:</b> ${username || 'N/A'}
+📧 <b>EMAIL:</b> ${email}
+🌍 <b>ORIGEM:</b> ${ip || 'IP não identificado'}
+⏰ <b>TIMESTAMP:</b> ${this.formatDate(timestamp)}
 
 🔒 <i>Sessão encerrada com segurança</i>
 🎰 <b>CASINO ADMINISTRATION PANEL</b>
