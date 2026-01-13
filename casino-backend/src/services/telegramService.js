@@ -65,15 +65,19 @@ class TelegramService {
    */
   async notifyAdminLoginSuccess({ email, username, ip, userAgent, timestamp }) {
     const message = `
-🟢 <b>LOGIN ADMIN BEM-SUCEDIDO</b>
+🎯 <b>ACESSO ADMINISTRATIVO AUTORIZADO</b>
 
-👤 <b>Usuário:</b> ${username || 'N/A'}
-📧 <b>Email:</b> ${email}
-🌐 <b>IP:</b> ${ip || 'Desconhecido'}
-🖥️ <b>Navegador:</b> ${this.truncateUserAgent(userAgent)}
-🕐 <b>Data/Hora:</b> ${this.formatDate(timestamp)}
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ✅ <b>STATUS:</b> Login realizado com sucesso                                                                                    ┃
+┃ 👤 <b>ADMIN:</b> ${username || 'N/A'}                                                                                          ┃
+┃ 📧 <b>EMAIL:</b> ${email}                                                                                                     ┃
+┃ 🌍 <b>LOCALIZAÇÃO:</b> ${ip || 'IP não identificado'}                                                                          ┃
+┃ 🖥️ <b>DISPOSITIVO:</b> ${this.truncateUserAgent(userAgent)}                                                                    ┃
+┃ ⏰ <b>TIMESTAMP:</b> ${this.formatDate(timestamp)}                                                                             ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-✅ Acesso autorizado ao painel administrativo.
+🔒 <i>Sistema de monitoramento de segurança ativo</i>
+🎰 <b>CASINO ADMINISTRATION PANEL</b>
     `.trim();
 
     return this.sendMessage(message);
@@ -87,15 +91,20 @@ class TelegramService {
     const reasonText = this.getReasonText(reason);
     
     const message = `
-🔴 <b>TENTATIVA DE LOGIN ADMIN FALHOU</b>
+� <b>TENTATIVA DE ACESSO NEGADA</b>
 
-📧 <b>Email tentado:</b> ${email || 'Não informado'}
-❌ <b>Motivo:</b> ${reasonText}
-🌐 <b>IP:</b> ${ip || 'Desconhecido'}
-🖥️ <b>Navegador:</b> ${this.truncateUserAgent(userAgent)}
-🕐 <b>Data/Hora:</b> ${this.formatDate(timestamp)}
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ❌ <b>STATUS:</b> Acesso negado ao painel administrativo                                                                       ┃
+┃ 📧 <b>EMAIL:</b> ${email || 'Não informado'}                                                                                   ┃
+┃ ⚠️ <b>MOTIVO:</b> ${reasonText}                                                                                                ┃
+┃ 🌍 <b>ORIGEM:</b> ${ip || 'IP não identificado'}                                                                               ┃
+┃ 🖥️ <b>DISPOSITIVO:</b> ${this.truncateUserAgent(userAgent)}                                                                    ┃
+┃ ⏰ <b>TIMESTAMP:</b> ${this.formatDate(timestamp)}                                                                             ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-⚠️ Fique atento a tentativas suspeitas de acesso.
+🔐 <i>Monitoramento de segurança detectou tentativa suspeita</i>
+⚠️ <b>VERIFIQUE IMEDIATAMENTE se esta tentativa é legítima</b>
+🎰 <b>CASINO SECURITY SYSTEM</b>
     `.trim();
 
     return this.sendMessage(message);
@@ -107,12 +116,18 @@ class TelegramService {
    */
   async notifyAdminLogout({ email, username, ip, timestamp }) {
     const message = `
-🔵 <b>LOGOUT ADMIN</b>
+� <b>SESSÃO ADMINISTRATIVA ENCERRADA</b>
 
-👤 <b>Usuário:</b> ${username || 'N/A'}
-📧 <b>Email:</b> ${email}
-🌐 <b>IP:</b> ${ip || 'Desconhecido'}
-🕐 <b>Data/Hora:</b> ${this.formatDate(timestamp)}
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ 🚪 <b>STATUS:</b> Logout realizado com sucesso                                                                                ┃
+┃ 👤 <b>ADMIN:</b> ${username || 'N/A'}                                                                                          ┃
+┃ 📧 <b>EMAIL:</b> ${email}                                                                                                     ┃
+┃ 🌍 <b>LOCALIZAÇÃO:</b> ${ip || 'IP não identificado'}                                                                          ┃
+┃ ⏰ <b>TIMESTAMP:</b> ${this.formatDate(timestamp)}                                                                             ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+🔒 <i>Sessão encerrada com segurança</i>
+🎰 <b>CASINO ADMINISTRATION PANEL</b>
     `.trim();
 
     return this.sendMessage(message);
@@ -123,13 +138,15 @@ class TelegramService {
    */
   getReasonText(reason) {
     const reasons = {
-      'user_not_found': 'Usuário não encontrado',
-      'invalid_password': 'Senha incorreta',
-      'not_admin': 'Usuário não é administrador',
-      'account_blocked': 'Conta bloqueada',
-      'unknown': 'Erro desconhecido',
+      'user_not_found': '🔍 Usuário não encontrado no sistema',
+      'invalid_password': '🔑 Credenciais inválidas fornecidas',
+      'not_admin': '⚠️ Usuário não possui privilégios administrativos',
+      'account_blocked': '🚫 Conta administrativa bloqueada temporariamente',
+      'multiple_attempts': '🔒 Múltiplas tentativas de acesso detectadas',
+      'suspicious_activity': '🕵️ Atividade suspeita identificada',
+      'unknown': '❓ Erro de autenticação não identificado',
     };
-    return reasons[reason] || reason || 'Não especificado';
+    return reasons[reason] || reason || '❓ Motivo não especificado pelo sistema';
   }
 
   /**
