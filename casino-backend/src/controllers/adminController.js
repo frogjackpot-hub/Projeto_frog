@@ -9,6 +9,7 @@ const StatsService = require('../services/statsService');
 const telegramService = require('../services/telegramService');
 const logger = require('../utils/logger');
 const bcrypt = require('bcryptjs');
+const { getClientIP, getClientInfo } = require('../utils/clientInfo');
 
 class AdminController {
   /**
@@ -17,17 +18,21 @@ class AdminController {
   static async login(req, res, next) {
     try {
       const { email, password } = req.body;
+      
+      // Capturar informações reais do cliente
+      const clientInfo = getClientInfo(req);
+      const clientIP = getClientIP(req);
 
       // Buscar usuário
       const user = await User.findByEmail(email);
       if (!user) {
-        logger.warn(`Tentativa de login admin falhou - usuário não encontrado: ${email}`);
+        logger.warn(`Tentativa de login admin falhou - usuário não encontrado: ${email}`, { ip: clientIP });
         
         // Notificar via Telegram
         telegramService.notifyAdminLoginFailed({
           email,
           reason: 'user_not_found',
-          ip: req.ip || req.connection?.remoteAddress,
+          ip: clientIP,
           userAgent: req.get('user-agent'),
           timestamp: new Date(),
         });
@@ -40,13 +45,13 @@ class AdminController {
 
       // Verificar se o usuário é admin
       if (user.role !== 'admin') {
-        logger.warn(`Tentativa de acesso admin negada para usuário: ${user.id}`);
+        logger.warn(`Tentativa de acesso admin negada para usuário: ${user.id}`, { ip: clientIP });
         
         // Notificar via Telegram
         telegramService.notifyAdminLoginFailed({
           email,
           reason: 'not_admin',
-          ip: req.ip || req.connection?.remoteAddress,
+          ip: clientIP,
           userAgent: req.get('user-agent'),
           timestamp: new Date(),
         });
@@ -60,13 +65,13 @@ class AdminController {
       // Verificar senha
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword) {
-        logger.warn(`Senha incorreta para admin: ${email}`);
+        logger.warn(`Senha incorreta para admin: ${email}`, { ip: clientIP });
         
         // Notificar via Telegram
         telegramService.notifyAdminLoginFailed({
           email,
           reason: 'invalid_password',
-          ip: req.ip || req.connection?.remoteAddress,
+          ip: clientIP,
           userAgent: req.get('user-agent'),
           timestamp: new Date(),
         });
@@ -87,11 +92,12 @@ class AdminController {
           action: 'ADMIN_LOGIN',
           resourceType: 'user',
           resourceId: user.id,
-          ipAddress: req.ip || req.connection?.remoteAddress || 'unknown',
+          ipAddress: clientIP,
           userAgent: req.get('user-agent') || 'unknown',
           details: {
             email: user.email,
-            username: user.username
+            username: user.username,
+            device: clientInfo.formattedDevice
           }
         });
       } catch (auditError) {
@@ -99,13 +105,13 @@ class AdminController {
         // Não falhar o login se o log falhar
       }
 
-      logger.info(`Admin logado com sucesso: ${user.email}`);
+      logger.info(`Admin logado com sucesso: ${user.email}`, { ip: clientIP });
 
       // Notificar via Telegram sobre login bem-sucedido
       telegramService.notifyAdminLoginSuccess({
         email: user.email,
         username: user.username,
-        ip: req.ip || req.connection?.remoteAddress,
+        ip: clientIP,
         userAgent: req.get('user-agent'),
         timestamp: new Date(),
       });
@@ -137,6 +143,9 @@ class AdminController {
    */
   static async logout(req, res, next) {
     try {
+      // Capturar IP real do cliente
+      const clientIP = getClientIP(req);
+      
       // Registrar log de auditoria para logout do admin
       try {
         await AuditLog.create({
@@ -144,7 +153,7 @@ class AdminController {
           action: 'ADMIN_LOGOUT',
           resourceType: 'user',
           resourceId: req.user.id,
-          ipAddress: req.ip || req.connection?.remoteAddress || 'unknown',
+          ipAddress: clientIP,
           userAgent: req.get('user-agent') || 'unknown',
           details: {
             email: req.user.email,
@@ -158,7 +167,7 @@ class AdminController {
 
       // O token será removido no frontend
       // Aqui podemos adicionar lógica de blacklist se necessário
-      logger.info(`Admin deslogado: ${req.user.email}`);
+      logger.info(`Admin deslogado: ${req.user.email}`, { ip: clientIP });
 
       res.json({
         success: true,
