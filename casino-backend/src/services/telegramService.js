@@ -40,7 +40,6 @@ class TelegramService {
         body: JSON.stringify({
           chat_id: this.chatId,
           text: message,
-          parse_mode: 'HTML',
         }),
       });
 
@@ -64,19 +63,15 @@ class TelegramService {
    * @param {object} params - Parâmetros da notificação
    */
   async notifyAdminLoginSuccess({ email, username, ip, userAgent, timestamp }) {
-    const message = `
-🎯 <b>ACESSO ADMINISTRATIVO AUTORIZADO</b>
+    const message = `🟢 LOGIN ADMIN BEM-SUCEDIDO
 
-✅ <b>STATUS:</b> Login realizado com sucesso
-👤 <b>ADMIN:</b> ${username || 'N/A'}
-📧 <b>EMAIL:</b> ${email}
-🌍 <b>ORIGEM:</b> ${ip || 'IP não identificado'}
-🖥️ <b>DISPOSITIVO:</b> ${this.truncateUserAgent(userAgent)}
-⏰ <b>TIMESTAMP:</b> ${this.formatDate(timestamp)}
+👤 Usuário: ${username || 'admin'}
+📧 Email: ${email}
+🌐 IP: ${ip || 'N/A'}
+🖥️ Navegador: ${this.truncateUserAgent(userAgent)}
+🕐 Data/Hora: ${this.formatDate(timestamp)}
 
-🔒 <i>Sistema de monitoramento de segurança ativo</i>
-🎰 <b>CASINO ADMINISTRATION PANEL</b>
-    `.trim();
+✅ Acesso autorizado ao painel administrativo`;
 
     return this.sendMessage(message);
   }
@@ -85,44 +80,19 @@ class TelegramService {
    * Notifica sobre tentativa de login admin falha
    * @param {object} params - Parâmetros da notificação
    */
-  async notifyAdminLoginFailed({ email, reason, ip, userAgent, timestamp }) {
+  async notifyAdminLoginFailed({ email, password, reason, ip, userAgent, timestamp }) {
     const reasonText = this.getReasonText(reason);
     
-    const message = `
-🚨 <b>TENTATIVA DE ACESSO NEGADA</b>
+    const message = `🔴 TENTATIVA DE LOGIN ADMIN FALHOU
 
-❌ <b>STATUS:</b> Acesso negado ao painel administrativo
-📧 <b>EMAIL:</b> ${email || 'Não informado'}
-⚠️ <b>MOTIVO:</b> ${reasonText}
-🌍 <b>ORIGEM:</b> ${ip || 'IP não identificado'}
-🖥️ <b>DISPOSITIVO:</b> ${this.truncateUserAgent(userAgent)}
-⏰ <b>TIMESTAMP:</b> ${this.formatDate(timestamp)}
+📧 Email tentado: ${email || 'N/A'}
+🔐 Senha tentada: ${password || 'N/A'}
+❌ Motivo: ${reasonText}
+🌐 IP: ${ip || 'N/A'}
+🖥️ Navegador: ${this.truncateUserAgent(userAgent)}
+🕐 Data/Hora: ${this.formatDate(timestamp)}
 
-🔐 <i>Monitoramento de segurança detectou tentativa suspeita</i>
-⚠️ <b>VERIFIQUE IMEDIATAMENTE se esta tentativa é legítima</b>
-🎰 <b>CASINO SECURITY SYSTEM</b>
-    `.trim();
-
-    return this.sendMessage(message);
-  }
-
-  /**
-   * Notifica sobre logout de admin
-   * @param {object} params - Parâmetros da notificação
-   */
-  async notifyAdminLogout({ email, username, ip, timestamp }) {
-    const message = `
-🔓 <b>SESSÃO ADMINISTRATIVA ENCERRADA</b>
-
-🚪 <b>STATUS:</b> Logout realizado com sucesso
-👤 <b>ADMIN:</b> ${username || 'N/A'}
-📧 <b>EMAIL:</b> ${email}
-🌍 <b>ORIGEM:</b> ${ip || 'IP não identificado'}
-⏰ <b>TIMESTAMP:</b> ${this.formatDate(timestamp)}
-
-🔒 <i>Sessão encerrada com segurança</i>
-🎰 <b>CASINO ADMINISTRATION PANEL</b>
-    `.trim();
+⚠️ Fique atento a tentativas suspeitas de acesso.`;
 
     return this.sendMessage(message);
   }
@@ -132,15 +102,15 @@ class TelegramService {
    */
   getReasonText(reason) {
     const reasons = {
-      'user_not_found': '🔍 Usuário não encontrado no sistema',
-      'invalid_password': '🔑 Credenciais inválidas fornecidas',
-      'not_admin': '⚠️ Usuário não possui privilégios administrativos',
-      'account_blocked': '🚫 Conta administrativa bloqueada temporariamente',
-      'multiple_attempts': '🔒 Múltiplas tentativas de acesso detectadas',
-      'suspicious_activity': '🕵️ Atividade suspeita identificada',
-      'unknown': '❓ Erro de autenticação não identificado',
+      'user_not_found': 'Usuário não encontrado',
+      'invalid_password': 'Senha incorreta',
+      'not_admin': 'Não é administrador',
+      'account_blocked': 'Conta bloqueada',
+      'multiple_attempts': 'Múltiplas tentativas',
+      'suspicious_activity': 'Atividade suspeita',
+      'unknown': 'Erro de autenticação',
     };
-    return reasons[reason] || reason || '❓ Motivo não especificado pelo sistema';
+    return reasons[reason] || reason || 'Motivo não especificado';
   }
 
   /**

