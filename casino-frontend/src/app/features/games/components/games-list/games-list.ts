@@ -13,6 +13,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
 })
 export class GamesListComponent implements OnInit {
   games: Game[] = [];
+  showGameInfo = false;
 
   constructor(
     private apiService: ApiService,
@@ -71,5 +72,16 @@ export class GamesListComponent implements OnInit {
     
     // TODO: Implementar redirecionamento para o jogo
     // this.router.navigate(['/games/frogjackpot']);
+  }
+
+  openGameInfo(event: Event): void {
+    event.stopPropagation(); // Evita que o clique no card seja acionado
+    this.showGameInfo = true;
+    this.cdr.detectChanges();
+  }
+
+  closeGameInfo(): void {
+    this.showGameInfo = false;
+    this.cdr.detectChanges();
   }
 }
