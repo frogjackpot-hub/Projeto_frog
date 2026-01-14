@@ -1,11 +1,46 @@
 
 <div class="games-list">
   <div class="games-header">
-    <h1>Jogos Disponíveis</h1>
-    <p>Escolha seu jogo favorito e comece a jogar!</p>
+    <h1>Jogos em Destaque</h1>
   </div>
   
-  <div class="games-grid">
+  <!-- FrogJackpot Game Card -->
+  <div class="featured-game-section">
+    <div class="frogjackpot-card" (click)="playFrogJackpot()">
+      <div class="card-background"></div>
+      <div class="card-overlay"></div>
+      <div class="card-content">
+        <div class="game-badge">🆕 NOVO</div>
+        <div class="game-title">
+          <h2>FrogJackpot</h2>
+          <p class="game-subtitle">O jogo mais emocionante do cassino!</p>
+        </div>
+        <div class="game-features">
+          <div class="feature">
+            <span class="feature-icon">💰</span>
+            <span class="feature-text">Grandes Prêmios</span>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">🎯</span>
+            <span class="feature-text">Alta Diversão</span>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">🚀</span>
+            <span class="feature-text">Jogabilidade Rápida</span>
+          </div>
+        </div>
+        <button class="play-frogjackpot-btn">
+          <span class="btn-icon">🐸</span>
+          JOGAR FROGJACKPOT
+        </button>
+      </div>
+      <div class="card-glow"></div>
+    </div>
+  </div>
+  
+  <!-- Outros jogos (se houver) -->
+  <div class="games-grid" *ngIf="games.length > 0">
+    <h3 class="section-title">Outros Jogos</h3>
     <div class="game-card" *ngFor="let game of games; trackBy: trackByGameId">
       <div class="game-icon">
         <span *ngIf="game.type === 'slot'">🎰</span>

@@ -51,4 +51,15 @@ export class GamesListComponent implements OnInit {
       `O jogo ${game.name} será implementado em breve!`
     );
   }
+
+  playFrogJackpot(): void {
+    // Por enquanto, mostrar mensagem de que está sendo implementado
+    this.notificationService.success(
+      'FrogJackpot - Em Breve!',
+      '🐸 O jogo mais emocionante do cassino está chegando! Aguarde...'
+    );
+    
+    // TODO: Implementar redirecionamento para o jogo
+    // this.router.navigate(['/games/frogjackpot']);
+  }
 }
