@@ -13,7 +13,6 @@ import { NotificationService } from '../../../../core/services/notification.serv
 })
 export class GamesListComponent implements OnInit {
   games: Game[] = [];
-  showGameInfo = false;
 
   constructor(
     private apiService: ApiService,
@@ -39,7 +38,7 @@ export class GamesListComponent implements OnInit {
       next: (response) => {
         if (response.success && response.data) {
           this.games = response.data.games;
-          this.cdr.detectChanges(); // Forçar detecção de mudanças
+          this.cdr.detectChanges();
         }
       },
       error: (error) => {
@@ -61,27 +60,5 @@ export class GamesListComponent implements OnInit {
       'Jogo em desenvolvimento',
       `O jogo ${game.name} será implementado em breve!`
     );
-  }
-
-  playFrogJackpot(): void {
-    // Por enquanto, mostrar mensagem de que está sendo implementado
-    this.notificationService.success(
-      'FrogJackpot - Em Breve!',
-      '🐸 O jogo mais emocionante do cassino está chegando! Aguarde...'
-    );
-    
-    // TODO: Implementar redirecionamento para o jogo
-    // this.router.navigate(['/games/frogjackpot']);
-  }
-
-  openGameInfo(event: Event): void {
-    event.stopPropagation(); // Evita que o clique no card seja acionado
-    this.showGameInfo = true;
-    this.cdr.detectChanges();
-  }
-
-  closeGameInfo(): void {
-    this.showGameInfo = false;
-    this.cdr.detectChanges();
   }
 }

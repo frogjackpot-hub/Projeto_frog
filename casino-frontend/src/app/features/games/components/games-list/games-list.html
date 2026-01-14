@@ -4,42 +4,8 @@
     <h1>Jogos em Destaque</h1>
   </div>
   
-  <!-- FrogJackpot Game Card -->
-  <div class="featured-game-section">
-    <div class="frogjackpot-card" (click)="playFrogJackpot()">
-      <div class="card-background"></div>
-      <div class="card-overlay"></div>
-      <div class="card-content">
-        <div class="game-badge">🆕 NOVO</div>
-        <button class="info-btn" (click)="openGameInfo($event)" title="Informações do jogo">
-          <i class="info-icon">ℹ️</i>
-        </button>
-        <div class="game-title">
-          <h2>FrogJackpot</h2>
-          <p class="game-subtitle">O jogo mais emocionante do cassino!</p>
-        </div>
-        <div class="game-features">
-          <div class="feature">
-            <span class="feature-icon">💰</span>
-            <span class="feature-text">Grandes Prêmios</span>
-          </div>
-          <div class="feature">
-            <span class="feature-icon">🎯</span>
-            <span class="feature-text">Alta Diversão</span>
-          </div>
-          <div class="feature">
-            <span class="feature-icon">🚀</span>
-            <span class="feature-text">Jogabilidade Rápida</span>
-          </div>
-        </div>
-        <button class="play-frogjackpot-btn">
-          <span class="btn-icon">🐸</span>
-          JOGAR FROGJACKPOT
-        </button>
-      </div>
-      <div class="card-glow"></div>
-    </div>
-  </div>
+  <!-- FrogJackpot Game Card Component -->
+  <app-frogjackpot-card></app-frogjackpot-card>
   
   <!-- Outros jogos (se houver) -->
   <div class="games-grid" *ngIf="otherGames.length > 0">
@@ -67,62 +33,5 @@
   
   <div *ngIf="games.length === 0" class="empty-state">
     <p>Nenhum jogo disponível no momento.</p>
-  </div>
-</div>
-
-<!-- Modal de Informações do FrogJackpot -->
-<div class="game-info-modal" *ngIf="showGameInfo" (click)="closeGameInfo()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h2>🐸 FrogJackpot</h2>
-      <button class="close-btn" (click)="closeGameInfo()">×</button>
-    </div>
-    
-    <div class="modal-body">
-      <!-- RTP Section -->
-      <div class="info-section">
-        <div class="info-item rtp-item">
-          <span class="info-label">RTP (Retorno ao Jogador)</span>
-          <span class="info-value rtp-value">74%</span>
-        </div>
-      </div>
-      
-      <!-- Game Stats -->
-      <div class="info-section">
-        <h3>📊 Estatísticas do Jogo</h3>
-        <div class="stats-grid">
-          <div class="stat-item">
-            <span class="stat-label">Seleções</span>
-            <span class="stat-value">6 Sapos (Total)</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Opções</span>
-            <span class="stat-value">12 Variedades</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Volatilidade</span>
-            <span class="stat-value volatility-high">Muito Alta</span>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Features Tags -->
-      <div class="info-section">
-        <h3>🎯 Funcionalidades</h3>
-        <div class="features-tags">
-          <span class="feature-tag jackpot">💎 Jackpot Progressivo</span>
-          <span class="feature-tag quick">⚡ Seleção Rápida</span>
-          <span class="feature-tag auto">🤖 Aposta Automática</span>
-          <span class="feature-tag multi">🎊 Multiplicadores</span>
-        </div>
-      </div>
-      
-      <!-- Call to Action -->
-      <div class="modal-footer">
-        <button class="play-now-btn" (click)="playFrogJackpot(); closeGameInfo()">
-          🐸 JOGAR AGORA
-        </button>
-      </div>
-    </div>
   </div>
 </div>
