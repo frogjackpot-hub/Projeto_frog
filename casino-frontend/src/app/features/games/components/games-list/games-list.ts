@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Game } from '../../../../core/models/game.model';
 import { ApiService } from '../../../../core/services/api.service';
@@ -17,11 +17,20 @@ export class GamesListComponent implements OnInit {
   constructor(
     private apiService: ApiService,
     private router: Router,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.loadGames();
+  }
+
+  // Getter para filtrar jogos (excluindo FrogJackpot)
+  get otherGames(): Game[] {
+    return this.games.filter(game => 
+      game.name.toLowerCase() !== 'frogjackpot' && 
+      !game.name.toLowerCase().includes('frog')
+    );
   }
 
   private loadGames(): void {
@@ -29,6 +38,7 @@ export class GamesListComponent implements OnInit {
       next: (response) => {
         if (response.success && response.data) {
           this.games = response.data.games;
+          this.cdr.detectChanges(); // Forçar detecção de mudanças
         }
       },
       error: (error) => {

@@ -127,11 +127,11 @@
   }
   
   .game-subtitle {
-    font-size: 1.2rem;
+    font-size: 0.9rem;
     color: #ffffff;
     margin: 0.5rem auto 0 auto;
     font-weight: 500;
-    max-width: 80%;
+    max-width: 40%;
     
     /* Fundo semitransparente para legibilidade */
     background: rgba(0, 0, 0, 0.7);
@@ -177,7 +177,7 @@
   background: linear-gradient(45deg, #ffd700, #ffed4e);
   color: #000;
   border: none;
-  padding: 1.2rem 2.5rem;
+  padding: 0.6rem 2.5rem;
   border-radius: 50px;
   font-weight: 700;
   font-size: 1.1rem;

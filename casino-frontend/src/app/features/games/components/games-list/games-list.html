@@ -10,7 +10,7 @@
       <div class="card-background"></div>
       <div class="card-overlay"></div>
       <div class="card-content">
-        <div class="game-badge">🆕 NOVO</div>
+        <div class="game-badge">NOVO</div>
         <div class="game-title">
           <h2>FrogJackpot</h2>
           <p class="game-subtitle">O jogo mais emocionante do cassino!</p>
@@ -39,9 +39,9 @@
   </div>
   
   <!-- Outros jogos (se houver) -->
-  <div class="games-grid" *ngIf="games.length > 0">
+  <div class="games-grid" *ngIf="otherGames.length > 0">
     <h3 class="section-title">Outros Jogos</h3>
-    <div class="game-card" *ngFor="let game of games; trackBy: trackByGameId">
+    <div class="game-card" *ngFor="let game of otherGames; trackBy: trackByGameId">
       <div class="game-icon">
         <span *ngIf="game.type === 'slot'">🎰</span>
         <span *ngIf="game.type === 'roulette'">🎡</span>
