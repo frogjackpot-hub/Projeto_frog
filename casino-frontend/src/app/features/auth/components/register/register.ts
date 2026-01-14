@@ -1,9 +1,46 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+
+// Validador customizado para nomes - apenas letras
+export function nameValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (!control.value) return null;
+    
+    // Apenas letras (incluindo acentos) - sem espaços, números ou símbolos
+    const namePattern = /^[a-zA-ZÀ-ÿ]+$/;
+    if (!namePattern.test(control.value)) {
+      return { 
+        pattern: { 
+          requiredPattern: '^[a-zA-ZÀ-ÿ]+$', 
+          actualValue: control.value 
+        } 
+      };
+    }
+    return null;
+  };
+}
+
+// Validador customizado para username
+export function usernameValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (!control.value) return null;
+    
+    const usernamePattern = /^[a-zA-Z0-9_]+$/;
+    if (!usernamePattern.test(control.value)) {
+      return { 
+        pattern: { 
+          requiredPattern: '^[a-zA-Z0-9_]+$', 
+          actualValue: control.value 
+        } 
+      };
+    }
+    return null;
+  };
+}
 
 @Component({
   selector: 'app-register',
@@ -32,12 +69,23 @@ export class RegisterComponent implements OnInit {
 
   private createRegisterForm(): FormGroup {
     return this.formBuilder.group({
-      firstName: ['', [Validators.required, Validators.minLength(2)]],
-      lastName: ['', [Validators.required, Validators.minLength(2)]],
+      firstName: ['', [
+        Validators.required, 
+        Validators.minLength(2),
+        Validators.maxLength(50),
+        nameValidator() // Usar validador customizado
+      ]],
+      lastName: ['', [
+        Validators.required, 
+        Validators.minLength(2),
+        Validators.maxLength(50),
+        nameValidator() // Usar validador customizado
+      ]],
       username: ['', [
         Validators.required,
         Validators.minLength(3),
-        Validators.pattern(/^[a-zA-Z0-9_]+$/)
+        Validators.maxLength(30),
+        usernameValidator() // Usar validador customizado
       ]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [
@@ -82,6 +130,58 @@ export class RegisterComponent implements OnInit {
     return !!(field && field.invalid && (field.dirty || field.touched));
   }
 
+  getFieldErrorMessage(fieldName: string): string {
+    const field = this.registerForm.get(fieldName);
+    if (!field || !field.errors || !this.isFieldInvalid(fieldName)) {
+      return '';
+    }
+
+    const errors = field.errors;
+    
+    // Mensagens específicas por campo
+    if (fieldName === 'firstName') {
+      if (errors['required']) return 'Nome é obrigatório';
+      if (errors['minlength']) return 'Nome deve ter pelo menos 2 caracteres';
+      if (errors['maxlength']) return 'Nome deve ter no máximo 50 caracteres';
+      if (errors['pattern']) return 'Nome deve conter apenas letras';
+    }
+    
+    if (fieldName === 'lastName') {
+      if (errors['required']) return 'Sobrenome é obrigatório';
+      if (errors['minlength']) return 'Sobrenome deve ter pelo menos 2 caracteres';
+      if (errors['maxlength']) return 'Sobrenome deve ter no máximo 50 caracteres';
+      if (errors['pattern']) return 'Sobrenome deve conter apenas letras';
+    }
+    
+    if (fieldName === 'username') {
+      if (errors['required']) return 'Nome de usuário é obrigatório';
+      if (errors['minlength']) return 'Nome de usuário deve ter pelo menos 3 caracteres';
+      if (errors['pattern']) return 'Nome de usuário deve conter apenas letras, números e underscore';
+    }
+    
+    if (fieldName === 'email') {
+      if (errors['required']) return 'E-mail é obrigatório';
+      if (errors['email']) return 'E-mail deve ter um formato válido';
+    }
+    
+    if (fieldName === 'password') {
+      if (errors['required']) return 'Senha é obrigatória';
+      if (errors['minlength']) return 'Senha deve ter pelo menos 8 caracteres';
+      if (errors['pattern']) return 'Senha deve conter pelo menos uma letra maiúscula, uma minúscula e um número';
+    }
+    
+    if (fieldName === 'confirmPassword') {
+      if (errors['required']) return 'Confirmação de senha é obrigatória';
+      if (errors['passwordMismatch']) return 'As senhas não coincidem';
+    }
+    
+    if (fieldName === 'acceptTerms') {
+      if (errors['required']) return 'Você deve aceitar os termos e condições';
+    }
+    
+    return 'Campo inválido';
+  }
+
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
   }
@@ -121,6 +221,57 @@ export class RegisterComponent implements OnInit {
       case 'medium': return 'Senha média';
       case 'strong': return 'Senha forte';
       default: return '';
+    }
+  }
+
+  // Filtro para impedir caracteres especiais em tempo real nos campos de nome
+  onNameKeypress(event: KeyboardEvent): void {
+    const char = event.key;
+    console.log('Key pressed in name field:', char); // Debug
+    // Permitir apenas letras (sem espaços, números ou símbolos)
+    const allowedPattern = /^[a-zA-ZÀ-ÿ]$/;
+    const specialKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'];
+    
+    if (!allowedPattern.test(char) && !specialKeys.includes(char) && !event.ctrlKey && !event.altKey) {
+      console.log('Preventing character:', char); // Debug
+      event.preventDefault();
+    }
+  }
+
+  // Filtro para username (apenas letras, números e underscore)
+  onUsernameKeypress(event: KeyboardEvent): void {
+    const char = event.key;
+    const allowedPattern = /^[a-zA-Z0-9_]$/;
+    const specialKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'];
+    
+    if (!allowedPattern.test(char) && !specialKeys.includes(char) && !event.ctrlKey && !event.altKey) {
+      event.preventDefault();
+    }
+  }
+
+  // Validação adicional para entrada de texto (cola/input)
+  onNameInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
+    console.log('Name input value before cleaning:', value); // Debug
+    // Remover tudo que não for letra
+    const cleanedValue = value.replace(/[^a-zA-ZÀ-ÿ]/g, '');
+    if (value !== cleanedValue) {
+      console.log('Cleaned value:', cleanedValue); // Debug
+      input.value = cleanedValue;
+      this.registerForm.get(input.getAttribute('formControlName') || '')?.setValue(cleanedValue);
+    }
+  }
+
+  // Validação adicional para username
+  onUsernameInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
+    // Remover caracteres não permitidos
+    const cleanedValue = value.replace(/[^a-zA-Z0-9_]/g, '');
+    if (value !== cleanedValue) {
+      input.value = cleanedValue;
+      this.registerForm.get('username')?.setValue(cleanedValue);
     }
   }
 

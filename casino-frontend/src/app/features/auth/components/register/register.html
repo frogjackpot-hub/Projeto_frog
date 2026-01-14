@@ -14,14 +14,12 @@
           formControlName="firstName"
           placeholder="Seu nome"
           [class.error]="isFieldInvalid('firstName')"
+          (keydown)="onNameKeypress($event)"
+          (input)="onNameInput($event)"
+          maxlength="50"
         >
         <div class="error-message" *ngIf="isFieldInvalid('firstName')">
-          <span *ngIf="registerForm.get('firstName')?.errors?.['required']">
-            Nome é obrigatório
-          </span>
-          <span *ngIf="registerForm.get('firstName')?.errors?.['minlength']">
-            Nome deve ter pelo menos 2 caracteres
-          </span>
+          {{ getFieldErrorMessage('firstName') }}
         </div>
       </div>
 
@@ -33,14 +31,12 @@
           formControlName="lastName"
           placeholder="Seu sobrenome"
           [class.error]="isFieldInvalid('lastName')"
+          (keydown)="onNameKeypress($event)"
+          (input)="onNameInput($event)"
+          maxlength="50"
         >
         <div class="error-message" *ngIf="isFieldInvalid('lastName')">
-          <span *ngIf="registerForm.get('lastName')?.errors?.['required']">
-            Sobrenome é obrigatório
-          </span>
-          <span *ngIf="registerForm.get('lastName')?.errors?.['minlength']">
-            Sobrenome deve ter pelo menos 2 caracteres
-          </span>
+          {{ getFieldErrorMessage('lastName') }}
         </div>
       </div>
     </div>
@@ -53,6 +49,9 @@
         formControlName="username"
         placeholder="Escolha um nome de usuário"
         [class.error]="isFieldInvalid('username')"
+        (keydown)="onUsernameKeypress($event)"
+        (input)="onUsernameInput($event)"
+        maxlength="30"
       >
       <div class="error-message" *ngIf="isFieldInvalid('username')">
         <span *ngIf="registerForm.get('username')?.errors?.['required']">

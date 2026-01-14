@@ -47,16 +47,30 @@ const schemas = {
       'string.pattern.base': 'Senha deve conter pelo menos: 1 letra minúscula, 1 maiúscula, 1 número e 1 caractere especial',
       'any.required': 'Senha é obrigatória',
     }),
-    firstName: Joi.string().min(2).max(50).required().messages({
-      'string.min': 'Nome deve ter pelo menos 2 caracteres',
-      'string.max': 'Nome deve ter no máximo 50 caracteres',
-      'any.required': 'Nome é obrigatório',
-    }),
-    lastName: Joi.string().min(2).max(50).required().messages({
-      'string.min': 'Sobrenome deve ter pelo menos 2 caracteres',
-      'string.max': 'Sobrenome deve ter no máximo 50 caracteres',
-      'any.required': 'Sobrenome é obrigatório',
-    }),
+    // Nome: apenas letras (sem espaços, números ou símbolos)
+    firstName: Joi.string()
+      .min(2)
+      .max(50)
+      .pattern(/^[a-zA-ZÀ-ÿ]+$/)
+      .required()
+      .messages({
+        'string.min': 'Nome deve ter pelo menos 2 caracteres',
+        'string.max': 'Nome deve ter no máximo 50 caracteres',
+        'string.pattern.base': 'Nome deve conter apenas letras',
+        'any.required': 'Nome é obrigatório',
+      }),
+    // Sobrenome: apenas letras (sem espaços, números ou símbolos)
+    lastName: Joi.string()
+      .min(2)
+      .max(50)
+      .pattern(/^[a-zA-ZÀ-ÿ]+$/)
+      .required()
+      .messages({
+        'string.min': 'Sobrenome deve ter pelo menos 2 caracteres',
+        'string.max': 'Sobrenome deve ter no máximo 50 caracteres',
+        'string.pattern.base': 'Sobrenome deve conter apenas letras',
+        'any.required': 'Sobrenome é obrigatório',
+      }),
   }),
 
   login: Joi.object({
