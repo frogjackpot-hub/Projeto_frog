@@ -25,7 +25,9 @@ app.use(helmet({
       imgSrc: ["'self'", "data:", "https:"],
       connectSrc: ["'self'", 
         process.env.FRONTEND_URL || "https://projeto-frog.onrender.com",
-        "https://casino-backend-5y4k.onrender.com"
+        "https://casino-backend-5y4k.onrender.com",
+        "http://localhost:3000",
+        "http://localhost:4200"
       ],
       frameSrc: ["'none'"],
       objectSrc: ["'none'"],
