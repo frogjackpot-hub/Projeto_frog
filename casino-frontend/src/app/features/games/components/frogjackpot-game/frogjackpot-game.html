@@ -1,0 +1,116 @@
+<div class="frogjackpot-game">
+  <!-- Header -->
+  <div class="game-header">
+    <button class="back-btn" (click)="goBack()">
+      <span>←</span> Voltar
+    </button>
+    <h1>🐸 FrogJackpot</h1>
+    <div class="balance-display">
+      <span class="balance-label">Saldo:</span>
+      <span class="balance-amount">R$ {{ balance | number:'1.2-2' }}</span>
+    </div>
+  </div>
+
+  <!-- Main Content - Layout Horizontal -->
+  <div class="main-content">
+    
+    <!-- Left Side - Game Area -->
+    <div class="game-area">
+      
+      <!-- Central Frog Character -->
+      <div class="frog-character">
+        <div class="frog-crown">👑</div>
+        <div class="frog-face">🐸</div>
+        <div class="frog-label">FrogJackpot</div>
+      </div>
+
+      <!-- Game Board Placeholder -->
+      <div class="game-board">
+        <div class="board-overlay">
+          <div class="coming-soon">
+            <h2>🎮 Área do Jogo</h2>
+            <p>A mecânica do FrogJackpot será implementada aqui!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Decorative Elements -->
+      <div class="decorative-cards">
+        <div class="floating-card card-1">🃏</div>
+        <div class="floating-card card-2">🎴</div>
+        <div class="floating-card card-3">🂡</div>
+        <div class="floating-card card-4">🂮</div>
+      </div>
+    </div>
+
+    <!-- Right Side - Betting Controls -->
+    <div class="betting-area">
+      <div class="betting-section">
+        <h3>💰 Sua Aposta</h3>
+        
+        <div class="bet-input-container">
+          <button class="bet-btn decrease" (click)="decreaseBet()" [disabled]="betAmount <= 1">
+            <span>−</span>
+          </button>
+          
+          <div class="bet-display">
+            <input 
+              type="number" 
+              [(ngModel)]="betAmount" 
+              [max]="balance"
+              min="1"
+              class="bet-input"
+            />
+            <span class="currency">R$</span>
+          </div>
+          
+          <button class="bet-btn increase" (click)="increaseBet()" [disabled]="betAmount >= balance">
+            <span>+</span>
+          </button>
+        </div>
+
+        <!-- Quick Bet Buttons -->
+        <div class="quick-bets">
+          <button 
+            *ngFor="let amount of quickBets"
+            class="quick-bet-btn"
+            (click)="setQuickBet(amount)"
+            [disabled]="amount > balance"
+            [class.active]="betAmount === amount">
+            R$ {{ amount }}
+          </button>
+        </div>
+
+        <!-- Start Game Button -->
+        <button 
+          class="start-btn" 
+          (click)="startGame()" 
+          [disabled]="betAmount > balance || betAmount < 1">
+          <span class="btn-icon">🎲</span>
+          <span class="btn-text">Iniciar Jogo</span>
+        </button>
+
+        <!-- Game Info -->
+        <div class="game-info">
+          <details>
+            <summary>📖 Sobre o FrogJackpot</summary>
+            <div class="info-content">
+              <p><strong>🐸 O Jogo:</strong> FrogJackpot é o jogo mais emocionante do cassino!</p>
+              <p><strong>💎 Características:</strong> ✨ Grandes Prêmios | 🎯 Alta Diversão | ⚡ Jogabilidade Rápida</p>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Animated Background -->
+  <div class="animated-background">
+    <div class="bubble bubble-1"></div>
+    <div class="bubble bubble-2"></div>
+    <div class="bubble bubble-3"></div>
+    <div class="bubble bubble-4"></div>
+    <div class="bubble bubble-5"></div>
+  </div>
+</div>

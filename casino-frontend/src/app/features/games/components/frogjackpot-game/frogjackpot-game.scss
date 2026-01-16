@@ -1,0 +1,619 @@
+// Reset para largura total escapando do container pai
+:host {
+  display: block;
+  width: calc(100vw - 20px);
+  margin-left: calc(-50vw + 50% + 10px);
+  position: relative;
+}
+
+.frogjackpot-game {
+  height: calc(100vh - 160px);
+  width: 100%;
+  background: linear-gradient(135deg, #0a4d2e 0%, #1a5f3f 50%, #0f3a28 100%);
+  padding: 0;
+  margin: 0;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+// Animated Background
+.animated-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+
+  .bubble {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.15), rgba(255, 215, 0, 0.08));
+    border-radius: 50%;
+    animation: float 8s ease-in-out infinite;
+    opacity: 0.5;
+
+    &.bubble-1 { top: 10%; left: 10%; animation-delay: 0s; }
+    &.bubble-2 { top: 60%; left: 85%; width: 70px; height: 70px; animation-delay: 2s; }
+    &.bubble-3 { top: 80%; left: 20%; width: 50px; height: 50px; animation-delay: 4s; }
+    &.bubble-4 { top: 30%; left: 75%; width: 60px; height: 60px; animation-delay: 1s; }
+    &.bubble-5 { top: 50%; left: 45%; width: 80px; height: 80px; animation-delay: 3s; }
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-25px) rotate(180deg); }
+}
+
+// Header - Ocupando toda a largura da viewport
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 0;
+  margin: 0;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 0.6rem;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  position: relative;
+  z-index: 10;
+
+  h1 {
+    margin: 0;
+    color: #ffd700;
+    font-size: 1.5rem;
+    font-weight: 800;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 2px 2px 4px rgba(0, 0, 0, 0.5);
+  }
+
+  .back-btn {
+    padding: 0.4rem 0.8rem;
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: #ffd700;
+    }
+
+    span { font-size: 1rem; }
+  }
+
+  .balance-display {
+    padding: 0.4rem 1rem;
+    background: linear-gradient(135deg, #2e7d32 0%, #388e3c 100%);
+    border-radius: 8px;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+
+    .balance-label {
+      color: rgba(255, 255, 255, 0.9);
+      margin-right: 0.4rem;
+      font-size: 0.8rem;
+    }
+
+    .balance-amount {
+      color: #ffd700;
+      font-weight: 800;
+      font-size: 1rem;
+    }
+  }
+}
+
+// Main Content - Usando toda a largura da viewport sem overflow
+.main-content {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 0.6rem;
+  width: 100%;
+  position: relative;
+  z-index: 5;
+  flex: 1;
+  min-height: 0;
+  padding: 0.5rem 0.4rem;
+  box-sizing: border-box;
+}
+
+// Left Side - Game Area centralizada
+.game-area {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  border: 2px solid rgba(255, 215, 0, 0.4);
+  padding: 1.5rem;
+  margin: 0;
+  position: relative;
+  backdrop-filter: blur(5px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(255, 215, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+// Central Frog Character
+.frog-character {
+  text-align: center;
+  animation: bounce 2s ease-in-out infinite;
+
+  .frog-crown {
+    font-size: 1.8rem;
+    animation: spin 4s linear infinite;
+    display: inline-block;
+  }
+
+  .frog-face {
+    font-size: 4rem;
+    display: block;
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
+    animation: wiggle 3s ease-in-out infinite;
+  }
+
+  .frog-label {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #ffd700;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 2px 2px 4px rgba(0, 0, 0, 0.5);
+    letter-spacing: 2px;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-4deg); }
+  75% { transform: rotate(4deg); }
+}
+
+// Game Board
+.game-board {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.8rem;
+
+  .board-overlay {
+    width: 100%;
+
+    .coming-soon {
+      text-align: center;
+
+      h2 {
+        font-size: 1.3rem;
+        color: #ffd700;
+        margin-bottom: 0.4rem;
+      }
+
+      p {
+        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.8);
+        margin: 0;
+      }
+    }
+  }
+}
+
+// Decorative Floating Cards
+.decorative-cards {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+
+  .floating-card {
+    position: absolute;
+    font-size: 2rem;
+    opacity: 0.25;
+    animation: floatCard 6s ease-in-out infinite;
+
+    &.card-1 { top: 8%; left: 3%; animation-delay: 0s; }
+    &.card-2 { top: 15%; right: 5%; animation-delay: 1.5s; }
+    &.card-3 { bottom: 10%; left: 8%; animation-delay: 3s; }
+    &.card-4 { bottom: 8%; right: 3%; animation-delay: 4.5s; }
+  }
+}
+
+@keyframes floatCard {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(8deg); }
+}
+
+// Right Side - Betting Area compacta
+.betting-area {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  width: 300px;
+  max-width: 300px;
+}
+
+.betting-section {
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  padding: 1.2rem 1rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+
+  h3 {
+    text-align: center;
+    color: #ffd700;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0 0 1rem;
+  }
+}
+
+.bet-input-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+
+  .bet-btn {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 215, 0, 0.4);
+    border-radius: 8px;
+    color: #ffd700;
+    font-size: 1.4rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 215, 0, 0.3);
+      transform: scale(1.1);
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+  }
+
+  .bet-display {
+    flex: 1;
+    position: relative;
+
+    .bet-input {
+      width: 100%;
+      padding: 0.5rem 2rem 0.5rem 0.6rem;
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 215, 0, 0.5);
+      border-radius: 8px;
+      color: #ffd700;
+      font-size: 1.3rem;
+      font-weight: 800;
+      text-align: center;
+
+      &:focus {
+        outline: none;
+        border-color: #ffd700;
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+      }
+
+      &::-webkit-inner-spin-button,
+      &::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+      }
+    }
+
+    .currency {
+      position: absolute;
+      right: 0.6rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(255, 215, 0, 0.7);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+  }
+}
+
+// Quick Bets
+.quick-bets {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+  flex: 1;
+
+  .quick-bet-btn {
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 215, 0, 0.2);
+      border-color: #ffd700;
+    }
+
+    &.active {
+      background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+      color: #000000;
+      border-color: #ffd700;
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// Start Button
+.start-btn {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+  border: none;
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.7);
+  }
+
+  &:disabled {
+    background: rgba(255, 255, 255, 0.1);
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .btn-icon { font-size: 1.3rem; }
+}
+
+// Game Info
+.game-info {
+  details {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    border: 2px solid rgba(255, 215, 0, 0.2);
+    overflow: hidden;
+
+    summary {
+      padding: 0.5rem 0.8rem;
+      color: #ffd700;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      list-style: none;
+
+      &:hover { background: rgba(255, 215, 0, 0.1); }
+      &::-webkit-details-marker { display: none; }
+    }
+
+    .info-content {
+      padding: 0.6rem;
+      color: #ffffff;
+      border-top: 1px solid rgba(255, 215, 0, 0.2);
+      font-size: 0.8rem;
+      line-height: 1.4;
+
+      p {
+        margin: 0.2rem 0;
+        strong { color: #ffd700; }
+      }
+    }
+  }
+}
+
+// Responsive Design - Mantendo largura total da viewport
+@media (max-width: 1200px) {
+  .main-content {
+    grid-template-columns: 1fr 280px;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .game-header {
+    padding: 0.5rem 0.8rem;
+  }
+
+  .betting-area {
+    width: 280px;
+    max-width: 280px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .main-content {
+    grid-template-columns: 1fr 260px;
+    padding: 0.3rem 0.4rem;
+  }
+
+  .game-header {
+    padding: 0.4rem 0.6rem;
+  }
+
+  .betting-area {
+    width: 260px;
+    max-width: 260px;
+  }
+
+  .frog-character {
+    .frog-face { font-size: 3.5rem; }
+    .frog-label { font-size: 1.2rem; }
+  }
+}
+
+@media (max-width: 900px) {
+  .main-content {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+    padding: 0.5rem;
+  }
+
+  .game-header {
+    padding: 0.5rem;
+    
+    h1 { font-size: 1.4rem; }
+  }
+
+  .betting-area {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .betting-section {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1rem;
+    
+    h3 { 
+      width: 100%; 
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+    }
+  }
+
+  .quick-bets {
+    grid-template-columns: repeat(5, 1fr);
+    flex: none;
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .bet-input-container {
+    flex: 1;
+    margin-bottom: 0;
+  }
+  .main-content {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+    max-width: 100%;
+    padding: 0.5rem;
+  }
+
+  .game-header {
+    max-width: 100%;
+    padding: 0.6rem 1rem;
+    
+    h1 { font-size: 1.4rem; }
+  }
+
+  .betting-area {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .betting-section {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1rem;
+    
+    h3 { 
+      width: 100%; 
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+    }
+  }
+
+  .quick-bets {
+    grid-template-columns: repeat(5, 1fr);
+    flex: none;
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .bet-input-container {
+    flex: 1;
+    margin-bottom: 0;
+  }
+
+  .start-btn {
+    flex: 1;
+    margin-bottom: 0;
+  }
+
+  .game-info {
+    flex: 100%;
+  }
+
+  .frog-character {
+    .frog-face { font-size: 3rem; }
+    .frog-label { font-size: 1.1rem; }
+  }
+}
+
+@media (max-width: 600px) {
+  .game-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    
+    h1 { font-size: 1.3rem; }
+  }
+
+  .frog-character {
+    .frog-face { font-size: 3rem; }
+    .frog-label { font-size: 1.1rem; }
+  }
+
+  .quick-bets {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

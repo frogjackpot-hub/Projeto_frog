@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, EventEmitter, Output } from '@angular/core';
+import { Router } from '@angular/router';
 import { NotificationService } from '../../../../core/services/notification.service';
 
 @Component({
@@ -16,14 +17,13 @@ export class FrogjackpotCardComponent {
 
   constructor(
     private notificationService: NotificationService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private router: Router
   ) {}
 
   playFrogJackpot(): void {
-    this.notificationService.success(
-      'FrogJackpot - Em Breve!',
-      '🐸 O jogo mais emocionante do cassino está chegando! Aguarde...'
-    );
+    // Redirecionar para a tela do jogo
+    this.router.navigate(['/games/frogjackpot']);
     this.onPlay.emit();
   }
 
