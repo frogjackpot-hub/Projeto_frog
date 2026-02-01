@@ -1,0 +1,100 @@
+@use '../../styles/variables' as v;
+
+.color-slot {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  background: rgba(v.$white, 0.05);
+  border: 2px solid rgba(v.$white, 0.1);
+
+  .slot-shine {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(v.$white, 0.3) 0%, transparent 100%);
+    border-radius: 50% 50% 0 0;
+    pointer-events: none;
+  }
+
+  .slot-placeholder {
+    font-size: 1rem;
+    color: rgba(v.$white, 0.3);
+    font-weight: 700;
+  }
+
+  .match-indicator {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 16px;
+    height: 16px;
+    background: v.$success;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    color: v.$white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    animation: popIn 0.3s ease-out;
+  }
+
+  &.revealing {
+    animation: slotReveal 0.5s ease-out;
+  }
+
+  &.matched {
+    box-shadow: 
+      inset 0 2px 4px rgba(0, 0, 0, 0.3),
+      0 0 12px rgba(v.$success, 0.5),
+      0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+
+  &.has-color {
+    border-color: transparent;
+  }
+}
+
+@keyframes slotReveal {
+  0% {
+    transform: scale(0.5) rotateY(180deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1) rotateY(90deg);
+  }
+  100% {
+    transform: scale(1) rotateY(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes popIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 400px) {
+  .color-slot {
+    width: 35px;
+    height: 35px;
+    border-radius: 8px;
+  }
+}

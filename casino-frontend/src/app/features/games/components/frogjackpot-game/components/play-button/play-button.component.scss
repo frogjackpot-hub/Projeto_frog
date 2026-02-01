@@ -1,0 +1,148 @@
+@use '../../styles/variables' as v;
+
+.play-button-container {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+.reset-btn {
+  padding: 10px 16px;
+  border: 1px solid rgba(v.$danger, 0.5);
+  border-radius: 10px;
+  background: rgba(v.$danger, 0.1);
+  color: v.$danger;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: rgba(v.$danger, 0.2);
+    border-color: v.$danger;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.play-btn {
+  flex: 1;
+  max-width: 240px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #444 0%, #333 100%);
+  color: rgba(v.$white, 0.5);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: not-allowed;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  .btn-text {
+    position: relative;
+    z-index: 1;
+  }
+
+  &.ready {
+    background: linear-gradient(135deg, v.$success 0%, #27ae60 100%);
+    color: v.$white;
+    cursor: pointer;
+    box-shadow: 
+      0 3px 15px rgba(v.$success, 0.4),
+      inset 0 2px 0 rgba(v.$white, 0.2);
+    animation: readyPulse 2s ease-in-out infinite;
+
+    &:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 
+        0 6px 20px rgba(v.$success, 0.5),
+        inset 0 2px 0 rgba(v.$white, 0.3);
+    }
+
+    &:active {
+      transform: translateY(0) scale(0.98);
+    }
+  }
+
+  &.playing {
+    background: linear-gradient(135deg, v.$accent-gold 0%, #e6a200 100%);
+    color: v.$dark-green;
+    cursor: wait;
+  }
+
+  &.finished {
+    background: linear-gradient(135deg, v.$primary-green 0%, v.$dark-green 100%);
+    color: v.$white;
+    cursor: pointer;
+    border: 2px solid v.$accent-gold;
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(v.$accent-gold, 0.3);
+    }
+  }
+
+  &:disabled:not(.playing) {
+    opacity: 0.6;
+  }
+
+  &:focus-visible {
+    outline: 2px solid v.$accent-gold;
+    outline-offset: 2px;
+  }
+}
+
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(v.$dark-green, 0.3);
+  border-top-color: v.$dark-green;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes readyPulse {
+  0%, 100% {
+    box-shadow: 
+      0 4px 20px rgba(v.$success, 0.4),
+      inset 0 2px 0 rgba(v.$white, 0.2);
+  }
+  50% {
+    box-shadow: 
+      0 4px 30px rgba(v.$success, 0.6),
+      inset 0 2px 0 rgba(v.$white, 0.2);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 400px) {
+  .play-button-container {
+    gap: 8px;
+  }
+
+  .reset-btn {
+    padding: 10px 15px;
+    font-size: 0.85rem;
+  }
+
+  .play-btn {
+    padding: 15px 25px;
+    font-size: 1rem;
+  }
+}

@@ -1,0 +1,50 @@
+// ============================================
+// FrogJackpot Game - Shared Variables
+// ============================================
+
+// Color Palette
+$primary-green: #1a5d2a;
+$dark-green: #0d2818;
+$dark-green-darker: #091a10;
+$accent-gold: #ffd700;
+$accent-green: #4ade80;
+$accent-green-darker: #3bce6d;
+$white: #ffffff;
+$text-muted: #9ca3af;
+$success: #22c55e;
+$danger: #ef4444;
+
+// Gradients (usando cores pré-calculadas para evitar funções depreciadas)
+$gradient-dark: linear-gradient(180deg, $dark-green 0%, $dark-green-darker 100%);
+$gradient-gold: linear-gradient(135deg, $accent-gold 0%, #ffed4e 100%);
+$gradient-green: linear-gradient(180deg, $accent-green 0%, $accent-green-darker 100%);
+
+// Shadows
+$shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+$shadow-md: 0 4px 15px rgba(0, 0, 0, 0.3);
+$shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.4);
+$shadow-glow-green: 0 0 20px rgba($accent-green, 0.4);
+$shadow-glow-gold: 0 0 20px rgba($accent-gold, 0.4);
+
+// Border Radius
+$radius-sm: 8px;
+$radius-md: 12px;
+$radius-lg: 16px;
+$radius-xl: 20px;
+$radius-full: 50%;
+
+// Transitions
+$transition-fast: 0.2s ease;
+$transition-normal: 0.3s ease;
+$transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+// Z-index layers
+$z-background: 0;
+$z-content: 5;
+$z-header: 10;
+$z-modal: 100;
+
+// Breakpoints
+$breakpoint-sm: 480px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;

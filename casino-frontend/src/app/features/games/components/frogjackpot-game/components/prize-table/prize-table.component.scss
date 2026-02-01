@@ -1,0 +1,130 @@
+@use '../../styles/variables' as v;
+
+.prize-table {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  border: 1px solid rgba(v.$accent-gold, 0.2);
+  overflow: hidden;
+}
+
+.table-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: rgba(v.$accent-gold, 0.1);
+  border-bottom: 1px solid rgba(v.$accent-gold, 0.2);
+
+  .header-icon {
+    font-size: 1rem;
+  }
+
+  .header-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: v.$accent-gold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+.table-body {
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.prize-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 10px;
+  background: rgba(v.$white, 0.05);
+  border-radius: 6px;
+  transition: all 0.3s ease;
+
+  .matches {
+    font-size: 0.75rem;
+    color: rgba(v.$white, 0.7);
+  }
+
+  .multiplier {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: v.$accent-gold;
+    padding: 2px 8px;
+    background: rgba(v.$accent-gold, 0.1);
+    border-radius: 10px;
+  }
+
+  &.highlighted {
+    background: rgba(v.$success, 0.2);
+    border: 1px solid v.$success;
+    transform: scale(1.02);
+
+    .matches {
+      color: v.$white;
+      font-weight: 600;
+    }
+
+    .multiplier {
+      background: v.$success;
+      color: v.$white;
+    }
+  }
+
+  &.jackpot {
+    background: linear-gradient(90deg, rgba(v.$accent-gold, 0.1), rgba(v.$accent-gold, 0.2));
+    border: 1px solid rgba(v.$accent-gold, 0.3);
+
+    .matches {
+      color: v.$accent-gold;
+      font-weight: 600;
+    }
+
+    .multiplier {
+      background: linear-gradient(135deg, v.$accent-gold, #ffed4a);
+      color: v.$dark-green;
+      font-weight: 800;
+    }
+
+    &.highlighted {
+      animation: jackpotGlow 1s ease-in-out infinite;
+    }
+  }
+}
+
+@keyframes jackpotGlow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(v.$accent-gold, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(v.$accent-gold, 0.6);
+  }
+}
+
+@media (max-width: 400px) {
+  .table-header {
+    padding: 10px;
+
+    .header-title {
+      font-size: 0.8rem;
+    }
+  }
+
+  .prize-row {
+    padding: 6px 10px;
+
+    .matches {
+      font-size: 0.8rem;
+    }
+
+    .multiplier {
+      font-size: 0.85rem;
+      padding: 2px 8px;
+    }
+  }
+}

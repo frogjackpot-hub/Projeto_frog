@@ -1,0 +1,18 @@
+<div 
+  class="color-slot"
+  [class.revealing]="isRevealing"
+  [class.matched]="isMatched"
+  [class.has-color]="hasColor"
+  [style.background]="hasColor ? color?.gradient : 'rgba(0, 0, 0, 0.3)'"
+  [style.animation-delay]="(index * 0.1) + 's'"
+>
+  @if (hasColor) {
+    <div class="slot-shine"></div>
+  } @else {
+    <span class="slot-placeholder">?</span>
+  }
+  
+  @if (isMatched) {
+    <div class="match-indicator">✓</div>
+  }
+</div>

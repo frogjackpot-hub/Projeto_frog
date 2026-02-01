@@ -1,0 +1,30 @@
+@if (isVisible && result) {
+  <div 
+    class="result-display"
+    [class.win]="isWin"
+    [class.lose]="!isWin"
+    [class.jackpot]="isJackpot"
+  >
+    <div class="result-icon">{{ getResultIcon() }}</div>
+    
+    <div class="result-content">
+      <span class="result-message">{{ getResultMessage() }}</span>
+      
+      <div class="result-details">
+        <span class="matches-count">
+          {{ result.matches }} de 6 acertos
+        </span>
+        
+        @if (isWin) {
+          <span class="multiplier">x{{ result.multiplier }}</span>
+        }
+      </div>
+      
+      @if (isWin) {
+        <div class="win-amount">
+          {{ formatCurrency(result.winAmount) }}
+        </div>
+      }
+    </div>
+  </div>
+}

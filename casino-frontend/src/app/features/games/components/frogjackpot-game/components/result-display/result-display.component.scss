@@ -1,0 +1,151 @@
+@use '../../styles/variables' as v;
+
+.result-display {
+  width: 100%;
+  padding: 20px;
+  border-radius: 15px;
+  text-align: center;
+  animation: resultSlideIn 0.5s ease-out;
+
+  &.win {
+    background: linear-gradient(135deg, rgba(v.$success, 0.2) 0%, rgba(v.$success, 0.1) 100%);
+    border: 2px solid v.$success;
+  }
+
+  &.lose {
+    background: linear-gradient(135deg, rgba(v.$danger, 0.2) 0%, rgba(v.$danger, 0.1) 100%);
+    border: 2px solid rgba(v.$danger, 0.5);
+  }
+
+  &.jackpot {
+    background: linear-gradient(135deg, rgba(v.$accent-gold, 0.3) 0%, rgba(v.$accent-gold, 0.1) 100%);
+    border: 2px solid v.$accent-gold;
+    animation: jackpotPulse 1s ease-in-out infinite;
+  }
+}
+
+.result-icon {
+  font-size: 3rem;
+  margin-bottom: 10px;
+  animation: iconBounce 0.5s ease-out 0.2s both;
+}
+
+.result-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.result-message {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: v.$white;
+  
+  .jackpot & {
+    color: v.$accent-gold;
+    text-shadow: 0 0 20px rgba(v.$accent-gold, 0.5);
+  }
+}
+
+.result-details {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  font-size: 0.95rem;
+  color: rgba(v.$white, 0.8);
+
+  .matches-count {
+    padding: 5px 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 20px;
+  }
+
+  .multiplier {
+    padding: 5px 12px;
+    background: rgba(v.$accent-gold, 0.2);
+    border: 1px solid v.$accent-gold;
+    border-radius: 20px;
+    color: v.$accent-gold;
+    font-weight: 700;
+  }
+}
+
+.win-amount {
+  font-size: 2rem;
+  font-weight: 700;
+  color: v.$success;
+  margin-top: 10px;
+  animation: amountPop 0.5s ease-out 0.4s both;
+  
+  .jackpot & {
+    color: v.$accent-gold;
+    font-size: 2.5rem;
+    text-shadow: 0 0 30px rgba(v.$accent-gold, 0.5);
+  }
+}
+
+@keyframes resultSlideIn {
+  0% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes iconBounce {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes amountPop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes jackpotPulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(v.$accent-gold, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(v.$accent-gold, 0.6);
+  }
+}
+
+@media (max-width: 400px) {
+  .result-display {
+    padding: 15px;
+  }
+
+  .result-icon {
+    font-size: 2.5rem;
+  }
+
+  .result-message {
+    font-size: 1.2rem;
+  }
+
+  .win-amount {
+    font-size: 1.6rem;
+    
+    .jackpot & {
+      font-size: 2rem;
+    }
+  }
+}

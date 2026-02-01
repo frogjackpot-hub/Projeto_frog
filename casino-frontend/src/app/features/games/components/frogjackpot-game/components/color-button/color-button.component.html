@@ -1,0 +1,22 @@
+<button 
+  class="color-btn"
+  [style.background]="color.gradient"
+  [class.selected]="isSelected"
+  [class.disabled]="isDisabled && !isSelected"
+  [attr.aria-label]="color.name"
+  [attr.aria-pressed]="isSelected"
+  [attr.data-index]="index"
+  (click)="onClick()">
+  
+  <!-- Efeito de brilho -->
+  <span class="color-shine"></span>
+  
+  <!-- Número da ordem de seleção -->
+  @if (selectionOrder !== null && selectionOrder > 0) {
+    <span 
+      class="selection-order" 
+      [attr.aria-label]="'Seleção número ' + selectionOrder">
+      {{ selectionOrder }}
+    </span>
+  }
+</button>

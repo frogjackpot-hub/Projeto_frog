@@ -1,0 +1,52 @@
+<div class="bet-controls" [class.disabled]="isDisabled">
+  <div class="bet-header">
+    <span class="bet-label">Valor da Aposta</span>
+  </div>
+
+  <div class="bet-input-group">
+    <button 
+      class="adjust-btn minus"
+      (click)="adjustBet(-10)"
+      [disabled]="isDisabled || currentBet <= minBet"
+      aria-label="Diminuir aposta"
+    >
+      −
+    </button>
+    
+    <div class="bet-input-wrapper">
+      <span class="currency-prefix">R$</span>
+      <input
+        type="number"
+        class="bet-input"
+        [value]="currentBet"
+        [min]="minBet"
+        [max]="maxBet"
+        [disabled]="isDisabled"
+        (change)="onBetInputChange($event)"
+        aria-label="Valor da aposta"
+      />
+    </div>
+    
+    <button 
+      class="adjust-btn plus"
+      (click)="adjustBet(10)"
+      [disabled]="isDisabled || currentBet >= balance"
+      aria-label="Aumentar aposta"
+    >
+      +
+    </button>
+  </div>
+
+  <div class="quick-bets">
+    @for (value of quickBetValues; track value) {
+      <button
+        class="quick-bet-btn"
+        [class.active]="currentBet === value"
+        [disabled]="isDisabled || value > balance"
+        (click)="onQuickBet(value)"
+      >
+        R$ {{ value }}
+      </button>
+    }
+  </div>
+</div>

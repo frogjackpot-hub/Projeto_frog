@@ -1,14 +1,8 @@
 // ============================================
-// FrogJackpot Game - Visual Cartunesco de Cassino
+// FrogJackpot Game - Main Styles (Reference Layout)
 // ============================================
 
-// Variáveis
-$primary-green: #1a5d2a;
-$dark-green: #0d2818;
-$accent-gold: #ffd700;
-$accent-green: #4ade80;
-$white: #ffffff;
-$text-muted: #9ca3af;
+@use './styles/variables' as v;
 
 // Reset Host
 :host {
@@ -21,101 +15,54 @@ $text-muted: #9ca3af;
 .frogjackpot-game {
   min-height: 100vh;
   width: 100%;
-  background: linear-gradient(180deg, $dark-green 0%, darken($dark-green, 5%) 100%);
+  background: v.$gradient-dark;
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  padding: 1.5rem 2rem;
 }
 
 // ============================================
-// HEADER
+// GAME TITLE HEADER
 // ============================================
-.game-header {
+.game-title {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
-  background: rgba(0, 0, 0, 0.3);
-  border-bottom: 2px solid rgba($accent-gold, 0.3);
-  position: relative;
-  z-index: 10;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
 
-  .back-btn {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba($white, 0.1);
-    border: 2px solid rgba($white, 0.2);
-    border-radius: 10px;
-    color: $white;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-
-    &:hover {
-      background: rgba($white, 0.2);
-      border-color: $accent-gold;
-      transform: scale(1.05);
-    }
+  .frog-icon {
+    font-size: 2rem;
   }
 
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-
-    .frog-icon {
-      font-size: 2rem;
-      filter: drop-shadow(0 0 10px rgba($accent-green, 0.5));
-    }
-
-    .logo-text {
-      font-size: 1.8rem;
-      font-weight: 800;
-      color: $white;
-      text-shadow: 0 0 20px rgba($accent-gold, 0.5);
-    }
-  }
-
-  .balance-display {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: rgba(0, 0, 0, 0.3);
-    border: 2px solid rgba($accent-gold, 0.3);
-    border-radius: 10px;
-
-    .balance-icon {
-      font-size: 1.2rem;
-    }
-
-    .balance-amount {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: $accent-gold;
-    }
+  h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+    color: v.$white;
+    letter-spacing: 1px;
   }
 }
 
 // ============================================
-// MAIN CONTENT
+// MAIN CONTENT - 2 Colunas
 // ============================================
 .main-content {
   display: grid;
-  grid-template-columns: 1fr 320px;
+  grid-template-columns: 1fr 280px;
   gap: 1.5rem;
-  padding: 1.5rem 2rem;
   flex: 1;
   position: relative;
-  z-index: 5;
+  z-index: v.$z-content;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 
-  @media (max-width: 1024px) {
+  @media (max-width: v.$breakpoint-lg) {
     grid-template-columns: 1fr;
-    padding: 1rem;
+    max-width: 700px;
   }
 }
 
@@ -125,329 +72,135 @@ $text-muted: #9ca3af;
 .game-panel {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
+  background: rgba(v.$white, 0.02);
+  border: 2px solid rgba(v.$accent-green, 0.3);
+  border-radius: v.$radius-lg;
+  padding: 1.25rem;
 }
 
 // Selection Area
 .selection-area {
-  background: rgba($white, 0.03);
-  border: 2px solid rgba($accent-green, 0.3);
-  border-radius: 20px;
-  padding: 1.5rem;
-  box-shadow: 
-    0 0 30px rgba($accent-green, 0.1),
-    inset 0 1px 0 rgba($white, 0.05);
-
   .section-title {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin: 0 0 1.5rem 0;
-    font-size: 1.1rem;
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
     font-weight: 600;
-    color: $white;
+    color: v.$white;
+    justify-content: center;
 
     .icon {
-      font-size: 1.3rem;
+      font-size: 1.1rem;
     }
 
     .subtitle {
       font-size: 0.85rem;
-      color: $text-muted;
+      color: v.$text-muted;
       font-weight: 400;
     }
-  }
-}
-
-// Colors Grid
-.colors-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 0.75rem;
-
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  @media (max-width: 480px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.color-btn {
-  aspect-ratio: 1;
-  border: none;
-  border-radius: 16px;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 
-    0 4px 15px rgba(0, 0, 0, 0.3),
-    inset 0 2px 0 rgba($white, 0.3),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.2);
-
-  .color-shine {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 50%;
-    background: linear-gradient(180deg, rgba($white, 0.3) 0%, transparent 100%);
-    border-radius: 16px 16px 0 0;
-    pointer-events: none;
-  }
-
-  .selection-order {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 30px;
-    height: 30px;
-    background: $dark-green;
-    border: 2px solid $accent-gold;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: $accent-gold;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-  }
-
-  &:hover:not(.disabled):not(.selected) {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 
-      0 8px 25px rgba(0, 0, 0, 0.4),
-      inset 0 2px 0 rgba($white, 0.4),
-      inset 0 -2px 0 rgba(0, 0, 0, 0.2);
-  }
-
-  &.selected {
-    transform: scale(0.95);
-    box-shadow: 
-      0 2px 10px rgba(0, 0, 0, 0.3),
-      0 0 0 3px $accent-gold,
-      inset 0 2px 0 rgba($white, 0.2);
-  }
-
-  &.disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    transform: none;
   }
 }
 
 // Selection Counter
 .selection-counter {
   margin-top: 1rem;
-  padding: 0.75rem;
-  background: rgba($accent-gold, 0.1);
-  border: 2px solid rgba($accent-gold, 0.3);
-  border-radius: 10px;
+  padding: 0.6rem 1rem;
+  background: rgba(v.$accent-gold, 0.1);
+  border: 1px solid rgba(v.$accent-gold, 0.4);
+  border-radius: v.$radius-sm;
   text-align: center;
 
   .counter-text {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 600;
-    color: $accent-gold;
+    color: v.$accent-gold;
   }
 }
 
 // ============================================
-// COMPARISON AREA
+// COMPARISON AREA (Suas Escolhas VS Sistema)
 // ============================================
 .comparison-area {
-  display: flex;
-  align-items: stretch;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   gap: 1rem;
-  background: rgba($white, 0.03);
-  border: 2px solid rgba($accent-green, 0.3);
-  border-radius: 20px;
-  padding: 1.5rem;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-  }
-}
-
-.choices-section {
-  flex: 1;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 15px;
+  align-items: start;
   padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: v.$radius-md;
+  border: 1px solid rgba(v.$accent-gold, 0.1);
 
-  .choices-title {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 0 0 1rem 0;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: $white;
-
-    .icon {
-      font-size: 1.1rem;
-    }
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 }
 
-.choices-slots {
+.player-side,
+.system-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.side-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(v.$white, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  .label-icon {
+    font-size: 1rem;
+  }
+}
+
+.slots-row {
   display: flex;
   gap: 0.5rem;
+  justify-content: center;
 }
 
-.choice-slot {
-  flex: 1;
-  aspect-ratio: 1;
-  max-width: 60px;
-  border: 2px dashed rgba($white, 0.2);
-  border-radius: 12px;
+.slot-wrapper {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  position: relative;
-  transition: all 0.3s ease;
+  gap: 0.25rem;
 
   .slot-number {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: rgba($white, 0.4);
-  }
-
-  &.filled {
-    border-style: solid;
-    border-color: rgba($white, 0.3);
-    box-shadow: 
-      0 4px 15px rgba(0, 0, 0, 0.3),
-      inset 0 2px 0 rgba($white, 0.2);
-
-    .slot-number {
-      color: $white;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-    }
-  }
-
-  &.system-slot:not(.revealed) {
-    background: repeating-linear-gradient(
-      45deg,
-      rgba($white, 0.05),
-      rgba($white, 0.05) 5px,
-      transparent 5px,
-      transparent 10px
-    ) !important;
-  }
-
-  &.match {
-    border-color: $accent-gold !important;
-    box-shadow: 0 0 15px rgba($accent-gold, 0.5);
-
-    .match-icon {
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      width: 20px;
-      height: 20px;
-      background: $accent-green;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.7rem;
-      color: $dark-green;
-      font-weight: 700;
-    }
+    font-size: 0.7rem;
+    color: v.$text-muted;
+    font-weight: 500;
   }
 }
 
-// VS Badge
-.vs-badge {
+.vs-divider {
   display: flex;
   align-items: center;
   justify-content: center;
+  align-self: center;
   padding: 0 0.5rem;
 
-  span {
-    width: 45px;
-    height: 45px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, $accent-gold 0%, #ffed4e 100%);
-    border-radius: 50%;
-    font-size: 0.9rem;
-    font-weight: 800;
-    color: $dark-green;
-    box-shadow: 0 4px 15px rgba($accent-gold, 0.4);
-  }
-
-  @media (max-width: 768px) {
-    padding: 0.5rem 0;
-  }
-}
-
-// ============================================
-// RESULT DISPLAY
-// ============================================
-.result-display {
-  background: rgba(0, 0, 0, 0.3);
-  border: 2px solid rgba($white, 0.2);
-  border-radius: 15px;
-  padding: 1.5rem;
-  text-align: center;
-  animation: slideIn 0.5s ease;
-
-  &.win {
-    border-color: $accent-gold;
-    background: rgba($accent-gold, 0.1);
-    animation: winPulse 0.5s ease;
-  }
-
-  .result-content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-
-  .result-icon {
-    font-size: 2rem;
-  }
-
-  .result-text {
-    font-size: 1.5rem;
+  .vs-text {
+    padding: 0.5rem 1rem;
+    background: v.$dark-green;
+    border: 2px solid rgba(v.$accent-gold, 0.4);
+    border-radius: v.$radius-md;
+    font-size: 1rem;
     font-weight: 700;
-    color: $white;
+    color: v.$accent-gold;
   }
 
-  .result-prize {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: $accent-gold;
-    text-shadow: 0 0 10px rgba($accent-gold, 0.5);
-  }
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes winPulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.02);
+  @media (max-width: 600px) {
+    .vs-text {
+      padding: 0.4rem 1.5rem;
+    }
   }
 }
 
@@ -457,11 +210,11 @@ $text-muted: #9ca3af;
 .betting-panel {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  background: rgba($white, 0.03);
-  border: 2px solid rgba($accent-green, 0.3);
-  border-radius: 20px;
-  padding: 1.5rem;
+  gap: 1rem;
+  background: rgba(v.$white, 0.02);
+  border: 2px solid rgba(v.$accent-green, 0.3);
+  border-radius: v.$radius-lg;
+  padding: 1.25rem;
   height: fit-content;
 }
 
@@ -469,110 +222,15 @@ $text-muted: #9ca3af;
   .section-title {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
-    margin: 0 0 1rem 0;
-    font-size: 1rem;
+    margin: 0 0 0.75rem 0;
+    font-size: 0.9rem;
     font-weight: 600;
-    color: $white;
+    color: v.$white;
 
     .icon {
-      font-size: 1.1rem;
-    }
-  }
-}
-
-// Bet Controls
-.bet-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.bet-btn {
-  width: 45px;
-  height: 45px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba($white, 0.1);
-  border: 2px solid rgba($white, 0.2);
-  border-radius: 10px;
-  color: $white;
-  font-size: 1.5rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover:not(:disabled) {
-    background: rgba($accent-green, 0.2);
-    border-color: $accent-green;
-  }
-
-  &:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-  }
-}
-
-.bet-display {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-  padding: 0.75rem;
-  background: rgba(0, 0, 0, 0.3);
-  border: 2px solid $accent-green;
-  border-radius: 10px;
-
-  .currency {
-    font-size: 0.9rem;
-    color: $text-muted;
-  }
-
-  .amount {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: $white;
-  }
-}
-
-// Quick Bets
-.quick-bets {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem;
-
-  .quick-bet-btn {
-    padding: 0.6rem;
-    background: rgba($white, 0.05);
-    border: 2px solid rgba($white, 0.15);
-    border-radius: 8px;
-    color: $white;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-
-    &:hover:not(:disabled) {
-      background: rgba($white, 0.1);
-      border-color: rgba($white, 0.3);
-    }
-
-    &.active {
-      background: rgba($accent-green, 0.2);
-      border-color: $accent-green;
-      color: $accent-green;
-    }
-
-    &:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-
-    &:last-child:nth-child(odd) {
-      grid-column: span 2;
+      font-size: 1rem;
     }
   }
 }
@@ -586,72 +244,71 @@ $text-muted: #9ca3af;
   gap: 0.75rem;
 }
 
-.play-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: linear-gradient(180deg, $accent-green 0%, darken($accent-green, 10%) 100%);
+.btn-play {
+  width: 100%;
+  padding: 1rem 1.5rem;
   border: none;
-  border-radius: 12px;
-  color: $dark-green;
-  font-size: 1.1rem;
+  border-radius: v.$radius-md;
+  background: linear-gradient(135deg, #444 0%, #333 100%);
+  color: rgba(v.$white, 0.5);
+  font-size: 1rem;
   font-weight: 700;
-  cursor: pointer;
+  cursor: not-allowed;
   transition: all 0.3s ease;
-  box-shadow: 
-    0 4px 15px rgba($accent-green, 0.4),
-    inset 0 2px 0 rgba($white, 0.3);
-
-  .btn-icon {
-    font-size: 1.3rem;
-  }
-
-  &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 
-      0 6px 20px rgba($accent-green, 0.5),
-      inset 0 2px 0 rgba($white, 0.3);
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-  }
-}
-
-.clear-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.875rem;
-  background: rgba($white, 0.1);
-  border: 2px solid rgba($white, 0.2);
-  border-radius: 12px;
-  color: $white;
-  font-size: 0.95rem;
+
+  .btn-icon {
+    font-size: 1.1rem;
+  }
+
+  &.ready {
+    background: linear-gradient(135deg, v.$success 0%, #27ae60 100%);
+    color: v.$white;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(v.$success, 0.4);
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(v.$success, 0.5);
+    }
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+}
+
+.btn-reset {
+  width: 100%;
+  padding: 0.85rem 1.5rem;
+  border: none;
+  border-radius: v.$radius-md;
+  background: linear-gradient(135deg, #555 0%, #444 100%);
+  color: rgba(v.$white, 0.8);
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 
   .btn-icon {
     font-size: 1rem;
   }
 
   &:hover:not(:disabled) {
-    background: rgba($white, 0.15);
-    border-color: rgba($white, 0.3);
+    background: linear-gradient(135deg, #666 0%, #555 100%);
   }
 
   &:disabled {
-    opacity: 0.4;
+    opacity: 0.5;
     cursor: not-allowed;
   }
 }
@@ -662,46 +319,22 @@ $text-muted: #9ca3af;
 .how-to-play {
   padding: 1rem;
   background: rgba(0, 0, 0, 0.2);
-  border-radius: 12px;
-  border: 1px solid rgba($white, 0.1);
+  border-radius: v.$radius-sm;
+  border: 1px solid rgba(v.$white, 0.1);
+  text-align: center;
 
   h4 {
     margin: 0 0 0.5rem 0;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 600;
-    color: $text-muted;
+    color: v.$text-muted;
   }
 
   p {
-    margin: 0 0 1rem 0;
-    font-size: 0.8rem;
-    color: rgba($white, 0.7);
-    line-height: 1.5;
-  }
-}
-
-.prize-table {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-
-  .prize-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.35rem 0.5rem;
-    background: rgba($white, 0.03);
-    border-radius: 6px;
+    margin: 0;
     font-size: 0.75rem;
-
-    span:first-child {
-      color: rgba($white, 0.7);
-    }
-
-    .prize {
-      font-weight: 700;
-      color: $accent-gold;
-    }
+    color: rgba(v.$white, 0.6);
+    line-height: 1.5;
   }
 }
 
@@ -715,40 +348,30 @@ $text-muted: #9ca3af;
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 0;
+  z-index: v.$z-background;
   overflow: hidden;
 
   .glow {
     position: absolute;
     border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.15;
-    animation: float 15s ease-in-out infinite;
+    filter: blur(100px);
+    opacity: 0.1;
+    animation: float 20s ease-in-out infinite;
 
     &.glow-1 {
-      width: 400px;
-      height: 400px;
-      background: $accent-green;
-      top: -100px;
-      left: -100px;
-      animation-delay: 0s;
+      width: 500px;
+      height: 500px;
+      background: v.$accent-green;
+      top: -150px;
+      left: -150px;
     }
 
     &.glow-2 {
-      width: 300px;
-      height: 300px;
-      background: $accent-gold;
-      bottom: -50px;
-      right: -50px;
-      animation-delay: 5s;
-    }
-
-    &.glow-3 {
-      width: 250px;
-      height: 250px;
-      background: $primary-green;
-      top: 50%;
-      left: 50%;
+      width: 400px;
+      height: 400px;
+      background: v.$accent-gold;
+      bottom: -100px;
+      right: -100px;
       animation-delay: 10s;
     }
   }
@@ -758,10 +381,7 @@ $text-muted: #9ca3af;
   0%, 100% {
     transform: translate(0, 0) scale(1);
   }
-  33% {
+  50% {
     transform: translate(30px, -30px) scale(1.1);
-  }
-  66% {
-    transform: translate(-20px, 20px) scale(0.9);
   }
 }

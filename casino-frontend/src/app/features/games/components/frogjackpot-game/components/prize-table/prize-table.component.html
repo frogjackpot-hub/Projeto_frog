@@ -1,0 +1,21 @@
+<div class="prize-table" [class.expanded]="isExpanded">
+  <div class="table-header">
+    <span class="header-icon">🏆</span>
+    <span class="header-title">Tabela de Prêmios</span>
+  </div>
+
+  <div class="table-body">
+    @for (prize of prizeTable; track prize.matches) {
+      <div 
+        class="prize-row"
+        [class.highlighted]="isHighlighted(prize.matches)"
+        [class.jackpot]="prize.matches === 6"
+      >
+        <span class="matches">
+          {{ prize.matches }} {{ prize.matches === 1 ? 'acerto' : 'acertos' }}
+        </span>
+        <span class="multiplier">x{{ prize.multiplier }}</span>
+      </div>
+    }
+  </div>
+</div>

@@ -1,20 +1,11 @@
 <div class="frogjackpot-game">
   <!-- Header -->
-  <header class="game-header">
-    <button class="back-btn" (click)="goBack()">
-      <span class="back-icon">←</span>
-    </button>
-    <div class="logo">
-      <span class="frog-icon">🐸</span>
-      <span class="logo-text">FrogJackpot</span>
-    </div>
-    <div class="balance-display">
-      <span class="balance-icon">💰</span>
-      <span class="balance-amount">R$ {{ balance | number:'1.2-2' }}</span>
-    </div>
+  <header class="game-title">
+    <span class="frog-icon">🐸</span>
+    <h1>FrogJackpot</h1>
   </header>
 
-  <!-- Main Content -->
+  <!-- Main Content - Layout 2 Colunas -->
   <div class="main-content">
     
     <!-- Left Panel - Game Area -->
@@ -27,78 +18,61 @@
           <span class="subtitle">(clique para selecionar)</span>
         </h2>
         
-        <div class="colors-grid">
-          <button 
-            *ngFor="let color of availableColors; let i = index"
-            class="color-btn"
-            [style.background]="color.gradient"
-            [class.selected]="isColorSelected(i)"
-            [class.disabled]="selectedColors.length >= 6 && !isColorSelected(i)"
-            (click)="toggleColor(i)"
-            [attr.data-index]="i">
-            <span class="color-shine"></span>
-            <span class="selection-order" *ngIf="getSelectionOrder(i) > 0">
-              {{ getSelectionOrder(i) }}
-            </span>
-          </button>
-        </div>
+        <app-color-grid
+          [colors]="availableColors"
+          [selectedIndices]="selectedIndices"
+          [isDisabled]="isPlaying"
+          [maxSelections]="maxSelections"
+          (colorSelected)="onColorSelected($event)"
+        />
         
         <div class="selection-counter">
-          <span class="counter-text">Selecionadas: {{ selectedColors.length }} / 6</span>
+          <span class="counter-text">Selecionadas: {{ selectedIndices.length }} / {{ maxSelections }}</span>
         </div>
       </div>
 
-      <!-- Choices Comparison -->
+      <!-- Choices Comparison - Suas Escolhas VS Sistema -->
       <div class="comparison-area">
-        <!-- Player Choices -->
-        <div class="choices-section player-choices">
-          <h3 class="choices-title">
-            <span class="icon">🎯</span> Suas Escolhas
-          </h3>
-          <div class="choices-slots">
-            <div 
-              *ngFor="let slot of playerSlots; let i = index"
-              class="choice-slot"
-              [style.background]="slot ? slot.gradient : 'rgba(255,255,255,0.05)'"
-              [class.filled]="slot">
-              <span class="slot-number">{{ i + 1 }}</span>
-            </div>
+        <div class="player-side">
+          <div class="side-label">
+            <span class="label-icon">🎯</span> Suas Escolhas
+          </div>
+          <div class="slots-row">
+            @for (slot of playerChoices; track $index; let i = $index) {
+              <div class="slot-wrapper">
+                <app-color-slot [color]="slot" [isEmpty]="!slot" />
+                <span class="slot-number">{{ i + 1 }}</span>
+              </div>
+            }
+            @for (empty of emptyPlayerSlots; track $index; let i = $index) {
+              <div class="slot-wrapper">
+                <app-color-slot [isEmpty]="true" />
+                <span class="slot-number">{{ playerChoices.length + i + 1 }}</span>
+              </div>
+            }
           </div>
         </div>
 
-        <!-- VS Badge -->
-        <div class="vs-badge">
-          <span>VS</span>
+        <div class="vs-divider">
+          <span class="vs-text">VS</span>
         </div>
 
-        <!-- System Choices -->
-        <div class="choices-section system-choices">
-          <h3 class="choices-title">
-            <span class="icon">🤖</span> Sistema
-          </h3>
-          <div class="choices-slots">
-            <div 
-              *ngFor="let slot of systemSlots; let i = index"
-              class="choice-slot system-slot"
-              [style.background]="slot ? slot.gradient : 'rgba(255,255,255,0.05)'"
-              [class.filled]="slot"
-              [class.match]="slot && playerSlots[i] && slot.id === playerSlots[i]!.id"
-              [class.revealed]="gameFinished">
-              <span class="slot-number">{{ i + 1 }}</span>
-              <span class="match-icon" *ngIf="slot && playerSlots[i] && slot.id === playerSlots[i]!.id && gameFinished">✓</span>
-            </div>
+        <div class="system-side">
+          <div class="side-label">
+            <span class="label-icon">🐸</span> Sistema
           </div>
-        </div>
-      </div>
-
-      <!-- Result Display -->
-      <div class="result-display" *ngIf="gameFinished" [class.win]="matchCount > 0">
-        <div class="result-content">
-          <span class="result-icon">{{ matchCount >= 4 ? '🎉' : matchCount >= 2 ? '✨' : '🐸' }}</span>
-          <span class="result-text">
-            {{ matchCount === 6 ? 'JACKPOT! 🏆' : matchCount + ' acerto(s)!' }}
-          </span>
-          <span class="result-prize" *ngIf="lastWin > 0">+ R$ {{ lastWin | number:'1.2-2' }}</span>
+          <div class="slots-row">
+            @for (slot of systemSlots; track $index; let i = $index) {
+              <div class="slot-wrapper">
+                <app-color-slot 
+                  [color]="slot" 
+                  [isEmpty]="!slot"
+                  [isRevealing]="isPlaying && !slot"
+                />
+                <span class="slot-number">{{ i + 1 }}</span>
+              </div>
+            }
+          </div>
         </div>
       </div>
     </div>
@@ -112,48 +86,29 @@
           <span class="icon">💰</span> Valor da Aposta
         </h3>
         
-        <div class="bet-controls">
-          <button class="bet-btn decrease" (click)="decreaseBet()" [disabled]="betAmount <= 1">
-            <span>−</span>
-          </button>
-          <div class="bet-display">
-            <span class="currency">R$</span>
-            <span class="amount">{{ betAmount }}</span>
-          </div>
-          <button class="bet-btn increase" (click)="increaseBet()" [disabled]="betAmount >= balance">
-            <span>+</span>
-          </button>
-        </div>
-
-        <!-- Quick Bets -->
-        <div class="quick-bets">
-          <button 
-            *ngFor="let amount of quickBets"
-            class="quick-bet-btn"
-            [class.active]="betAmount === amount"
-            [disabled]="amount > balance"
-            (click)="setQuickBet(amount)">
-            R$ {{ amount }}
-          </button>
-        </div>
+        <app-bet-controls
+          [currentBet]="currentBet"
+          [balance]="balance"
+          [isDisabled]="isPlaying"
+          (betChanged)="onBetChanged($event)"
+        />
       </div>
 
       <!-- Action Buttons -->
       <div class="action-buttons">
         <button 
-          class="play-btn" 
-          (click)="startGame()"
-          [disabled]="selectedColors.length < 6 || betAmount > balance || isPlaying">
-          <span class="btn-icon">🐸</span>
-          <span class="btn-text">JOGAR AGORA</span>
+          class="btn-play"
+          [disabled]="!canPlay || isPlaying"
+          [class.ready]="canPlay && !isPlaying"
+          (click)="onPlayClicked()">
+          <span class="btn-icon">🎰</span> JOGAR AGORA
         </button>
         
         <button 
-          class="clear-btn" 
-          (click)="clearSelections()"
-          [disabled]="selectedColors.length === 0 || isPlaying">
-          <span class="btn-icon">🔄</span>
-          <span class="btn-text">LIMPAR TUDO</span>
+          class="btn-reset"
+          [disabled]="isPlaying || selectedIndices.length === 0"
+          (click)="onResetClicked()">
+          <span class="btn-icon">🔄</span> LIMPAR TUDO
         </button>
       </div>
 
@@ -161,41 +116,21 @@
       <div class="how-to-play">
         <h4>Como Jogar:</h4>
         <p>Selecione 6 cores na ordem que você acha que o sistema vai sortear. Quanto mais cores você acertar na posição correta, maior seu prêmio! 🏆</p>
-        
-        <div class="prize-table">
-          <div class="prize-row">
-            <span>6 acertos</span>
-            <span class="prize">50x</span>
-          </div>
-          <div class="prize-row">
-            <span>5 acertos</span>
-            <span class="prize">20x</span>
-          </div>
-          <div class="prize-row">
-            <span>4 acertos</span>
-            <span class="prize">10x</span>
-          </div>
-          <div class="prize-row">
-            <span>3 acertos</span>
-            <span class="prize">5x</span>
-          </div>
-          <div class="prize-row">
-            <span>2 acertos</span>
-            <span class="prize">2x</span>
-          </div>
-          <div class="prize-row">
-            <span>1 acerto</span>
-            <span class="prize">1x</span>
-          </div>
-        </div>
       </div>
     </div>
   </div>
+
+  <!-- Result Display (overlay) -->
+  @if (showResult && result) {
+    <app-result-display
+      [result]="result"
+      [isVisible]="showResult"
+    />
+  }
 
   <!-- Animated Background -->
   <div class="animated-background">
     <div class="glow glow-1"></div>
     <div class="glow glow-2"></div>
-    <div class="glow glow-3"></div>
   </div>
 </div>

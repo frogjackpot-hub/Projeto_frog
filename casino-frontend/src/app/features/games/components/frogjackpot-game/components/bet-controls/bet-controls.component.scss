@@ -1,0 +1,149 @@
+@use '../../styles/variables' as v;
+
+.bet-controls {
+  width: 100%;
+
+  &.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+.bet-header {
+  margin-bottom: 12px;
+
+  .bet-label {
+    font-size: 0.95rem;
+    color: v.$white;
+    font-weight: 600;
+  }
+}
+
+.bet-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  .adjust-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(v.$white, 0.1);
+    color: v.$white;
+    font-size: 1.4rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover:not(:disabled) {
+      background: rgba(v.$white, 0.2);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    &.minus {
+      color: v.$danger;
+    }
+
+    &.plus {
+      color: v.$success;
+    }
+  }
+
+  .bet-input-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    height: 40px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(v.$white, 0.2);
+    border-radius: 8px;
+    padding: 0 12px;
+    gap: 4px;
+
+    .currency-prefix {
+      color: rgba(v.$white, 0.7);
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .bet-input {
+      flex: 1;
+      height: 100%;
+      background: transparent;
+      border: none;
+      color: v.$white;
+      font-size: 1rem;
+      font-weight: 600;
+      text-align: left;
+      padding: 0;
+
+      &:focus {
+        outline: none;
+      }
+
+      &::-webkit-outer-spin-button,
+      &::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      &[type='number'] {
+        appearance: textfield;
+        -moz-appearance: textfield;
+      }
+    }
+  }
+}
+
+.quick-bets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+
+  .quick-bet-btn {
+    padding: 10px 8px;
+    border: 1px solid rgba(v.$white, 0.2);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    color: rgba(v.$white, 0.9);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+      background: rgba(v.$accent-gold, 0.1);
+      border-color: v.$accent-gold;
+      color: v.$white;
+    }
+
+    &.active {
+      background: rgba(v.$accent-gold, 0.2);
+      border-color: v.$accent-gold;
+      color: v.$accent-gold;
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    // Last 2 buttons span across bottom
+    &:nth-child(4) {
+      grid-column: 1 / 2;
+    }
+    
+    &:nth-child(5) {
+      grid-column: 2 / 4;
+    }
+  }
+}

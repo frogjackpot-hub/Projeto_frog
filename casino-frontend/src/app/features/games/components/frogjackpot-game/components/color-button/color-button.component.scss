@@ -1,0 +1,85 @@
+@use '../../styles/variables' as v;
+
+.color-btn {
+  aspect-ratio: 1;
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 3px 12px rgba(0, 0, 0, 0.3),
+    inset 0 2px 0 rgba(v.$white, 0.3),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+
+  .color-shine {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(v.$white, 0.3) 0%, transparent 100%);
+    border-radius: 12px 12px 0 0;
+    pointer-events: none;
+  }
+
+  .selection-order {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 26px;
+    height: 26px;
+    background: v.$dark-green;
+    border: 2px solid v.$accent-gold;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: v.$accent-gold;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    animation: popIn 0.2s ease-out;
+  }
+
+  &:hover:not(.disabled):not(.selected) {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 
+      0 6px 20px rgba(0, 0, 0, 0.4),
+      inset 0 2px 0 rgba(v.$white, 0.4),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+  }
+
+  &.selected {
+    transform: scale(0.95);
+    box-shadow: 
+      0 2px 10px rgba(0, 0, 0, 0.3),
+      0 0 0 3px v.$accent-gold,
+      inset 0 2px 0 rgba(v.$white, 0.2);
+  }
+
+  &.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid v.$accent-gold;
+    outline-offset: 2px;
+  }
+}
+
+@keyframes popIn {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}

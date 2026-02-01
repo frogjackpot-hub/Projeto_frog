@@ -1,0 +1,27 @@
+<div class="play-button-container">
+  @if (showResetButton) {
+    <button 
+      class="reset-btn"
+      (click)="onResetClick()"
+      [disabled]="isDisabled"
+      aria-label="Limpar seleções"
+    >
+      🗑️ Limpar
+    </button>
+  }
+
+  <button
+    class="play-btn"
+    [class.ready]="canPlay"
+    [class.playing]="status === 'playing' || status === 'revealing'"
+    [class.finished]="status === 'finished'"
+    [disabled]="isDisabled || (!canPlay && status !== 'finished')"
+    (click)="onPlayClick()"
+  >
+    <span class="btn-text">{{ buttonText }}</span>
+    
+    @if (status === 'playing' || status === 'revealing') {
+      <span class="loading-spinner"></span>
+    }
+  </button>
+</div>

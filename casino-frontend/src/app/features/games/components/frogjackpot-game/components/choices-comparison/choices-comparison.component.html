@@ -1,0 +1,32 @@
+<div class="choices-comparison">
+  <div class="comparison-row player-row">
+    <span class="row-label">🎯 Você</span>
+    <div class="slots-container">
+      @for (i of slots; track i) {
+        <app-color-slot
+          [color]="getPlayerColor(i)"
+          [index]="i"
+          [isMatched]="isMatched(i)"
+        />
+      }
+    </div>
+  </div>
+
+  <div class="comparison-divider">
+    <span class="vs-badge">VS</span>
+  </div>
+
+  <div class="comparison-row system-row">
+    <span class="row-label">🐸 Sapo</span>
+    <div class="slots-container">
+      @for (i of slots; track i) {
+        <app-color-slot
+          [color]="getSystemColor(i)"
+          [index]="i"
+          [isRevealing]="isRevealing && getSystemColor(i) !== null"
+          [isMatched]="isMatched(i)"
+        />
+      }
+    </div>
+  </div>
+</div>

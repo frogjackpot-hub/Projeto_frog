@@ -1,0 +1,12 @@
+<div class="color-grid">
+  @for (color of colors; track color.id; let i = $index) {
+    <app-color-button
+      [color]="color"
+      [index]="i"
+      [isSelected]="isColorSelected(i)"
+      [isDisabled]="isDisabled || (!isColorSelected(i) && !canSelectMore())"
+      [selectionOrder]="getSelectionOrder(i)"
+      (colorClick)="onColorClick($event)"
+    />
+  }
+</div>

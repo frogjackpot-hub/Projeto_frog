@@ -1,0 +1,22 @@
+<header class="game-header">
+  <button 
+    class="back-btn" 
+    (click)="onBackClick()"
+    aria-label="Voltar"
+  >
+    <span class="back-icon">←</span>
+  </button>
+
+  <div class="logo-container">
+    @if (logoUrl) {
+      <img [src]="logoUrl" [alt]="gameName" class="logo-image" />
+    } @else {
+      <span class="logo-text">🐸 {{ gameName }}</span>
+    }
+  </div>
+
+  <div class="balance-display">
+    <span class="balance-label">Saldo</span>
+    <span class="balance-value">{{ formatCurrency(balance) }}</span>
+  </div>
+</header>
