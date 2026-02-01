@@ -7,8 +7,8 @@ Acesse http://localhost:4200 e você deve ver sua página personalizada com os e
 //esse comando volta um commit anterior, se você colocar ~2, volta 2 commits anteriores.
 git reset --hard HEAD~1
 
-
 docker compose up --build
+
 
 # Build de produção otimizado
 npm run build:prod
@@ -18,3 +18,8 @@ npm run build:analyze
 
 # Usar lazy loading em imagens
 <img [appLazyLoad]="imageUrl" alt="Descrição">
+
+
+LIMPAR TUDO (Docker RESET TOTAL)
+
+docker system prune -a --volumes -f

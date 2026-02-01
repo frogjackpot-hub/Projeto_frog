@@ -1,116 +1,201 @@
 <div class="frogjackpot-game">
   <!-- Header -->
-  <div class="game-header">
+  <header class="game-header">
     <button class="back-btn" (click)="goBack()">
-      <span>←</span> Voltar
+      <span class="back-icon">←</span>
     </button>
-    <h1>🐸 FrogJackpot</h1>
+    <div class="logo">
+      <span class="frog-icon">🐸</span>
+      <span class="logo-text">FrogJackpot</span>
+    </div>
     <div class="balance-display">
-      <span class="balance-label">Saldo:</span>
+      <span class="balance-icon">💰</span>
       <span class="balance-amount">R$ {{ balance | number:'1.2-2' }}</span>
     </div>
-  </div>
+  </header>
 
-  <!-- Main Content - Layout Horizontal -->
+  <!-- Main Content -->
   <div class="main-content">
     
-    <!-- Left Side - Game Area -->
-    <div class="game-area">
+    <!-- Left Panel - Game Area -->
+    <div class="game-panel">
       
-      <!-- Central Frog Character -->
-      <div class="frog-character">
-        <div class="frog-crown">👑</div>
-        <div class="frog-face">🐸</div>
-        <div class="frog-label">FrogJackpot</div>
+      <!-- Color Selection Grid -->
+      <div class="selection-area">
+        <h2 class="section-title">
+          <span class="icon">🐸</span> Escolha 6 Cores 
+          <span class="subtitle">(clique para selecionar)</span>
+        </h2>
+        
+        <div class="colors-grid">
+          <button 
+            *ngFor="let color of availableColors; let i = index"
+            class="color-btn"
+            [style.background]="color.gradient"
+            [class.selected]="isColorSelected(i)"
+            [class.disabled]="selectedColors.length >= 6 && !isColorSelected(i)"
+            (click)="toggleColor(i)"
+            [attr.data-index]="i">
+            <span class="color-shine"></span>
+            <span class="selection-order" *ngIf="getSelectionOrder(i) > 0">
+              {{ getSelectionOrder(i) }}
+            </span>
+          </button>
+        </div>
+        
+        <div class="selection-counter">
+          <span class="counter-text">Selecionadas: {{ selectedColors.length }} / 6</span>
+        </div>
       </div>
 
-      <!-- Game Board Placeholder -->
-      <div class="game-board">
-        <div class="board-overlay">
-          <div class="coming-soon">
-            <h2>🎮 Área do Jogo</h2>
-            <p>A mecânica do FrogJackpot será implementada aqui!</p>
+      <!-- Choices Comparison -->
+      <div class="comparison-area">
+        <!-- Player Choices -->
+        <div class="choices-section player-choices">
+          <h3 class="choices-title">
+            <span class="icon">🎯</span> Suas Escolhas
+          </h3>
+          <div class="choices-slots">
+            <div 
+              *ngFor="let slot of playerSlots; let i = index"
+              class="choice-slot"
+              [style.background]="slot ? slot.gradient : 'rgba(255,255,255,0.05)'"
+              [class.filled]="slot">
+              <span class="slot-number">{{ i + 1 }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- VS Badge -->
+        <div class="vs-badge">
+          <span>VS</span>
+        </div>
+
+        <!-- System Choices -->
+        <div class="choices-section system-choices">
+          <h3 class="choices-title">
+            <span class="icon">🤖</span> Sistema
+          </h3>
+          <div class="choices-slots">
+            <div 
+              *ngFor="let slot of systemSlots; let i = index"
+              class="choice-slot system-slot"
+              [style.background]="slot ? slot.gradient : 'rgba(255,255,255,0.05)'"
+              [class.filled]="slot"
+              [class.match]="slot && playerSlots[i] && slot.id === playerSlots[i]!.id"
+              [class.revealed]="gameFinished">
+              <span class="slot-number">{{ i + 1 }}</span>
+              <span class="match-icon" *ngIf="slot && playerSlots[i] && slot.id === playerSlots[i]!.id && gameFinished">✓</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Decorative Elements -->
-      <div class="decorative-cards">
-        <div class="floating-card card-1">🃏</div>
-        <div class="floating-card card-2">🎴</div>
-        <div class="floating-card card-3">🂡</div>
-        <div class="floating-card card-4">🂮</div>
+      <!-- Result Display -->
+      <div class="result-display" *ngIf="gameFinished" [class.win]="matchCount > 0">
+        <div class="result-content">
+          <span class="result-icon">{{ matchCount >= 4 ? '🎉' : matchCount >= 2 ? '✨' : '🐸' }}</span>
+          <span class="result-text">
+            {{ matchCount === 6 ? 'JACKPOT! 🏆' : matchCount + ' acerto(s)!' }}
+          </span>
+          <span class="result-prize" *ngIf="lastWin > 0">+ R$ {{ lastWin | number:'1.2-2' }}</span>
+        </div>
       </div>
     </div>
 
-    <!-- Right Side - Betting Controls -->
-    <div class="betting-area">
-      <div class="betting-section">
-        <h3>💰 Sua Aposta</h3>
+    <!-- Right Panel - Betting Controls -->
+    <div class="betting-panel">
+      
+      <!-- Bet Amount -->
+      <div class="bet-section">
+        <h3 class="section-title">
+          <span class="icon">💰</span> Valor da Aposta
+        </h3>
         
-        <div class="bet-input-container">
+        <div class="bet-controls">
           <button class="bet-btn decrease" (click)="decreaseBet()" [disabled]="betAmount <= 1">
             <span>−</span>
           </button>
-          
           <div class="bet-display">
-            <input 
-              type="number" 
-              [(ngModel)]="betAmount" 
-              [max]="balance"
-              min="1"
-              class="bet-input"
-            />
             <span class="currency">R$</span>
+            <span class="amount">{{ betAmount }}</span>
           </div>
-          
           <button class="bet-btn increase" (click)="increaseBet()" [disabled]="betAmount >= balance">
             <span>+</span>
           </button>
         </div>
 
-        <!-- Quick Bet Buttons -->
+        <!-- Quick Bets -->
         <div class="quick-bets">
           <button 
             *ngFor="let amount of quickBets"
             class="quick-bet-btn"
-            (click)="setQuickBet(amount)"
+            [class.active]="betAmount === amount"
             [disabled]="amount > balance"
-            [class.active]="betAmount === amount">
+            (click)="setQuickBet(amount)">
             R$ {{ amount }}
           </button>
         </div>
+      </div>
 
-        <!-- Start Game Button -->
+      <!-- Action Buttons -->
+      <div class="action-buttons">
         <button 
-          class="start-btn" 
-          (click)="startGame()" 
-          [disabled]="betAmount > balance || betAmount < 1">
-          <span class="btn-icon">🎲</span>
-          <span class="btn-text">Iniciar Jogo</span>
+          class="play-btn" 
+          (click)="startGame()"
+          [disabled]="selectedColors.length < 6 || betAmount > balance || isPlaying">
+          <span class="btn-icon">🐸</span>
+          <span class="btn-text">JOGAR AGORA</span>
         </button>
+        
+        <button 
+          class="clear-btn" 
+          (click)="clearSelections()"
+          [disabled]="selectedColors.length === 0 || isPlaying">
+          <span class="btn-icon">🔄</span>
+          <span class="btn-text">LIMPAR TUDO</span>
+        </button>
+      </div>
 
-        <!-- Game Info -->
-        <div class="game-info">
-          <details>
-            <summary>📖 Sobre o FrogJackpot</summary>
-            <div class="info-content">
-              <p><strong>🐸 O Jogo:</strong> FrogJackpot é o jogo mais emocionante do cassino!</p>
-              <p><strong>💎 Características:</strong> ✨ Grandes Prêmios | 🎯 Alta Diversão | ⚡ Jogabilidade Rápida</p>
-            </div>
-          </details>
+      <!-- How to Play -->
+      <div class="how-to-play">
+        <h4>Como Jogar:</h4>
+        <p>Selecione 6 cores na ordem que você acha que o sistema vai sortear. Quanto mais cores você acertar na posição correta, maior seu prêmio! 🏆</p>
+        
+        <div class="prize-table">
+          <div class="prize-row">
+            <span>6 acertos</span>
+            <span class="prize">50x</span>
+          </div>
+          <div class="prize-row">
+            <span>5 acertos</span>
+            <span class="prize">20x</span>
+          </div>
+          <div class="prize-row">
+            <span>4 acertos</span>
+            <span class="prize">10x</span>
+          </div>
+          <div class="prize-row">
+            <span>3 acertos</span>
+            <span class="prize">5x</span>
+          </div>
+          <div class="prize-row">
+            <span>2 acertos</span>
+            <span class="prize">2x</span>
+          </div>
+          <div class="prize-row">
+            <span>1 acerto</span>
+            <span class="prize">1x</span>
+          </div>
         </div>
       </div>
     </div>
-
   </div>
 
   <!-- Animated Background -->
   <div class="animated-background">
-    <div class="bubble bubble-1"></div>
-    <div class="bubble bubble-2"></div>
-    <div class="bubble bubble-3"></div>
-    <div class="bubble bubble-4"></div>
-    <div class="bubble bubble-5"></div>
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+    <div class="glow glow-3"></div>
   </div>
 </div>

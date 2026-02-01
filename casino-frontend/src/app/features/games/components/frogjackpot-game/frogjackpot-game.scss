@@ -1,360 +1,540 @@
-// Reset para largura total escapando do container pai
+// ============================================
+// FrogJackpot Game - Visual Cartunesco de Cassino
+// ============================================
+
+// Variáveis
+$primary-green: #1a5d2a;
+$dark-green: #0d2818;
+$accent-gold: #ffd700;
+$accent-green: #4ade80;
+$white: #ffffff;
+$text-muted: #9ca3af;
+
+// Reset Host
 :host {
   display: block;
-  width: calc(100vw - 20px);
-  margin-left: calc(-50vw + 50% + 10px);
-  position: relative;
+  width: 100%;
+  height: 100%;
 }
 
+// Main Container
 .frogjackpot-game {
-  height: calc(100vh - 160px);
+  min-height: 100vh;
   width: 100%;
-  background: linear-gradient(135deg, #0a4d2e 0%, #1a5f3f 50%, #0f3a28 100%);
-  padding: 0;
-  margin: 0;
+  background: linear-gradient(180deg, $dark-green 0%, darken($dark-green, 5%) 100%);
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
 }
 
-// Animated Background
-.animated-background {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-
-  .bubble {
-    position: absolute;
-    width: 60px;
-    height: 60px;
-    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.15), rgba(255, 215, 0, 0.08));
-    border-radius: 50%;
-    animation: float 8s ease-in-out infinite;
-    opacity: 0.5;
-
-    &.bubble-1 { top: 10%; left: 10%; animation-delay: 0s; }
-    &.bubble-2 { top: 60%; left: 85%; width: 70px; height: 70px; animation-delay: 2s; }
-    &.bubble-3 { top: 80%; left: 20%; width: 50px; height: 50px; animation-delay: 4s; }
-    &.bubble-4 { top: 30%; left: 75%; width: 60px; height: 60px; animation-delay: 1s; }
-    &.bubble-5 { top: 50%; left: 45%; width: 80px; height: 80px; animation-delay: 3s; }
-  }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-25px) rotate(180deg); }
-}
-
-// Header - Ocupando toda a largura da viewport
+// ============================================
+// HEADER
+// ============================================
 .game-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.6rem 1rem;
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 0;
-  margin: 0;
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
+  padding: 1rem 2rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 2px solid rgba($accent-gold, 0.3);
   position: relative;
   z-index: 10;
-  width: 100%;
-  box-sizing: border-box;
-  margin-bottom: 0.6rem;
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 215, 0, 0.3);
-  position: relative;
-  z-index: 10;
-
-  h1 {
-    margin: 0;
-    color: #ffd700;
-    font-size: 1.5rem;
-    font-weight: 800;
-    text-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 2px 2px 4px rgba(0, 0, 0, 0.5);
-  }
 
   .back-btn {
-    padding: 0.4rem 0.8rem;
-    background: rgba(255, 255, 255, 0.15);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 8px;
-    color: #ffffff;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.25);
-      border-color: #ffd700;
-    }
-
-    span { font-size: 1rem; }
-  }
-
-  .balance-display {
-    padding: 0.4rem 1rem;
-    background: linear-gradient(135deg, #2e7d32 0%, #388e3c 100%);
-    border-radius: 8px;
-    border: 2px solid rgba(255, 215, 0, 0.3);
-
-    .balance-label {
-      color: rgba(255, 255, 255, 0.9);
-      margin-right: 0.4rem;
-      font-size: 0.8rem;
-    }
-
-    .balance-amount {
-      color: #ffd700;
-      font-weight: 800;
-      font-size: 1rem;
-    }
-  }
-}
-
-// Main Content - Usando toda a largura da viewport sem overflow
-.main-content {
-  display: grid;
-  grid-template-columns: 1fr 300px;
-  gap: 0.6rem;
-  width: 100%;
-  position: relative;
-  z-index: 5;
-  flex: 1;
-  min-height: 0;
-  padding: 0.5rem 0.4rem;
-  box-sizing: border-box;
-}
-
-// Left Side - Game Area centralizada
-.game-area {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 12px;
-  border: 2px solid rgba(255, 215, 0, 0.4);
-  padding: 1.5rem;
-  margin: 0;
-  position: relative;
-  backdrop-filter: blur(5px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(255, 215, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-// Central Frog Character
-.frog-character {
-  text-align: center;
-  animation: bounce 2s ease-in-out infinite;
-
-  .frog-crown {
-    font-size: 1.8rem;
-    animation: spin 4s linear infinite;
-    display: inline-block;
-  }
-
-  .frog-face {
-    font-size: 4rem;
-    display: block;
-    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
-    animation: wiggle 3s ease-in-out infinite;
-  }
-
-  .frog-label {
-    font-size: 1.3rem;
-    font-weight: 800;
-    color: #ffd700;
-    text-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 2px 2px 4px rgba(0, 0, 0, 0.5);
-    letter-spacing: 2px;
-  }
-}
-
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes wiggle {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-4deg); }
-  75% { transform: rotate(4deg); }
-}
-
-// Game Board
-.game-board {
-  flex: 1;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 10px;
-  border: 2px solid rgba(255, 215, 0, 0.3);
-  padding: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 0.8rem;
-
-  .board-overlay {
-    width: 100%;
-
-    .coming-soon {
-      text-align: center;
-
-      h2 {
-        font-size: 1.3rem;
-        color: #ffd700;
-        margin-bottom: 0.4rem;
-      }
-
-      p {
-        font-size: 0.95rem;
-        color: rgba(255, 255, 255, 0.8);
-        margin: 0;
-      }
-    }
-  }
-}
-
-// Decorative Floating Cards
-.decorative-cards {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-
-  .floating-card {
-    position: absolute;
-    font-size: 2rem;
-    opacity: 0.25;
-    animation: floatCard 6s ease-in-out infinite;
-
-    &.card-1 { top: 8%; left: 3%; animation-delay: 0s; }
-    &.card-2 { top: 15%; right: 5%; animation-delay: 1.5s; }
-    &.card-3 { bottom: 10%; left: 8%; animation-delay: 3s; }
-    &.card-4 { bottom: 8%; right: 3%; animation-delay: 4.5s; }
-  }
-}
-
-@keyframes floatCard {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-15px) rotate(8deg); }
-}
-
-// Right Side - Betting Area compacta
-.betting-area {
-  position: relative;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  width: 300px;
-  max-width: 300px;
-}
-
-.betting-section {
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 12px;
-  border: 2px solid rgba(255, 215, 0, 0.3);
-  padding: 1.2rem 1rem;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-
-  h3 {
-    text-align: center;
-    color: #ffd700;
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin: 0 0 1rem;
-  }
-}
-
-.bet-input-container {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.8rem;
-
-  .bet-btn {
     width: 40px;
     height: 40px;
-    background: rgba(255, 255, 255, 0.15);
-    border: 2px solid rgba(255, 215, 0, 0.4);
-    border-radius: 8px;
-    color: #ffd700;
-    font-size: 1.4rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: rgba($white, 0.1);
+    border: 2px solid rgba($white, 0.2);
+    border-radius: 10px;
+    color: $white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
 
-    &:hover:not(:disabled) {
-      background: rgba(255, 215, 0, 0.3);
-      transform: scale(1.1);
-    }
-
-    &:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
+    &:hover {
+      background: rgba($white, 0.2);
+      border-color: $accent-gold;
+      transform: scale(1.05);
     }
   }
 
-  .bet-display {
-    flex: 1;
-    position: relative;
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 
-    .bet-input {
-      width: 100%;
-      padding: 0.5rem 2rem 0.5rem 0.6rem;
-      background: rgba(255, 255, 255, 0.1);
-      border: 2px solid rgba(255, 215, 0, 0.5);
-      border-radius: 8px;
-      color: #ffd700;
-      font-size: 1.3rem;
+    .frog-icon {
+      font-size: 2rem;
+      filter: drop-shadow(0 0 10px rgba($accent-green, 0.5));
+    }
+
+    .logo-text {
+      font-size: 1.8rem;
       font-weight: 800;
-      text-align: center;
+      color: $white;
+      text-shadow: 0 0 20px rgba($accent-gold, 0.5);
+    }
+  }
 
-      &:focus {
-        outline: none;
-        border-color: #ffd700;
-        box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
-      }
+  .balance-display {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba($accent-gold, 0.3);
+    border-radius: 10px;
 
-      &::-webkit-inner-spin-button,
-      &::-webkit-outer-spin-button {
-        -webkit-appearance: none;
-      }
+    .balance-icon {
+      font-size: 1.2rem;
     }
 
-    .currency {
-      position: absolute;
-      right: 0.6rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: rgba(255, 215, 0, 0.7);
+    .balance-amount {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: $accent-gold;
+    }
+  }
+}
+
+// ============================================
+// MAIN CONTENT
+// ============================================
+.main-content {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 1.5rem;
+  padding: 1.5rem 2rem;
+  flex: 1;
+  position: relative;
+  z-index: 5;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+}
+
+// ============================================
+// GAME PANEL (Left Side)
+// ============================================
+.game-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+// Selection Area
+.selection-area {
+  background: rgba($white, 0.03);
+  border: 2px solid rgba($accent-green, 0.3);
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 
+    0 0 30px rgba($accent-green, 0.1),
+    inset 0 1px 0 rgba($white, 0.05);
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 1.5rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: $white;
+
+    .icon {
+      font-size: 1.3rem;
+    }
+
+    .subtitle {
       font-size: 0.85rem;
-      font-weight: 600;
+      color: $text-muted;
+      font-weight: 400;
     }
+  }
+}
+
+// Colors Grid
+.colors-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.75rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.color-btn {
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.3),
+    inset 0 2px 0 rgba($white, 0.3),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+
+  .color-shine {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba($white, 0.3) 0%, transparent 100%);
+    border-radius: 16px 16px 0 0;
+    pointer-events: none;
+  }
+
+  .selection-order {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30px;
+    height: 30px;
+    background: $dark-green;
+    border: 2px solid $accent-gold;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: $accent-gold;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  }
+
+  &:hover:not(.disabled):not(.selected) {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 
+      0 8px 25px rgba(0, 0, 0, 0.4),
+      inset 0 2px 0 rgba($white, 0.4),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+  }
+
+  &.selected {
+    transform: scale(0.95);
+    box-shadow: 
+      0 2px 10px rgba(0, 0, 0, 0.3),
+      0 0 0 3px $accent-gold,
+      inset 0 2px 0 rgba($white, 0.2);
+  }
+
+  &.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+// Selection Counter
+.selection-counter {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: rgba($accent-gold, 0.1);
+  border: 2px solid rgba($accent-gold, 0.3);
+  border-radius: 10px;
+  text-align: center;
+
+  .counter-text {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: $accent-gold;
+  }
+}
+
+// ============================================
+// COMPARISON AREA
+// ============================================
+.comparison-area {
+  display: flex;
+  align-items: stretch;
+  gap: 1rem;
+  background: rgba($white, 0.03);
+  border: 2px solid rgba($accent-green, 0.3);
+  border-radius: 20px;
+  padding: 1.5rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+}
+
+.choices-section {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 15px;
+  padding: 1rem;
+
+  .choices-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 1rem 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: $white;
+
+    .icon {
+      font-size: 1.1rem;
+    }
+  }
+}
+
+.choices-slots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.choice-slot {
+  flex: 1;
+  aspect-ratio: 1;
+  max-width: 60px;
+  border: 2px dashed rgba($white, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.3s ease;
+
+  .slot-number {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba($white, 0.4);
+  }
+
+  &.filled {
+    border-style: solid;
+    border-color: rgba($white, 0.3);
+    box-shadow: 
+      0 4px 15px rgba(0, 0, 0, 0.3),
+      inset 0 2px 0 rgba($white, 0.2);
+
+    .slot-number {
+      color: $white;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    }
+  }
+
+  &.system-slot:not(.revealed) {
+    background: repeating-linear-gradient(
+      45deg,
+      rgba($white, 0.05),
+      rgba($white, 0.05) 5px,
+      transparent 5px,
+      transparent 10px
+    ) !important;
+  }
+
+  &.match {
+    border-color: $accent-gold !important;
+    box-shadow: 0 0 15px rgba($accent-gold, 0.5);
+
+    .match-icon {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 20px;
+      height: 20px;
+      background: $accent-green;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: $dark-green;
+      font-weight: 700;
+    }
+  }
+}
+
+// VS Badge
+.vs-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.5rem;
+
+  span {
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, $accent-gold 0%, #ffed4e 100%);
+    border-radius: 50%;
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: $dark-green;
+    box-shadow: 0 4px 15px rgba($accent-gold, 0.4);
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.5rem 0;
+  }
+}
+
+// ============================================
+// RESULT DISPLAY
+// ============================================
+.result-display {
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba($white, 0.2);
+  border-radius: 15px;
+  padding: 1.5rem;
+  text-align: center;
+  animation: slideIn 0.5s ease;
+
+  &.win {
+    border-color: $accent-gold;
+    background: rgba($accent-gold, 0.1);
+    animation: winPulse 0.5s ease;
+  }
+
+  .result-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .result-icon {
+    font-size: 2rem;
+  }
+
+  .result-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $white;
+  }
+
+  .result-prize {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: $accent-gold;
+    text-shadow: 0 0 10px rgba($accent-gold, 0.5);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes winPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+// ============================================
+// BETTING PANEL (Right Side)
+// ============================================
+.betting-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background: rgba($white, 0.03);
+  border: 2px solid rgba($accent-green, 0.3);
+  border-radius: 20px;
+  padding: 1.5rem;
+  height: fit-content;
+}
+
+.bet-section {
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: $white;
+
+    .icon {
+      font-size: 1.1rem;
+    }
+  }
+}
+
+// Bet Controls
+.bet-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.bet-btn {
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba($white, 0.1);
+  border: 2px solid rgba($white, 0.2);
+  border-radius: 10px;
+  color: $white;
+  font-size: 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: rgba($accent-green, 0.2);
+    border-color: $accent-green;
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+}
+
+.bet-display {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid $accent-green;
+  border-radius: 10px;
+
+  .currency {
+    font-size: 0.9rem;
+    color: $text-muted;
+  }
+
+  .amount {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: $white;
   }
 }
 
@@ -362,258 +542,226 @@
 .quick-bets {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 0.4rem;
-  margin-bottom: 1rem;
-  flex: 1;
+  gap: 0.5rem;
 
   .quick-bet-btn {
-    padding: 0.5rem;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 6px;
-    color: #ffffff;
+    padding: 0.6rem;
+    background: rgba($white, 0.05);
+    border: 2px solid rgba($white, 0.15);
+    border-radius: 8px;
+    color: $white;
     font-size: 0.85rem;
-    font-weight: 700;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 
     &:hover:not(:disabled) {
-      background: rgba(255, 215, 0, 0.2);
-      border-color: #ffd700;
+      background: rgba($white, 0.1);
+      border-color: rgba($white, 0.3);
     }
 
     &.active {
-      background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-      color: #000000;
-      border-color: #ffd700;
+      background: rgba($accent-green, 0.2);
+      border-color: $accent-green;
+      color: $accent-green;
     }
 
     &:disabled {
-      opacity: 0.3;
+      opacity: 0.4;
       cursor: not-allowed;
+    }
+
+    &:last-child:nth-child(odd) {
+      grid-column: span 2;
     }
   }
 }
 
-// Start Button
-.start-btn {
-  width: 100%;
-  padding: 0.9rem 1rem;
-  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+// ============================================
+// ACTION BUTTONS
+// ============================================
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.play-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: linear-gradient(180deg, $accent-green 0%, darken($accent-green, 10%) 100%);
   border: none;
-  border-radius: 10px;
-  color: #ffffff;
+  border-radius: 12px;
+  color: $dark-green;
   font-size: 1.1rem;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.5);
+  box-shadow: 
+    0 4px 15px rgba($accent-green, 0.4),
+    inset 0 2px 0 rgba($white, 0.3);
+
+  .btn-icon {
+    font-size: 1.3rem;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 6px 20px rgba($accent-green, 0.5),
+      inset 0 2px 0 rgba($white, 0.3);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+.clear-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  margin-bottom: 0.6rem;
+  padding: 0.875rem;
+  background: rgba($white, 0.1);
+  border: 2px solid rgba($white, 0.2);
+  border-radius: 12px;
+  color: $white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  .btn-icon {
+    font-size: 1rem;
+  }
 
   &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.7);
+    background: rgba($white, 0.15);
+    border-color: rgba($white, 0.3);
   }
 
   &:disabled {
-    background: rgba(255, 255, 255, 0.1);
+    opacity: 0.4;
     cursor: not-allowed;
-    box-shadow: none;
   }
-
-  .btn-icon { font-size: 1.3rem; }
 }
 
-// Game Info
-.game-info {
-  details {
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    border: 2px solid rgba(255, 215, 0, 0.2);
-    overflow: hidden;
+// ============================================
+// HOW TO PLAY
+// ============================================
+.how-to-play {
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  border: 1px solid rgba($white, 0.1);
 
-    summary {
-      padding: 0.5rem 0.8rem;
-      color: #ffd700;
-      font-size: 0.85rem;
+  h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: $text-muted;
+  }
+
+  p {
+    margin: 0 0 1rem 0;
+    font-size: 0.8rem;
+    color: rgba($white, 0.7);
+    line-height: 1.5;
+  }
+}
+
+.prize-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  .prize-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.35rem 0.5rem;
+    background: rgba($white, 0.03);
+    border-radius: 6px;
+    font-size: 0.75rem;
+
+    span:first-child {
+      color: rgba($white, 0.7);
+    }
+
+    .prize {
       font-weight: 700;
-      cursor: pointer;
-      list-style: none;
-
-      &:hover { background: rgba(255, 215, 0, 0.1); }
-      &::-webkit-details-marker { display: none; }
-    }
-
-    .info-content {
-      padding: 0.6rem;
-      color: #ffffff;
-      border-top: 1px solid rgba(255, 215, 0, 0.2);
-      font-size: 0.8rem;
-      line-height: 1.4;
-
-      p {
-        margin: 0.2rem 0;
-        strong { color: #ffd700; }
-      }
+      color: $accent-gold;
     }
   }
 }
 
-// Responsive Design - Mantendo largura total da viewport
-@media (max-width: 1200px) {
-  .main-content {
-    grid-template-columns: 1fr 280px;
-    padding: 0.4rem 0.6rem;
-  }
+// ============================================
+// ANIMATED BACKGROUND
+// ============================================
+.animated-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
 
-  .game-header {
-    padding: 0.5rem 0.8rem;
-  }
+  .glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.15;
+    animation: float 15s ease-in-out infinite;
 
-  .betting-area {
-    width: 280px;
-    max-width: 280px;
-  }
-}
+    &.glow-1 {
+      width: 400px;
+      height: 400px;
+      background: $accent-green;
+      top: -100px;
+      left: -100px;
+      animation-delay: 0s;
+    }
 
-@media (max-width: 1000px) {
-  .main-content {
-    grid-template-columns: 1fr 260px;
-    padding: 0.3rem 0.4rem;
-  }
+    &.glow-2 {
+      width: 300px;
+      height: 300px;
+      background: $accent-gold;
+      bottom: -50px;
+      right: -50px;
+      animation-delay: 5s;
+    }
 
-  .game-header {
-    padding: 0.4rem 0.6rem;
-  }
-
-  .betting-area {
-    width: 260px;
-    max-width: 260px;
-  }
-
-  .frog-character {
-    .frog-face { font-size: 3.5rem; }
-    .frog-label { font-size: 1.2rem; }
-  }
-}
-
-@media (max-width: 900px) {
-  .main-content {
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr auto;
-    padding: 0.5rem;
-  }
-
-  .game-header {
-    padding: 0.5rem;
-    
-    h1 { font-size: 1.4rem; }
-  }
-
-  .betting-area {
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .betting-section {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 1rem;
-    
-    h3 { 
-      width: 100%; 
-      margin-bottom: 0.5rem;
-      font-size: 1.1rem;
+    &.glow-3 {
+      width: 250px;
+      height: 250px;
+      background: $primary-green;
+      top: 50%;
+      left: 50%;
+      animation-delay: 10s;
     }
   }
-
-  .quick-bets {
-    grid-template-columns: repeat(5, 1fr);
-    flex: none;
-    width: 100%;
-    margin-bottom: 0.5rem;
-  }
-
-  .bet-input-container {
-    flex: 1;
-    margin-bottom: 0;
-  }
-  .main-content {
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr auto;
-    max-width: 100%;
-    padding: 0.5rem;
-  }
-
-  .game-header {
-    max-width: 100%;
-    padding: 0.6rem 1rem;
-    
-    h1 { font-size: 1.4rem; }
-  }
-
-  .betting-area {
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .betting-section {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 1rem;
-    
-    h3 { 
-      width: 100%; 
-      margin-bottom: 0.5rem;
-      font-size: 1.1rem;
-    }
-  }
-
-  .quick-bets {
-    grid-template-columns: repeat(5, 1fr);
-    flex: none;
-    width: 100%;
-    margin-bottom: 0.5rem;
-  }
-
-  .bet-input-container {
-    flex: 1;
-    margin-bottom: 0;
-  }
-
-  .start-btn {
-    flex: 1;
-    margin-bottom: 0;
-  }
-
-  .game-info {
-    flex: 100%;
-  }
-
-  .frog-character {
-    .frog-face { font-size: 3rem; }
-    .frog-label { font-size: 1.1rem; }
-  }
 }
 
-@media (max-width: 600px) {
-  .game-header {
-    flex-direction: column;
-    gap: 0.5rem;
-    
-    h1 { font-size: 1.3rem; }
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
   }
-
-  .frog-character {
-    .frog-face { font-size: 3rem; }
-    .frog-label { font-size: 1.1rem; }
+  33% {
+    transform: translate(30px, -30px) scale(1.1);
   }
-
-  .quick-bets {
-    grid-template-columns: repeat(3, 1fr);
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
   }
 }
