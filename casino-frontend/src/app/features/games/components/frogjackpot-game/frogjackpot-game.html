@@ -1,8 +1,16 @@
 <div class="frogjackpot-game">
   <!-- Header -->
   <header class="game-title">
-    <span class="frog-icon">🐸</span>
-    <h1>FrogJackpot</h1>
+    <div class="header-left">
+      <button class="back-games-btn" (click)="onBackClick()" title="Voltar aos jogos">
+        <span class="back-icon">←</span>
+        <span class="back-text">Jogos</span>
+      </button>
+    </div>
+    <div class="title-content">
+      <span class="frog-icon">🐸</span>
+      <h1>FrogJackpot</h1>
+    </div>
   </header>
 
   <!-- Main Content - Layout 2 Colunas -->
@@ -126,6 +134,29 @@
       [result]="result"
       [isVisible]="showResult"
     />
+  }
+
+  <!-- Modal de Confirmação de Saída -->
+  @if (showExitModal) {
+    <div class="exit-modal-overlay" (click)="cancelExit()">
+      <div class="exit-modal" (click)="$event.stopPropagation()">
+        <div class="modal-image">
+          <img src="https://i.postimg.cc/wvMy3D2y/Gemini-Generated-Image-jhrrirjhrrirjhrr.png" alt="Minerador" />
+        </div>
+        <div class="modal-content">
+          <p class="motivational-text">{{ exitModalText }}</p>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-stay" (click)="cancelExit()">
+            <span class="btn-icon">💪</span>
+            Continuar Jogando
+          </button>
+          <button class="btn-leave" (click)="confirmExit()">
+            Sair mesmo assim
+          </button>
+        </div>
+      </div>
+    </div>
   }
 
   <!-- Animated Background -->

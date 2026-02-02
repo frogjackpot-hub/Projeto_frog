@@ -122,8 +122,36 @@ export class FrogjackpotGameComponent implements OnInit, OnDestroy {
   }
 
   // Event Handlers
+  
+  // Modal de saída
+  showExitModal = false;
+  exitModalText = '';
+  
+  private readonly motivationalTexts = [
+    'Todo mundo precisa de um momento desses na vida.\nVocê vai parar agora?',
+    'Falta só mais um pouco.\nVocê vai desistir justo agora?',
+    'Às vezes o sucesso está a um golpe de distância.\nVai parar agora?',
+    'Você já chegou até aqui.\nContinue.',
+    'Quem desiste nunca descobre o quão perto estava.'
+  ];
+
   onBackClick(): void {
+    this.exitModalText = this.getRandomMotivationalText();
+    this.showExitModal = true;
+  }
+  
+  private getRandomMotivationalText(): string {
+    const randomIndex = Math.floor(Math.random() * this.motivationalTexts.length);
+    return this.motivationalTexts[randomIndex];
+  }
+  
+  confirmExit(): void {
+    this.showExitModal = false;
     this.router.navigate(['/games']);
+  }
+  
+  cancelExit(): void {
+    this.showExitModal = false;
   }
 
   onColorSelected(index: number): void {
