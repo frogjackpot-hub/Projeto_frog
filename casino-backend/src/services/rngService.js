@@ -100,6 +100,64 @@ class RNGService {
   }
 
   /**
+   * Simula o jogo FrogJackpot (escolha de cores)
+   * @param {number} totalColors - Total de cores disponíveis (padrão: 12)
+   * @param {number} selections - Número de cores selecionadas (padrão: 6)
+   * @returns {number[]} Array de índices de cores sorteadas pelo sistema
+   */
+  static frogjackpot(totalColors = 12, selections = 6) {
+    const systemColors = [];
+    
+    for (let i = 0; i < selections; i++) {
+      const colorIndex = this.randomInt(0, totalColors - 1);
+      systemColors.push(colorIndex);
+    }
+    
+    return systemColors;
+  }
+
+  /**
+   * Calcula o resultado do FrogJackpot comparando cores do jogador com o sistema
+   * @param {number[]} playerColors - Índices das cores do jogador (posicionais)
+   * @param {number[]} systemColors - Índices das cores do sistema (posicionais)
+   * @param {number} betAmount - Valor da aposta
+   * @returns {Object} Resultado do jogo
+   */
+  static frogjackpotResult(playerColors, systemColors, betAmount) {
+    const matchPositions = [];
+    let matchCount = 0;
+
+    for (let i = 0; i < playerColors.length; i++) {
+      const isMatch = playerColors[i] === systemColors[i];
+      matchPositions.push(isMatch);
+      if (isMatch) matchCount++;
+    }
+
+    // Tabela de multiplicadores (deve espelhar as constantes do frontend)
+    const multipliers = {
+      6: 50,  // Jackpot
+      5: 20,
+      4: 10,
+      3: 5,
+      2: 2,
+      1: 1,
+      0: 0
+    };
+
+    const multiplier = multipliers[matchCount] ?? 0;
+    const winAmount = parseFloat((betAmount * multiplier).toFixed(2));
+
+    return {
+      systemColors,
+      matchPositions,
+      matchCount,
+      multiplier,
+      winAmount,
+      isJackpot: matchCount === playerColors.length
+    };
+  }
+
+  /**
    * Simula um jogo de roleta
    */
   static roulette() {

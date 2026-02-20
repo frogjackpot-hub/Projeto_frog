@@ -80,6 +80,10 @@ export class FrogjackpotGameComponent implements OnInit, OnDestroy {
     return this.gameService.result();
   }
 
+  get errorMessage(): string | null {
+    return this.gameService.errorMessage();
+  }
+
   get isPlaying(): boolean {
     return this.status === GameStatus.PLAYING || 
            this.status === GameStatus.REVEALING;
@@ -94,9 +98,7 @@ export class FrogjackpotGameComponent implements OnInit, OnDestroy {
   }
 
   get canPlay(): boolean {
-    return this.selectedIndices.length === this.maxSelections && 
-           this.currentBet <= this.balance &&
-           !this.isPlaying;
+    return this.gameService.canPlay();
   }
 
   get emptyPlayerSlots(): number[] {

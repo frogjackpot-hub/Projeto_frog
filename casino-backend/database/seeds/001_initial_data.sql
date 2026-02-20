@@ -30,6 +30,16 @@ INSERT INTO games (id, name, type, min_bet, max_bet, rtp, description, rules) VA
     99.50,
     'Blackjack tradicional com regras padrão',
     '{"decks": 6, "dealer_stands_on": "soft_17", "blackjack_pays": "3:2"}'
+),
+(
+    'd4e5f6a7-b8c9-4123-9efa-111111111111',
+    'FrogJackpot',
+    'frogjackpot',
+    1.00,
+    10000.00,
+    92.00,
+    'Escolha 6 cores e veja quantas acerta! Quanto mais acertos, maior o prêmio. Jackpot de 50x no 6/6!',
+    '{"totalColors": 12, "selections": 6, "multipliers": {"0": 0, "1": 1, "2": 2, "3": 5, "4": 10, "5": 20, "6": 50}}'
 );
 
 -- Inserir usuários administradores

@@ -46,7 +46,7 @@ export const INITIAL_GAME_STATE: GameState = {
   playerSlots: [null, null, null, null, null, null],
   systemSlots: [null, null, null, null, null, null],
   betAmount: 10,
-  balance: 1000,
+  balance: 0, // Será carregado do servidor
   matchCount: 0,
   lastWin: 0,
   isPlaying: false,

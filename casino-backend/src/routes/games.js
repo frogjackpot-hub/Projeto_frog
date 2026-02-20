@@ -21,4 +21,7 @@ router.post('/slot/play', authenticateToken, validate(schemas.bet), GameControll
 // Jogar roleta (requer autenticação)
 router.post('/roulette/play', authenticateToken, GameController.playRoulette);
 
+// Jogar FrogJackpot (requer autenticação)
+router.post('/frogjackpot/play', authenticateToken, GameController.playFrogjackpot);
+
 module.exports = router;
