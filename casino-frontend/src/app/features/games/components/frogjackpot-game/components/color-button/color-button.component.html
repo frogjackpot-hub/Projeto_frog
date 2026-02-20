@@ -16,12 +16,12 @@
     loading="lazy"
   />
   
-  <!-- Contador de seleções (mostra quando selecionada 2+ vezes) -->
-  @if (selectionCount > 1) {
+  <!-- Contador de seleções (mostra quando selecionada) -->
+  @if (selectionCount >= 1) {
     <span 
       class="selection-count" 
       [attr.aria-label]="'Selecionada ' + selectionCount + ' vezes'">
-      ×{{ selectionCount }}
+      {{ selectionCount }}
     </span>
   }
 </button>
