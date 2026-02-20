@@ -30,6 +30,9 @@ export class ColorButtonComponent {
   /** Ordem de seleção (1-6), null se não selecionada */
   @Input() selectionOrder: number | null = null;
 
+  /** Quantas vezes essa cor foi selecionada */
+  @Input() selectionCount = 0;
+
   /** Evento emitido ao clicar no botão */
   @Output() colorClick = new EventEmitter<number>();
 
@@ -37,7 +40,7 @@ export class ColorButtonComponent {
    * Handler de clique
    */
   onClick(): void {
-    if (!this.isDisabled || this.isSelected) {
+    if (!this.isDisabled) {
       this.colorClick.emit(this.index);
     }
   }

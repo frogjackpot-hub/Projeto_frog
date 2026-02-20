@@ -145,6 +145,15 @@ export class FrogjackpotGameService {
   }
 
   /**
+   * Conta quantas vezes uma cor foi selecionada
+   * @param colorIndex Índice da cor
+   * @returns Número de vezes que a cor aparece nas seleções
+   */
+  getColorSelectionCount(colorIndex: number): number {
+    return this._gameState().selectedColorIndices.filter(i => i === colorIndex).length;
+  }
+
+  /**
    * Obtém a ordem de seleção de uma cor (1-6)
    * @param colorIndex Índice da cor
    * @returns Ordem de seleção ou 0 se não selecionada
@@ -155,10 +164,10 @@ export class FrogjackpotGameService {
   }
 
   /**
-   * Alterna a seleção de uma cor
-   * @param colorIndex Índice da cor a alternar
+   * Adiciona uma cor na próxima posição disponível (permite repetições)
+   * @param colorIndex Índice da cor a adicionar
    */
-  toggleColorSelection(colorIndex: number): void {
+  addColor(colorIndex: number): void {
     if (this._gameState().isPlaying) return;
     
     // Reset se jogo terminou
@@ -167,28 +176,66 @@ export class FrogjackpotGameService {
     }
 
     const currentSelections = [...this._gameState().selectedColorIndices];
-    const existingIndex = currentSelections.indexOf(colorIndex);
-
-    if (existingIndex >= 0) {
-      // Remover cor
-      currentSelections.splice(existingIndex, 1);
-    } else if (currentSelections.length < GAME_CONFIG.MAX_SELECTIONS) {
-      // Adicionar cor
+    
+    // Só adiciona se ainda há espaço
+    if (currentSelections.length < GAME_CONFIG.MAX_SELECTIONS) {
       currentSelections.push(colorIndex);
+
+      // Atualizar estado
+      this._gameState.update(state => ({
+        ...state,
+        selectedColorIndices: currentSelections,
+        playerSlots: this.buildPlayerSlots(currentSelections),
+        status: currentSelections.length === GAME_CONFIG.MAX_SELECTIONS 
+          ? GameStatus.SELECTING 
+          : GameStatus.IDLE
+      }));
+
+      // Limpar erro ao interagir
+      this._errorMessage.set(null);
+    }
+  }
+
+  /**
+   * Remove a cor de uma posição específica (0-5)
+   * @param position Posição do slot a limpar
+   */
+  clearSlot(position: number): void {
+    if (this._gameState().isPlaying) return;
+    if (position < 0 || position >= GAME_CONFIG.MAX_SELECTIONS) return;
+    
+    // Reset se jogo terminou
+    if (this._gameState().isFinished) {
+      this.resetRound();
     }
 
-    // Atualizar estado
-    this._gameState.update(state => ({
-      ...state,
-      selectedColorIndices: currentSelections,
-      playerSlots: this.buildPlayerSlots(currentSelections),
-      status: currentSelections.length === GAME_CONFIG.MAX_SELECTIONS 
-        ? GameStatus.SELECTING 
-        : GameStatus.IDLE
-    }));
+    const currentSelections = [...this._gameState().selectedColorIndices];
+    
+    // Só remove se a posição existe
+    if (position < currentSelections.length) {
+      currentSelections.splice(position, 1);
 
-    // Limpar erro ao interagir
-    this._errorMessage.set(null);
+      // Atualizar estado
+      this._gameState.update(state => ({
+        ...state,
+        selectedColorIndices: currentSelections,
+        playerSlots: this.buildPlayerSlots(currentSelections),
+        status: GameStatus.IDLE
+      }));
+
+      // Limpar erro ao interagir
+      this._errorMessage.set(null);
+    }
+  }
+
+  /**
+   * @deprecated Use addColor() para adicionar e clearSlot() para remover
+   * Alterna a seleção de uma cor (mantido para compatibilidade)
+   * @param colorIndex Índice da cor a alternar
+   */
+  toggleColorSelection(colorIndex: number): void {
+    // Agora apenas adiciona (comportamento novo)
+    this.addColor(colorIndex);
   }
 
   /**

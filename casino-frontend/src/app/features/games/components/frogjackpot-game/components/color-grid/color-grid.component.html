@@ -4,8 +4,9 @@
       [color]="color"
       [index]="i"
       [isSelected]="isColorSelected(i)"
-      [isDisabled]="isDisabled || (!isColorSelected(i) && !canSelectMore())"
+      [isDisabled]="isDisabled || !canSelectMore()"
       [selectionOrder]="getSelectionOrder(i)"
+      [selectionCount]="getSelectionCount(i)"
       (colorClick)="onColorClick($event)"
     />
   }

@@ -231,6 +231,14 @@
   .label-icon {
     font-size: 1rem;
   }
+
+  .side-hint {
+    font-size: 0.65rem;
+    font-weight: 400;
+    color: rgba(v.$white, 0.5);
+    text-transform: none;
+    letter-spacing: normal;
+  }
 }
 
 .slots-row {

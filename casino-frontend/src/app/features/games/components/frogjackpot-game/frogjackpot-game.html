@@ -44,11 +44,19 @@
         <div class="player-side">
           <div class="side-label">
             <span class="label-icon">🎯</span> Suas Escolhas
+            <span class="side-hint">(clique para remover)</span>
           </div>
           <div class="slots-row">
             @for (slot of playerChoices; track $index; let i = $index) {
               <div class="slot-wrapper">
-                <app-color-slot [color]="slot" [isEmpty]="!slot" />
+                <app-color-slot 
+                  [color]="slot" 
+                  [isEmpty]="!slot"
+                  [index]="i"
+                  [isClickable]="true"
+                  [isDisabled]="isPlaying"
+                  (slotClicked)="onSlotCleared($event)"
+                />
                 <span class="slot-number">{{ i + 1 }}</span>
               </div>
             }

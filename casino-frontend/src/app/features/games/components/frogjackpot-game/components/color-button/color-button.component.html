@@ -2,7 +2,8 @@
   class="color-btn"
   [style.background]="color.gradient"
   [class.selected]="isSelected"
-  [class.disabled]="isDisabled && !isSelected"
+  [class.disabled]="isDisabled"
+  [class.multi-selected]="selectionCount > 1"
   [attr.aria-label]="color.name"
   [attr.aria-pressed]="isSelected"
   [attr.data-index]="index"
@@ -11,12 +12,12 @@
   <!-- Efeito de brilho -->
   <span class="color-shine"></span>
   
-  <!-- Número da ordem de seleção -->
-  @if (selectionOrder !== null && selectionOrder > 0) {
+  <!-- Contador de seleções (mostra quando selecionada 2+ vezes) -->
+  @if (selectionCount > 1) {
     <span 
-      class="selection-order" 
-      [attr.aria-label]="'Seleção número ' + selectionOrder">
-      {{ selectionOrder }}
+      class="selection-count" 
+      [attr.aria-label]="'Selecionada ' + selectionCount + ' vezes'">
+      ×{{ selectionCount }}
     </span>
   }
 </button>

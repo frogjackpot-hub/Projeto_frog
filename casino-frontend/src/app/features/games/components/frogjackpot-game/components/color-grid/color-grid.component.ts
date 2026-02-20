@@ -28,6 +28,10 @@ export class ColorGridComponent {
     return order >= 0 ? order + 1 : null;
   }
 
+  getSelectionCount(index: number): number {
+    return this.selectedIndices.filter(i => i === index).length;
+  }
+
   canSelectMore(): boolean {
     return this.selectedIndices.length < this.maxSelections;
   }

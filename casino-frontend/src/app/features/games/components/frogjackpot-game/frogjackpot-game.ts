@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
 import {
-  ChangeDetectionStrategy,
-  Component,
-  OnDestroy,
-  OnInit,
-  inject
+    ChangeDetectionStrategy,
+    Component,
+    OnDestroy,
+    OnInit,
+    inject
 } from '@angular/core';
 import { Router } from '@angular/router';
 
@@ -19,10 +19,10 @@ import { FrogjackpotGameService } from './services';
 
 // Sub-components
 import {
-  BetControlsComponent,
-  ColorGridComponent,
-  ColorSlotComponent,
-  ResultDisplayComponent
+    BetControlsComponent,
+    ColorGridComponent,
+    ColorSlotComponent,
+    ResultDisplayComponent
 } from './components';
 
 @Component({
@@ -157,7 +157,11 @@ export class FrogjackpotGameComponent implements OnInit, OnDestroy {
   }
 
   onColorSelected(index: number): void {
-    this.gameService.toggleColorSelection(index);
+    this.gameService.addColor(index);
+  }
+
+  onSlotCleared(position: number): void {
+    this.gameService.clearSlot(position);
   }
 
   onBetChanged(value: number): void {
