@@ -1,9 +1,13 @@
 import { Injectable } from '@angular/core';
-import { GAME_CONFIG, PRIZE_MULTIPLIERS } from '../constants';
-import { GameColor, GameResult } from '../models';
+import { GAME_CONFIG } from '../constants';
+import { GameColor } from '../models';
 
 /**
- * Service responsável por calcular prêmios e resultados do jogo
+ * Service auxiliar para verificações VISUAIS de acertos no jogo.
+ * 
+ * IMPORTANTE: Nenhum cálculo financeiro (multiplicadores, prêmios, saldo)
+ * é feito aqui. Toda lógica financeira é processada exclusivamente no servidor.
+ * Este service existe apenas para ajudar a UI a exibir informações visuais.
  */
 @Injectable({
   providedIn: 'root'
@@ -11,95 +15,7 @@ import { GameColor, GameResult } from '../models';
 export class PrizeCalculatorService {
 
   /**
-   * Calcula o resultado completo de uma rodada
-   * @param playerColors Cores selecionadas pelo jogador
-   * @param systemColors Cores sorteadas pelo sistema
-   * @param betAmount Valor apostado
-   * @returns GameResult com todos os dados do resultado
-   */
-  calculateResult(
-    playerColors: GameColor[],
-    systemColors: GameColor[],
-    betAmount: number
-  ): GameResult {
-    const matchPositions = this.calculateMatchPositions(playerColors, systemColors);
-    const matchCount = matchPositions.filter(match => match).length;
-    const multiplier = this.getMultiplier(matchCount);
-    const winAmount = this.calculateWinAmount(betAmount, multiplier);
-
-    return {
-      playerColors,
-      systemColors,
-      matches: matchCount,
-      multiplier,
-      betAmount,
-      winAmount,
-      matchPositions,
-      isJackpot: matchCount === GAME_CONFIG.MAX_SELECTIONS
-    };
-  }
-
-  /**
-   * Calcula quais posições foram acertos
-   * @param playerColors Cores do jogador
-   * @param systemColors Cores do sistema
-   * @returns Array de boolean indicando acertos por posição
-   */
-  calculateMatchPositions(
-    playerColors: (GameColor | null)[],
-    systemColors: (GameColor | null)[]
-  ): boolean[] {
-    const positions: boolean[] = [];
-    
-    for (let i = 0; i < GAME_CONFIG.MAX_SELECTIONS; i++) {
-      const playerColor = playerColors[i];
-      const systemColor = systemColors[i];
-      
-      positions.push(
-        playerColor !== null && 
-        systemColor !== null && 
-        playerColor.id === systemColor.id
-      );
-    }
-    
-    return positions;
-  }
-
-  /**
-   * Conta o número de acertos
-   * @param playerColors Cores do jogador
-   * @param systemColors Cores do sistema
-   * @returns Número de acertos
-   */
-  countMatches(
-    playerColors: (GameColor | null)[],
-    systemColors: (GameColor | null)[]
-  ): number {
-    return this.calculateMatchPositions(playerColors, systemColors)
-      .filter(match => match).length;
-  }
-
-  /**
-   * Obtém o multiplicador baseado no número de acertos
-   * @param matchCount Número de acertos
-   * @returns Multiplicador do prêmio
-   */
-  getMultiplier(matchCount: number): number {
-    return PRIZE_MULTIPLIERS[matchCount] ?? 0;
-  }
-
-  /**
-   * Calcula o valor do prêmio
-   * @param betAmount Valor apostado
-   * @param multiplier Multiplicador
-   * @returns Valor do prêmio
-   */
-  calculateWinAmount(betAmount: number, multiplier: number): number {
-    return betAmount * multiplier;
-  }
-
-  /**
-   * Verifica se determinada posição é um acerto
+   * Verifica se determinada posição é um acerto (comparação visual)
    * @param position Posição a verificar (0-5)
    * @param playerColors Cores do jogador
    * @param systemColors Cores do sistema
@@ -119,7 +35,7 @@ export class PrizeCalculatorService {
   }
 
   /**
-   * Determina o ícone de resultado baseado nos acertos
+   * Determina o ícone de resultado baseado nos acertos (visual)
    * @param matchCount Número de acertos
    * @returns Emoji apropriado
    */
@@ -130,12 +46,12 @@ export class PrizeCalculatorService {
   }
 
   /**
-   * Determina a mensagem de resultado
+   * Determina a mensagem de resultado (visual)
    * @param matchCount Número de acertos
    * @returns Mensagem formatada
    */
   getResultMessage(matchCount: number): string {
-    if (matchCount === 6) return 'JACKPOT! 🏆';
+    if (matchCount === GAME_CONFIG.MAX_SELECTIONS) return 'JACKPOT! 🏆';
     return `${matchCount} acerto(s)!`;
   }
 }

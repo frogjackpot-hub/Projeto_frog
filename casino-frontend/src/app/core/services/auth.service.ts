@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
@@ -18,7 +18,8 @@ export class AuthService {
 
   constructor(
     private apiService: ApiService,
-    private router: Router
+    private router: Router,
+    private ngZone: NgZone
   ) {
     this.checkAuthStatus();
     this.setupStorageListener();
@@ -292,6 +293,24 @@ export class AuthService {
    */
   public clearAuthDataOnly(): void {
     this.clearAuthData();
+  }
+
+  /**
+   * Atualiza o saldo localmente de forma IMEDIATA, sem requisição HTTP.
+   * Use isso logo após receber o novo saldo do servidor para atualizar
+   * o nav e qualquer componente que escute currentUser$ em tempo real.
+   */
+  updateBalanceLocally(newBalance: number): void {
+    const currentUser = this.currentUserSubject.value;
+    if (!currentUser) return;
+
+    const updatedUser: User = { ...currentUser, balance: newBalance };
+    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+    // NgZone.run() garante que o Angular detecta a mudança IMEDIATAMENTE,
+    // mesmo que a chamada venha de fora do ciclo de detecção (async/await, Promise)
+    this.ngZone.run(() => {
+      this.currentUserSubject.next(updatedUser);
+    });
   }
 
   /**

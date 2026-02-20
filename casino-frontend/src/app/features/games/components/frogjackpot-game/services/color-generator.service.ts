@@ -1,33 +1,17 @@
 import { Injectable } from '@angular/core';
-import { AVAILABLE_COLORS, GAME_CONFIG } from '../constants';
+import { AVAILABLE_COLORS } from '../constants';
 import { GameColor } from '../models';
 
 /**
- * Service responsável por gerar cores aleatórias para o sistema
- * Implementa o algoritmo de sorteio do FrogJackpot
+ * Service responsável por mapear cores do jogo.
+ * 
+ * IMPORTANTE: O sorteio de cores é feito exclusivamente no servidor.
+ * Este service apenas converte índices em objetos de cor para exibição.
  */
 @Injectable({
   providedIn: 'root'
 })
 export class ColorGeneratorService {
-  
-  /**
-   * Gera um array de índices de cores aleatórias sem repetição
-   * @param count Quantidade de cores a gerar (padrão: 6)
-   * @returns Array de índices únicos
-   */
-  generateRandomColorIndices(count: number = GAME_CONFIG.MAX_SELECTIONS): number[] {
-    const indices: number[] = [];
-    const available = [...Array(GAME_CONFIG.TOTAL_COLORS).keys()];
-
-    for (let i = 0; i < count; i++) {
-      const randomIndex = Math.floor(Math.random() * available.length);
-      indices.push(available[randomIndex]);
-      available.splice(randomIndex, 1);
-    }
-
-    return indices;
-  }
 
   /**
    * Converte índices de cores para objetos GameColor
@@ -36,16 +20,6 @@ export class ColorGeneratorService {
    */
   indicesToColors(indices: number[]): GameColor[] {
     return indices.map(index => ({ ...AVAILABLE_COLORS[index] }));
-  }
-
-  /**
-   * Gera cores aleatórias como objetos GameColor
-   * @param count Quantidade de cores a gerar
-   * @returns Array de GameColor
-   */
-  generateRandomColors(count: number = GAME_CONFIG.MAX_SELECTIONS): GameColor[] {
-    const indices = this.generateRandomColorIndices(count);
-    return this.indicesToColors(indices);
   }
 
   /**

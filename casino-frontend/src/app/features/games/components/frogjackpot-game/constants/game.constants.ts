@@ -19,9 +19,7 @@ export const GAME_CONFIG = {
   /** Limite para usar incremento grande */
   BET_INCREMENT_THRESHOLD: 100,
   /** Delay entre revelações de cores do sistema (ms) */
-  REVEAL_DELAY_MS: 300,
-  /** Saldo inicial (mock) */
-  INITIAL_BALANCE: 1000
+  REVEAL_DELAY_MS: 300
 } as const;
 
 /**
@@ -30,20 +28,9 @@ export const GAME_CONFIG = {
 export const QUICK_BET_VALUES: readonly number[] = [10, 25, 50, 100, 500] as const;
 
 /**
- * Configuração de multiplicadores de prêmios
- */
-export const PRIZE_MULTIPLIERS: Record<number, number> = {
-  6: 50,  // Jackpot
-  5: 20,
-  4: 10,
-  3: 5,
-  2: 2,
-  1: 1,
-  0: 0
-} as const;
-
-/**
- * Tabela de prêmios para exibição
+ * Tabela de prêmios APENAS para exibição na UI.
+ * Os multiplicadores reais são calculados exclusivamente no servidor.
+ * Qualquer alteração aqui afeta SOMENTE a exibição visual.
  */
 export const PRIZE_TABLE: readonly PrizeConfig[] = [
   { matches: 6, multiplier: 50, description: 'JACKPOT!' },

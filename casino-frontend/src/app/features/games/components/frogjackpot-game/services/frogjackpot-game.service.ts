@@ -426,13 +426,9 @@ export class FrogjackpotGameService {
    * para manter consistência em toda a aplicação
    */
   private syncUserBalance(newBalance: number): void {
-    const currentUser = this.authService.currentUserValue;
-    if (currentUser) {
-      const updatedUser = { ...currentUser, balance: newBalance };
-      // Atualizar localStorage e subject
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-    }
-    // Forçar refresh completo para garantir
+    // Atualiza o BehaviorSubject IMEDIATAMENTE — o nav reflete na hora
+    this.authService.updateBalanceLocally(newBalance);
+    // Confirma com o servidor em segundo plano (reconciliação)
     this.authService.refreshUserData().subscribe();
   }
 

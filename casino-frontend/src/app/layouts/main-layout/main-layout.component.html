@@ -12,23 +12,25 @@
       </nav>
       
       <div class="user-section">
-        <div class="balance" *ngIf="currentUser">
-          <span class="balance-label">Saldo:</span>
-          <span class="balance-value">{{ currentUser.balance | appCurrency }}</span>
-        </div>
-        
-        <div class="user-menu" *ngIf="currentUser">
-          <button class="user-btn" (click)="toggleUserMenu()">
-            <span>{{ currentUser.firstName }}</span>
-            <span class="dropdown-arrow">▼</span>
-          </button>
-          
-          <div class="user-dropdown" *ngIf="showUserMenu">
-            <a routerLink="/dashboard/profile">Perfil</a>
-            <a routerLink="/wallet/transactions">Transações</a>
-            <button (click)="logout()">Sair</button>
+        <ng-container *ngIf="currentUser$ | async as user">
+          <div class="balance">
+            <span class="balance-label">Saldo:</span>
+            <span class="balance-value">{{ user.balance | appCurrency }}</span>
           </div>
-        </div>
+
+          <div class="user-menu">
+            <button class="user-btn" (click)="toggleUserMenu()">
+              <span>{{ user.firstName }}</span>
+              <span class="dropdown-arrow">▼</span>
+            </button>
+
+            <div class="user-dropdown" *ngIf="showUserMenu">
+              <a routerLink="/dashboard/profile">Perfil</a>
+              <a routerLink="/wallet/transactions">Transações</a>
+              <button (click)="logout()">Sair</button>
+            </div>
+          </div>
+        </ng-container>
       </div>
     </div>
   </header>

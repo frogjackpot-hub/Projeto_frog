@@ -1,7 +1,7 @@
 import { CommonModule, NgIf } from '@angular/common';
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-import { interval, Subscription } from 'rxjs';
+import { Observable, Subscription, interval } from 'rxjs';
 import { filter, switchMap } from 'rxjs/operators';
 import { User } from '../../core/models/user.model';
 import { AuthService } from '../../core/services/auth.service';
@@ -15,15 +15,18 @@ import { CurrencyPipe } from '../../shared/pipes/currency.pipe';
   imports: [CommonModule, NgIf, RouterModule, CurrencyPipe]
 })
 export class MainLayoutComponent implements OnInit, OnDestroy {
+  // inject() resolve antes do campo ser inicializado, evitando "used before init"
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
+  // Observable usado com async pipe no template — reativo, sem depender de CD manual
+  readonly currentUser$: Observable<User | null> = this.authService.currentUser$;
+
+  // Cópia local para lógica TS (ex: checar autenticação)
   currentUser: User | null = null;
   showUserMenu = false;
   private subscription = new Subscription();
   private balanceCheckInterval?: ReturnType<typeof setInterval>;
-
-  constructor(
-    private authService: AuthService,
-    private router: Router
-  ) {}
 
   ngOnInit(): void {
     this.subscription.add(
