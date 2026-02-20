@@ -1,13 +1,13 @@
 /**
- * Interface que representa uma cor do jogo FrogJackpot
+ * Interface que representa uma ficha/chip do jogo FrogJackpot
  */
 export interface GameColor {
-  /** Identificador único da cor */
+  /** Identificador único da ficha */
   id: number;
-  /** Nome da cor para acessibilidade */
+  /** Nome da ficha para acessibilidade */
   name: string;
-  /** Gradiente CSS da cor */
-  gradient: string;
+  /** URL da imagem da ficha */
+  image: string;
 }
 
 /**

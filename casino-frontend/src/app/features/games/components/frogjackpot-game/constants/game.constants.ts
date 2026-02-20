@@ -42,21 +42,21 @@ export const PRIZE_TABLE: readonly PrizeConfig[] = [
 ] as const;
 
 /**
- * Paleta de cores disponíveis no jogo
+ * Fichas coloridas disponíveis no jogo
  */
 export const AVAILABLE_COLORS: readonly GameColor[] = [
-  { id: 0, name: 'Vermelho', gradient: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' },
-  { id: 1, name: 'Azul', gradient: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)' },
-  { id: 2, name: 'Roxo', gradient: 'linear-gradient(135deg, #a855f7 0%, #9333ea 100%)' },
-  { id: 3, name: 'Ciano', gradient: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)' },
-  { id: 4, name: 'Verde Limão', gradient: 'linear-gradient(135deg, #a3e635 0%, #84cc16 100%)' },
-  { id: 5, name: 'Rosa', gradient: 'linear-gradient(135deg, #f472b6 0%, #ec4899 100%)' },
-  { id: 6, name: 'Laranja', gradient: 'linear-gradient(135deg, #fb923c 0%, #f97316 100%)' },
-  { id: 7, name: 'Azul Claro', gradient: 'linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%)' },
-  { id: 8, name: 'Turquesa', gradient: 'linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%)' },
-  { id: 9, name: 'Azul Marinho', gradient: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)' },
-  { id: 10, name: 'Amarelo', gradient: 'linear-gradient(135deg, #fde047 0%, #facc15 100%)' },
-  { id: 11, name: 'Magenta', gradient: 'linear-gradient(135deg, #e879f9 0%, #d946ef 100%)' }
+  { id: 0, name: 'Vermelho', image: 'https://i.postimg.cc/Lhs486JX/Bright-Red-FF0000.png' },
+  { id: 1, name: 'Vinho', image: 'https://i.postimg.cc/T5hT7QzN/Burgundy-800000.png' },
+  { id: 2, name: 'Verde Escuro', image: 'https://i.postimg.cc/QKVj4S2f/Dark-Green-006400.png' },
+  { id: 3, name: 'Ciano', image: 'https://i.postimg.cc/jnCRgvp8/Electric-Cyan-00FFFF.png' },
+  { id: 4, name: 'Azul Claro', image: 'https://i.postimg.cc/T5hT7QzC/Electric-Cyan-00FFFF-(1).png' },
+  { id: 5, name: 'Dourado', image: 'https://i.postimg.cc/gLrGSN9P/Golden-Yellow-FFD700.png' },
+  { id: 6, name: 'Rosa', image: 'https://i.postimg.cc/p5yPGkw6/Hot-Pink-FF0088.png' },
+  { id: 7, name: 'Branco', image: 'https://i.postimg.cc/q6gpbQPb/Ice-White-F5F5F5.png' },
+  { id: 8, name: 'Roxo', image: 'https://i.postimg.cc/ct6d9Tpp/Intense-Purple-8000FF.png' },
+  { id: 9, name: 'Verde Neon', image: 'https://i.postimg.cc/N2LQJpht/Neon-Green-00FF00.png' },
+  { id: 10, name: 'Azul Royal', image: 'https://i.postimg.cc/H8jTZBGH/Royal-Blue-0047FF.png' },
+  { id: 11, name: 'Laranja', image: 'https://i.postimg.cc/XBXnHxRt/Strong-Orange-FF5A00.png' }
 ] as const;
 
 /**
@@ -78,9 +78,9 @@ export const GAME_ICONS = {
  * Mensagens do jogo
  */
 export const GAME_MESSAGES = {
-  SELECT_COLORS: 'Selecione 6 cores para jogar!',
+  SELECT_COLORS: 'Selecione 6 fichas para jogar!',
   INSUFFICIENT_BALANCE: 'Saldo insuficiente!',
   MIN_BET_ERROR: 'Aposta mínima é R$ 1!',
   JACKPOT: 'JACKPOT! 🏆',
-  HOW_TO_PLAY: 'Selecione 6 cores na ordem que você acha que o sistema vai sortear. Quanto mais cores você acertar na posição correta, maior seu prêmio! 🏆'
+  HOW_TO_PLAY: 'Selecione 6 fichas na ordem que você acha que o sistema vai sortear. Quanto mais fichas você acertar na posição correta, maior seu prêmio! 🏆'
 } as const;

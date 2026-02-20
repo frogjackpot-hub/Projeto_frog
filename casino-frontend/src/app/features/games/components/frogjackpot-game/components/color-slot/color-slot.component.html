@@ -4,12 +4,15 @@
   [class.matched]="isMatched"
   [class.has-color]="hasColor"
   [class.clickable]="canClick"
-  [style.background]="hasColor ? color?.gradient : 'rgba(0, 0, 0, 0.3)'"
   [style.animation-delay]="(index * 0.1) + 's'"
   (click)="onClick()"
 >
-  @if (hasColor) {
-    <div class="slot-shine"></div>
+  @if (hasColor && color) {
+    <img 
+      [src]="color.image" 
+      [alt]="color.name"
+      class="slot-image"
+    />
     @if (canClick) {
       <div class="remove-hint">✕</div>
     }

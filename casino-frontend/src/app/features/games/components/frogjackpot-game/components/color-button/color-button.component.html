@@ -1,6 +1,5 @@
 <button 
   class="color-btn"
-  [style.background]="color.gradient"
   [class.selected]="isSelected"
   [class.disabled]="isDisabled"
   [class.multi-selected]="selectionCount > 1"
@@ -9,8 +8,13 @@
   [attr.data-index]="index"
   (click)="onClick()">
   
-  <!-- Efeito de brilho -->
-  <span class="color-shine"></span>
+  <!-- Imagem da ficha -->
+  <img 
+    [src]="color.image" 
+    [alt]="color.name"
+    class="chip-image"
+    loading="lazy"
+  />
   
   <!-- Contador de seleções (mostra quando selecionada 2+ vezes) -->
   @if (selectionCount > 1) {

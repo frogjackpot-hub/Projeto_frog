@@ -340,7 +340,7 @@ export class FrogjackpotGameService {
     
     // Validações locais
     if (state.selectedColorIndices.length < GAME_CONFIG.MAX_SELECTIONS) {
-      this._errorMessage.set('Selecione 6 cores para jogar!');
+      this._errorMessage.set('Selecione 6 fichas para jogar!');
       return null;
     }
     
