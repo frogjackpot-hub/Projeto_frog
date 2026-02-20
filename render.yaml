@@ -17,7 +17,9 @@ services:
       - key: PORT
         value: 3000
       - key: DATABASE_URL
-        sync: false # Configurar manualmente com a Internal Database URL do banco no Render
+        fromDatabase:
+          name: casino-db
+          property: connectionString
       - key: JWT_SECRET
         generateValue: true # Gera um valor aleatório seguro
       - key: CORS_ORIGIN
