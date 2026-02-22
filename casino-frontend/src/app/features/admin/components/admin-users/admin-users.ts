@@ -1,19 +1,20 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { User } from '../../../../core/models/user.model';
 import { AdminService } from '../../../../core/services/admin.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { CurrencyPipe } from '../../../../shared/pipes/currency.pipe';
+import { UserProfileModalComponent } from '../user-profile-modal/user-profile-modal';
 
 @Component({
   selector: 'app-admin-users',
   templateUrl: './admin-users.html',
   styleUrls: ['./admin-users.scss'],
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, CurrencyPipe]
+  imports: [CommonModule, RouterModule, FormsModule, CurrencyPipe, UserProfileModalComponent]
 })
 export class AdminUsersComponent implements OnInit, OnDestroy {
   users: User[] = [];
@@ -32,6 +33,9 @@ export class AdminUsersComponent implements OnInit, OnDestroy {
     username: ''
   };
   
+  // Modal de perfil
+  showProfileModal = false;
+
   // Modal de saldo
   showBalanceModal = false;
   balanceForm = {
@@ -45,7 +49,6 @@ export class AdminUsersComponent implements OnInit, OnDestroy {
   constructor(
     private adminService: AdminService,
     private notificationService: NotificationService,
-    private router: Router,
     private cdr: ChangeDetectorRef,
     private ngZone: NgZone
   ) {}
@@ -274,17 +277,12 @@ export class AdminUsersComponent implements OnInit, OnDestroy {
     return user.isActive ? 'status-active' : 'status-inactive';
   }
 
-  logout(): void {
-    if (confirm('Deseja realmente sair do painel administrativo?')) {
-      this.adminService.logout().subscribe({
-        next: () => {
-          this.notificationService.success('Logout realizado', 'Até logo!');
-          this.router.navigate(['/admin/login']);
-        },
-        error: () => {
-          this.router.navigate(['/admin/login']);
-        }
-      });
-    }
+  openProfileModal(user: User): void {
+    this.selectedUser = user;
+    this.showProfileModal = true;
+  }
+
+  closeProfileModal(): void {
+    this.showProfileModal = false;
   }
 }

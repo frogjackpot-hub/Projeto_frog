@@ -1,199 +1,159 @@
-<div class="admin-layout">
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <span class="icon">🎰</span>
-      <h2>Admin Panel</h2>
+<div class="admin-audit">
+  <!-- Header -->
+  <div class="audit-header">
+    <div class="page-title">
+      <span class="icon">📋</span>
+      <h2>Logs de Auditoria</h2>
     </div>
-    
-    <nav class="sidebar-nav">
-      <a routerLink="/admin" class="nav-item">
-        <span class="icon">📊</span>
-        <span>Dashboard</span>
-      </a>
-      <a routerLink="/admin/users" class="nav-item">
-        <span class="icon">👥</span>
-        <span>Usuários</span>
-      </a>
-      <a routerLink="/admin/games" class="nav-item">
-        <span class="icon">🎮</span>
-        <span>Jogos</span>
-      </a>
-      <a routerLink="/admin/audit" class="nav-item active">
-        <span class="icon">📋</span>
-        <span>Auditoria</span>
-      </a>
-      <a routerLink="/admin/config" class="nav-item">
-        <span class="icon">⚙️</span>
-        <span>Configurações</span>
-      </a>
-    </nav>
-  </aside>
+    <button class="refresh-btn" (click)="loadAuditLogs()" [disabled]="isLoading">
+      <span class="icon">🔄</span>
+      <span>Atualizar</span>
+    </button>
+  </div>
 
-  <!-- Main Content -->
-  <main class="main-content">
-    <!-- Top Bar -->
-    <div class="top-bar">
-      <div class="page-title">
-        <span class="icon">📋</span>
-        <h1>Logs de Auditoria</h1>
-      </div>
-      
-      <div class="top-bar-actions">
-        <button class="refresh-btn" (click)="loadAuditLogs()" [disabled]="isLoading">
-          <span class="icon">🔄</span>
-          <span>Atualizar</span>
-        </button>
-      </div>
+  <!-- Filters Section -->
+  <div class="filters-card">
+    <div class="filters-header">
+      <h3>🔍 Filtros</h3>
     </div>
+    <div class="filters-content">
+      <div class="filter-group">
+        <label>Ação:</label>
+        <select [(ngModel)]="filterAction" (change)="applyFilters()">
+          <option value="">Todas as ações</option>
+          <option *ngFor="let action of actions" [value]="action">{{ getActionLabel(action) }}</option>
+        </select>
+      </div>
 
-    <!-- Content Area -->
-    <div class="content-area">
-      <!-- Filters Section -->
-      <div class="filters-card">
-        <div class="filters-header">
-          <h3>🔍 Filtros</h3>
+      <div class="filter-group">
+        <label>Recurso:</label>
+        <select [(ngModel)]="filterResource" (change)="applyFilters()">
+          <option value="">Todos os recursos</option>
+          <option *ngFor="let resource of resources" [value]="resource">{{ resource }}</option>
+        </select>
+      </div>
+
+      <button class="clear-btn" (click)="clearFilters()">
+        <span class="icon">🗑️</span>
+        <span>Limpar Filtros</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading">
+    <div class="spinner"></div>
+    <span>Carregando logs de auditoria...</span>
+  </div>
+
+  <!-- Logs Container -->
+  <div *ngIf="!isLoading && filteredLogs.length > 0" class="logs-container">
+    <div *ngFor="let log of filteredLogs; let i = index" class="log-card">
+      <div class="log-header">
+        <div class="log-header-main">
+          <div class="log-number">#{{ filteredLogs.length - i }}</div>
+          <div class="log-header-info">
+            <div class="log-header-top">
+              <span class="log-action" [ngClass]="getActionClass(log.action)">
+                {{ getActionLabel(log.action) }}
+              </span>
+              <span class="log-resource-badge" *ngIf="log.resourceType">
+                {{ log.resourceType }}
+              </span>
+            </div>
+            <div class="log-header-bottom">
+              <span class="log-admin-info">
+                <span class="admin-icon">👤</span>
+                <strong>{{ log.adminUsername }}</strong> ({{ log.adminEmail }})
+              </span>
+            </div>
+          </div>
         </div>
-        <div class="filters-content">
-          <div class="filter-group">
-            <label>Ação:</label>
-            <select [(ngModel)]="filterAction" (change)="applyFilters()">
-              <option value="">Todas as ações</option>
-              <option *ngFor="let action of actions" [value]="action">{{ getActionLabel(action) }}</option>
-            </select>
+        <div class="log-header-meta">
+          <div class="log-date">
+            <span class="date-icon">📅</span>
+            <span>{{ log.createdAt | date: 'dd/MM/yyyy' }}</span>
           </div>
-
-          <div class="filter-group">
-            <label>Recurso:</label>
-            <select [(ngModel)]="filterResource" (change)="applyFilters()">
-              <option value="">Todos os recursos</option>
-              <option *ngFor="let resource of resources" [value]="resource">{{ resource }}</option>
-            </select>
+          <div class="log-time">
+            <span class="time-icon">🕐</span>
+            <span>{{ log.createdAt | date: 'HH:mm:ss' }}</span>
           </div>
-
-          <button class="clear-btn" (click)="clearFilters()">
-            <span class="icon">🗑️</span>
-            <span>Limpar Filtros</span>
-          </button>
         </div>
       </div>
 
-      <!-- Loading State -->
-      <div *ngIf="isLoading" class="loading">
-        <div class="spinner"></div>
-        <span>Carregando logs de auditoria...</span>
-      </div>
-
-      <!-- Logs Container -->
-      <div *ngIf="!isLoading && filteredLogs.length > 0" class="logs-container">
-        <div *ngFor="let log of filteredLogs; let i = index" class="log-card">
-          <div class="log-header">
-            <div class="log-header-main">
-              <div class="log-number">#{{ filteredLogs.length - i }}</div>
-              <div class="log-header-info">
-                <div class="log-header-top">
-                  <span class="log-action" [ngClass]="getActionClass(log.action)">
-                    {{ getActionLabel(log.action) }}
-                  </span>
-                  <span class="log-resource-badge" *ngIf="log.resourceType">
-                    {{ log.resourceType }}
-                  </span>
-                </div>
-                <div class="log-header-bottom">
-                  <span class="log-admin-info">
-                    <span class="admin-icon">👤</span>
-                    <strong>{{ log.adminUsername }}</strong> ({{ log.adminEmail }})
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div class="log-header-meta">
-              <div class="log-date">
-                <span class="date-icon">📅</span>
-                <span>{{ log.createdAt | date: 'dd/MM/yyyy' }}</span>
-              </div>
-              <div class="log-time">
-                <span class="time-icon">🕐</span>
-                <span>{{ log.createdAt | date: 'HH:mm:ss' }}</span>
-              </div>
+      <div class="log-body">
+        <div class="log-grid">
+          <div class="log-info-item" [title]="'Endereço de onde a ação foi realizada: ' + log.ipAddress">
+            <span class="info-icon">🌐</span>
+            <div class="info-content">
+              <span class="info-label">Endereço IP</span>
+              <span class="info-value clickable" (click)="copyToClipboard(log.ipAddress)">
+                {{ log.ipAddress }}
+              </span>
             </div>
           </div>
-          
-          <div class="log-body">
-            <div class="log-grid">
-              <div class="log-info-item" [title]="'Endereço de onde a ação foi realizada: ' + log.ipAddress">
-                <span class="info-icon">🌐</span>
-                <div class="info-content">
-                  <span class="info-label">Endereço IP</span>
-                  <span class="info-value clickable" (click)="copyToClipboard(log.ipAddress)">
-                    {{ log.ipAddress }}
-                  </span>
-                </div>
-              </div>
 
-              <div class="log-info-item" [title]="'Clique para copiar: ' + log.resourceId">
-                <span class="info-icon">🔑</span>
-                <div class="info-content">
-                  <span class="info-label">ID do Item Modificado</span>
-                  <span class="info-value clickable" (click)="copyToClipboard(log.resourceId)">
-                    {{ log.resourceId ? (log.resourceId.length > 30 ? log.resourceId.substring(0, 30) + '...' : log.resourceId) : 'N/A' }}
-                  </span>
-                </div>
-              </div>
-
-              <div class="log-info-item" [title]="log.userAgent">
-                <span class="info-icon">💻</span>
-                <div class="info-content">
-                  <span class="info-label">Navegador</span>
-                  <span class="info-value">
-                    {{ log.userAgent ? getBrowserInfo(log.userAgent) : 'Não disponível' }}
-                  </span>
-                </div>
-              </div>
-
-              <div class="log-info-item" [title]="'Clique para copiar: ' + log.id">
-                <span class="info-icon">🆔</span>
-                <div class="info-content">
-                  <span class="info-label">ID do Registro</span>
-                  <span class="info-value small-text clickable" (click)="copyToClipboard(log.id)">
-                    {{ log.id.substring(0, 13) }}...
-                  </span>
-                </div>
-              </div>
+          <div class="log-info-item" [title]="'Clique para copiar: ' + log.resourceId">
+            <span class="info-icon">🔑</span>
+            <div class="info-content">
+              <span class="info-label">ID do Item Modificado</span>
+              <span class="info-value clickable" (click)="copyToClipboard(log.resourceId)">
+                {{ log.resourceId ? (log.resourceId.length > 30 ? log.resourceId.substring(0, 30) + '...' : log.resourceId) : 'N/A' }}
+              </span>
             </div>
+          </div>
 
-            <div class="log-details" *ngIf="log.details && hasDetails(log.details)">
-              <div class="details-header">
-                <span class="info-icon">📄</span>
-                <span class="details-title">Informações Detalhadas</span>
-                <button class="toggle-details-btn" (click)="toggleDetails(log.id)">
-                  {{ isDetailsExpanded(log.id) ? '▼ Ocultar' : '▶ Expandir' }}
-                </button>
-              </div>
-              <div class="details-content-wrapper" *ngIf="isDetailsExpanded(log.id)">
-                <div class="details-content formatted">
-                  <div class="detail-item" *ngFor="let item of formatDetails(log.details) | keyvalue">
-                    <span class="detail-key">{{ item.key }}:</span>
-                    <span class="detail-value">{{ item.value }}</span>
-                  </div>
-                </div>
+          <div class="log-info-item" [title]="log.userAgent">
+            <span class="info-icon">💻</span>
+            <div class="info-content">
+              <span class="info-label">Navegador</span>
+              <span class="info-value">
+                {{ log.userAgent ? getBrowserInfo(log.userAgent) : 'Não disponível' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="log-info-item" [title]="'Clique para copiar: ' + log.id">
+            <span class="info-icon">🆔</span>
+            <div class="info-content">
+              <span class="info-label">ID do Registro</span>
+              <span class="info-value small-text clickable" (click)="copyToClipboard(log.id)">
+                {{ log.id.substring(0, 13) }}...
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="log-details" *ngIf="log.details && hasDetails(log.details)">
+          <div class="details-header">
+            <span class="info-icon">📄</span>
+            <span class="details-title">Informações Detalhadas</span>
+            <button class="toggle-details-btn" (click)="toggleDetails(log.id)">
+              {{ isDetailsExpanded(log.id) ? '▼ Ocultar' : '▶ Expandir' }}
+            </button>
+          </div>
+          <div class="details-content-wrapper" *ngIf="isDetailsExpanded(log.id)">
+            <div class="details-content formatted">
+              <div class="detail-item" *ngFor="let item of formatDetails(log.details) | keyvalue">
+                <span class="detail-key">{{ item.key }}:</span>
+                <span class="detail-value">{{ item.value }}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- Empty State -->
-      <div *ngIf="!isLoading && filteredLogs.length === 0" class="empty-state">
-        <span class="empty-icon">📭</span>
-        <h3 *ngIf="filterAction || filterResource">Nenhum log encontrado</h3>
-        <h3 *ngIf="!filterAction && !filterResource">Nenhum log de auditoria registrado</h3>
-        <p *ngIf="filterAction || filterResource">Não há logs que correspondam aos filtros aplicados. Tente ajustar os filtros ou limpe-os para ver todos os logs.</p>
-        <p *ngIf="!filterAction && !filterResource">Ainda não há logs de auditoria no sistema. Os logs serão registrados automaticamente quando ações administrativas forem realizadas.</p>
-        <button class="clear-btn" (click)="clearFilters()" *ngIf="filterAction || filterResource">
-          Limpar Filtros
-        </button>
-      </div>
     </div>
-  </main>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && filteredLogs.length === 0" class="empty-state">
+    <span class="empty-icon">📭</span>
+    <h3 *ngIf="filterAction || filterResource">Nenhum log encontrado</h3>
+    <h3 *ngIf="!filterAction && !filterResource">Nenhum log de auditoria registrado</h3>
+    <p *ngIf="filterAction || filterResource">Não há logs que correspondam aos filtros aplicados. Tente ajustar os filtros ou limpe-os para ver todos os logs.</p>
+    <p *ngIf="!filterAction && !filterResource">Ainda não há logs de auditoria no sistema. Os logs serão registrados automaticamente quando ações administrativas forem realizadas.</p>
+    <button class="clear-btn" (click)="clearFilters()" *ngIf="filterAction || filterResource">
+      Limpar Filtros
+    </button>
+  </div>
 </div>

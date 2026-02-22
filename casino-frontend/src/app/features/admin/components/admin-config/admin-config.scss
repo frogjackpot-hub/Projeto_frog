@@ -1,7 +1,7 @@
 .admin-config {
-  padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
+  color: #fff;
 }
 
 .page-header {
@@ -118,8 +118,10 @@
 }
 
 @media (max-width: 768px) {
-  .admin-config {
-    padding: 1rem;
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
   }
 
   .page-header {

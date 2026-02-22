@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { AdminService, AuditLog } from '../../../../core/services/admin.service';
 import { NotificationService } from '../../../../core/services/notification.service';
@@ -11,7 +10,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
   templateUrl: './admin-audit.html',
   styleUrls: ['./admin-audit.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule]
+  imports: [CommonModule, FormsModule]
 })
 export class AdminAuditComponent implements OnInit, OnDestroy {
   logs: AuditLog[] = [];

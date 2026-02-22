@@ -1,0 +1,149 @@
+@if (isOpen) {
+  <div class="modal-overlay" (click)="close()">
+    <div class="modal-content profile-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Perfil do Usuário</h2>
+        <button class="close-btn" (click)="close()">✕</button>
+      </div>
+
+      <!-- Loading -->
+      @if (isLoading) {
+        <div class="modal-body">
+          <div class="profile-loading">
+            <div class="loading-spinner"></div>
+            <p>Carregando perfil...</p>
+          </div>
+        </div>
+      }
+
+      <!-- Conteúdo do perfil -->
+      @if (!isLoading && profileData) {
+        <div class="modal-body">
+          <!-- Cabeçalho do perfil -->
+          <div class="profile-header">
+            <div class="profile-avatar">
+              {{ getInitials(profileData.user) }}
+            </div>
+            <div class="profile-info">
+              <h3>{{ profileData.user.firstName }} {{ profileData.user.lastName }}</h3>
+              <span class="profile-username">&#64;{{ profileData.user.username }}</span>
+              <div class="profile-badges">
+                <span class="role-badge" [class.role-admin]="profileData.user.role === 'admin'">
+                  {{ profileData.user.role === 'admin' ? '👑 Admin' : '🎮 Jogador' }}
+                </span>
+                <span class="status-badge" [ngClass]="getStatusClass(profileData.user)">
+                  {{ getUserStatusBadge(profileData.user) }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Informações básicas -->
+          <div class="profile-section">
+            <h4 class="section-title">📋 Informações</h4>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">Email</span>
+                <span class="info-value">{{ profileData.user.email }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Cadastro</span>
+                <span class="info-value">{{ profileData.user.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Último Login</span>
+                <span class="info-value">
+                  {{ profileData.user.lastLoginAt ? (profileData.user.lastLoginAt | date: 'dd/MM/yyyy HH:mm') : 'Nunca' }}
+                </span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">IP do Último Login</span>
+                <span class="info-value">{{ profileData.user.lastLoginIp || 'N/A' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Estatísticas financeiras -->
+          <div class="profile-section">
+            <h4 class="section-title">💰 Estatísticas</h4>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <span class="stat-icon">💵</span>
+                <span class="stat-value green">{{ profileData.user.balance | appCurrency }}</span>
+                <span class="stat-label">Saldo Atual</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-icon">🎯</span>
+                <span class="stat-value">{{ profileData.stats.totalBets }}</span>
+                <span class="stat-label">Total de Apostas</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-icon">📈</span>
+                <span class="stat-value green">{{ profileData.stats.totalWon | appCurrency }}</span>
+                <span class="stat-label">Total Ganho</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-icon">📉</span>
+                <span class="stat-value red">{{ profileData.stats.totalLost | appCurrency }}</span>
+                <span class="stat-label">Total Perdido</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-icon">🏆</span>
+                <span class="stat-value gold">{{ profileData.stats.winRate }}</span>
+                <span class="stat-label">Taxa de Vitória</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-icon">💸</span>
+                <span class="stat-value">{{ profileData.stats.totalWagered | appCurrency }}</span>
+                <span class="stat-label">Total Apostado</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Transações recentes -->
+          <div class="profile-section">
+            <h4 class="section-title">📑 Transações Recentes</h4>
+            @if (profileData.recentTransactions.length > 0) {
+              <div class="transactions-list">
+                @for (tx of profileData.recentTransactions; track tx.id || $index) {
+                  <div class="transaction-item">
+                    <div class="tx-icon">{{ getTxIcon(tx.type) }}</div>
+                    <div class="tx-info">
+                      <span class="tx-desc">{{ tx.description || getTxLabel(tx.type) }}</span>
+                      <span class="tx-date">{{ tx.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+                    </div>
+                    <div class="tx-amount"
+                      [class.positive]="isPositiveTx(tx.type)"
+                      [class.negative]="!isPositiveTx(tx.type)">
+                      {{ isPositiveTx(tx.type) ? '+' : '-' }}{{ tx.amount | appCurrency }}
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="empty-transactions">
+                <p>Nenhuma transação encontrada</p>
+              </div>
+            }
+          </div>
+
+          <!-- Ações rápidas -->
+          <div class="profile-actions">
+            <button class="btn-action edit" (click)="onEdit()">
+              ✏️ Editar
+            </button>
+            <button class="btn-action add" (click)="onAddBalance()">
+              💰+ Adicionar Saldo
+            </button>
+            <button class="btn-action remove" (click)="onRemoveBalance()">
+              💰- Remover Saldo
+            </button>
+            <button class="btn-action block" (click)="onToggleStatus()">
+              {{ user?.isActive ? '🔒 Bloquear' : '🔓 Desbloquear' }}
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}

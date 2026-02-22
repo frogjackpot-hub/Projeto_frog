@@ -1,0 +1,52 @@
+<div class="admin-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <span class="icon">🎰</span>
+      <h2>Admin</h2>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a routerLink="/admin/dashboard" routerLinkActive="active" class="nav-item">
+        <span class="icon">📊</span>
+        Dashboard
+      </a>
+      <a routerLink="/admin/users" routerLinkActive="active" class="nav-item">
+        <span class="icon">👥</span>
+        Usuários
+      </a>
+      <a routerLink="/admin/games" routerLinkActive="active" class="nav-item">
+        <span class="icon">🎮</span>
+        Jogos
+      </a>
+      <a routerLink="/admin/config" routerLinkActive="active" class="nav-item">
+        <span class="icon">⚙️</span>
+        Configurações
+      </a>
+      <a routerLink="/admin/audit" routerLinkActive="active" class="nav-item">
+        <span class="icon">📋</span>
+        Auditoria
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="top-bar">
+      <div class="page-title">
+        <span class="icon">🎰</span>
+        <h1>Painel Administrativo</h1>
+      </div>
+      <div class="admin-info">
+        <span class="admin-label" *ngIf="currentAdmin">
+          {{ currentAdmin.firstName }} {{ currentAdmin.lastName }}
+        </span>
+        <button class="logout-btn" (click)="logout()">🚪 Sair</button>
+      </div>
+    </div>
+
+    <div class="content-area">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</div>
