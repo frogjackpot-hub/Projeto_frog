@@ -6,6 +6,7 @@ import { AdminDashboardComponent } from './components/admin-dashboard/admin-dash
 import { AdminGamesComponent } from './components/admin-games/admin-games';
 import { AdminLayoutComponent } from './components/admin-layout/admin-layout';
 import { AdminLoginComponent } from './components/admin-login/admin-login';
+import { AdminUserProfileComponent } from './components/admin-user-profile/admin-user-profile';
 import { AdminUsersComponent } from './components/admin-users/admin-users';
 
 export const adminRoutes: Routes = [
@@ -25,6 +26,10 @@ export const adminRoutes: Routes = [
       {
         path: 'users',
         component: AdminUsersComponent
+      },
+      {
+        path: 'users/:id',
+        component: AdminUserProfileComponent
       },
       {
         path: 'games',

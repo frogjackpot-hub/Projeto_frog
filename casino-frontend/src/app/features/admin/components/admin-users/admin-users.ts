@@ -1,20 +1,19 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { User } from '../../../../core/models/user.model';
 import { AdminService } from '../../../../core/services/admin.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { CurrencyPipe } from '../../../../shared/pipes/currency.pipe';
-import { UserProfileModalComponent } from '../user-profile-modal/user-profile-modal';
 
 @Component({
   selector: 'app-admin-users',
   templateUrl: './admin-users.html',
   styleUrls: ['./admin-users.scss'],
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, CurrencyPipe, UserProfileModalComponent]
+  imports: [CommonModule, RouterModule, FormsModule, CurrencyPipe]
 })
 export class AdminUsersComponent implements OnInit, OnDestroy {
   users: User[] = [];
@@ -33,8 +32,7 @@ export class AdminUsersComponent implements OnInit, OnDestroy {
     username: ''
   };
   
-  // Modal de perfil
-  showProfileModal = false;
+
 
   // Modal de saldo
   showBalanceModal = false;
@@ -50,7 +48,8 @@ export class AdminUsersComponent implements OnInit, OnDestroy {
     private adminService: AdminService,
     private notificationService: NotificationService,
     private cdr: ChangeDetectorRef,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -277,12 +276,7 @@ export class AdminUsersComponent implements OnInit, OnDestroy {
     return user.isActive ? 'status-active' : 'status-inactive';
   }
 
-  openProfileModal(user: User): void {
-    this.selectedUser = user;
-    this.showProfileModal = true;
-  }
-
-  closeProfileModal(): void {
-    this.showProfileModal = false;
+  openUserProfile(user: User): void {
+    this.router.navigate(['/admin/users', user.id]);
   }
 }

@@ -84,7 +84,7 @@
           </td>
           <td>{{ user.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
           <td class="actions">
-            <button class="btn-profile" (click)="openProfileModal(user)" title="Ver Perfil">
+            <button class="btn-profile" (click)="openUserProfile(user)" title="Ver Perfil">
               👤
             </button>
             <button class="btn-edit" (click)="openEditModal(user)" title="Editar">
@@ -119,17 +119,6 @@
   <div *ngIf="!isLoading && filteredUsers.length === 0" class="empty-state">
     <p>Nenhum usuário encontrado com os filtros aplicados</p>
   </div>
-
-  <!-- Modal de Perfil (componente separado) -->
-  <app-user-profile-modal
-    [user]="selectedUser"
-    [isOpen]="showProfileModal"
-    (closed)="closeProfileModal()"
-    (editUser)="openEditModal($event)"
-    (addBalance)="openBalanceModal($event, 'add')"
-    (removeBalance)="openBalanceModal($event, 'remove')"
-    (toggleStatus)="toggleUserStatus($event)">
-  </app-user-profile-modal>
 
   <!-- Modal de Edição -->
   <div class="modal-overlay" *ngIf="showEditModal" (click)="closeEditModal()">
