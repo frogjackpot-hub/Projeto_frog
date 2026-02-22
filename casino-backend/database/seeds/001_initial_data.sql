@@ -40,7 +40,8 @@ INSERT INTO games (id, name, type, min_bet, max_bet, rtp, description, rules) VA
     92.00,
     'Escolha 6 cores e veja quantas acerta! Quanto mais acertos, maior o prêmio. Jackpot de 50x no 6/6!',
     '{"totalColors": 12, "selections": 6, "multipliers": {"0": 0, "1": 1, "2": 2, "3": 5, "4": 10, "5": 20, "6": 50}}'
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 -- Inserir usuários administradores
 -- IMPORTANTE: Altere as senhas após o primeiro login!
