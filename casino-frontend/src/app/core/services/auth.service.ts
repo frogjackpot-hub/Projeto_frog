@@ -144,15 +144,15 @@ export class AuthService {
   logout(): void {
     const token = localStorage.getItem('accessToken');
     
+    // Limpar dados ANTES de qualquer navegação para evitar conflito com NoAuthGuard
+    this.clearAuthData();
+    
     if (token) {
-      // Só chama a API se houver um token
+      // Notificar o servidor sobre o logout (fire-and-forget)
       this.apiService.post('auth/logout', {}).subscribe({
         next: () => console.log('Logout realizado com sucesso'),
-        error: (error) => console.error('Erro no logout:', error),
-        complete: () => this.clearAuthData()
+        error: (error) => console.error('Erro no logout:', error)
       });
-    } else {
-      this.clearAuthData();
     }
   }
 

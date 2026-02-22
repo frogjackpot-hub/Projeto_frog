@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
 import { AdminService, GameStats } from '../../../../core/services/admin.service';
 import { NotificationService } from '../../../../core/services/notification.service';
@@ -20,7 +20,8 @@ export class AdminGamesComponent implements OnInit, OnDestroy {
 
   constructor(
     private adminService: AdminService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -42,10 +43,12 @@ export class AdminGamesComponent implements OnInit, OnDestroy {
             this.games = response.data;
           }
           this.isLoading = false;
+          this.cdr.detectChanges();
         },
         error: () => {
           this.isLoading = false;
           this.notificationService.error('Erro', 'Não foi possível carregar as estatísticas dos jogos');
+          this.cdr.detectChanges();
         }
       });
   }

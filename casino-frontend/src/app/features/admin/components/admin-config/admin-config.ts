@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { AdminService, CasinoConfig } from '../../../../core/services/admin.service';
@@ -20,7 +20,8 @@ export class AdminConfigComponent implements OnInit, OnDestroy {
 
   constructor(
     private adminService: AdminService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -45,10 +46,12 @@ export class AdminConfigComponent implements OnInit, OnDestroy {
             }));
           }
           this.isLoading = false;
+          this.cdr.detectChanges();
         },
         error: () => {
           this.isLoading = false;
           this.notificationService.error('Erro', 'Não foi possível carregar as configurações');
+          this.cdr.detectChanges();
         }
       });
   }
@@ -72,10 +75,12 @@ export class AdminConfigComponent implements OnInit, OnDestroy {
               this.loadConfig();
             }
             this.isSaving = false;
+            this.cdr.detectChanges();
           },
           error: () => {
             this.isSaving = false;
             this.notificationService.error('Erro', 'Não foi possível salvar as configurações');
+            this.cdr.detectChanges();
           }
         });
     }

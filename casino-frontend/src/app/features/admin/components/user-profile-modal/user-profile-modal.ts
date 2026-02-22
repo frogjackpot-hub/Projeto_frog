@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
 import { User } from '../../../../core/models/user.model';
 import { AdminService } from '../../../../core/services/admin.service';
@@ -41,7 +41,8 @@ export class UserProfileModalComponent implements OnChanges, OnDestroy {
 
   constructor(
     private adminService: AdminService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -85,10 +86,12 @@ export class UserProfileModalComponent implements OnChanges, OnDestroy {
             };
           }
           this.isLoading = false;
+          this.cdr.detectChanges();
         },
         error: () => {
           this.isLoading = false;
           this.notificationService.error('Erro', 'Não foi possível carregar o perfil');
+          this.cdr.detectChanges();
         }
       });
   }
