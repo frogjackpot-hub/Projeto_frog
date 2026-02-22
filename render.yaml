@@ -23,7 +23,9 @@ services:
       - key: JWT_SECRET
         generateValue: true # Gera um valor aleatório seguro
       - key: CORS_ORIGIN
-        sync: false # Configurar manualmente após deploy
+        value: https://casino-frontend-6g0m.onrender.com,https://projeto-frog.onrender.com
+      - key: FRONTEND_URL
+        value: https://casino-frontend-6g0m.onrender.com
     autoDeploy: true
     rootDir: .
 

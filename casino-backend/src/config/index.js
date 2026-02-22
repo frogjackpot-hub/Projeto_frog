@@ -10,7 +10,11 @@ module.exports = {
     origin: process.env.CORS_ORIGIN 
       ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
       : process.env.NODE_ENV === 'production'
-        ? [process.env.FRONTEND_URL, 'https://projeto-frog.onrender.com']
+        ? [
+            process.env.FRONTEND_URL,
+            'https://casino-frontend-6g0m.onrender.com',
+            'https://projeto-frog.onrender.com'
+          ].filter(Boolean)
         : ['http://localhost:4200', 'http://localhost:3000', 'http://127.0.0.1:4200'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],

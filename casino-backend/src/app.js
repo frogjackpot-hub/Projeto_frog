@@ -24,8 +24,10 @@ app.use(helmet({
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"],
       connectSrc: ["'self'", 
-        process.env.FRONTEND_URL || "https://projeto-frog.onrender.com",
-        "https://casino-backend-5y4k.onrender.com",
+        process.env.FRONTEND_URL || "https://casino-frontend-6g0m.onrender.com",
+        "https://casino-frontend-6g0m.onrender.com",
+        "https://projeto-frog.onrender.com",
+        "https://casino-backend-w8s8.onrender.com",
         "http://localhost:3000",
         "http://localhost:4200"
       ],
