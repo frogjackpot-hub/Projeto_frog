@@ -12,6 +12,7 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   private statusCheckInterval: any = null;
+  private heartbeatInterval: any = null;
 
   public currentUser$ = this.currentUserSubject.asObservable();
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
@@ -88,6 +89,7 @@ export class AuthService {
         const user = JSON.parse(userData);
         this.currentUserSubject.next(user);
         this.isAuthenticatedSubject.next(true);
+        this.startHeartbeat();
       } catch (error) {
         console.log('⚠️ Erro ao validar dados do usuário - Limpando sessão');
         this.clearAuthData();
@@ -143,6 +145,9 @@ export class AuthService {
 
   logout(): void {
     const token = localStorage.getItem('accessToken');
+    
+    // Parar heartbeat
+    this.stopHeartbeat();
     
     // Limpar dados ANTES de qualquer navegação para evitar conflito com NoAuthGuard
     this.clearAuthData();
@@ -339,6 +344,9 @@ export class AuthService {
     
     // Iniciar verificação de status
     this.startStatusCheck();
+    
+    // Iniciar heartbeat para rastrear atividade
+    this.startHeartbeat();
   }
 
   private clearAuthData(): void {
@@ -347,6 +355,9 @@ export class AuthService {
       clearInterval(this.statusCheckInterval);
       this.statusCheckInterval = null;
     }
+    
+    // Parar heartbeat
+    this.stopHeartbeat();
     
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
@@ -387,6 +398,32 @@ export class AuthService {
 
   get currentUserValue(): User | null {
     return this.currentUserSubject.value;
+  }
+
+  /**
+   * Heartbeat - envia ping ao servidor a cada 60s para manter last_activity_at atualizado
+   */
+  private startHeartbeat(): void {
+    this.stopHeartbeat();
+    // Ping imediato
+    this.sendHeartbeat();
+    // Ping a cada 60 segundos
+    this.heartbeatInterval = setInterval(() => this.sendHeartbeat(), 60000);
+  }
+
+  private stopHeartbeat(): void {
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
+    }
+  }
+
+  private sendHeartbeat(): void {
+    const token = localStorage.getItem('accessToken');
+    if (!token || this.isTokenExpired()) return;
+    this.apiService.post('auth/heartbeat', {}).subscribe({
+      error: () => {} // silencioso
+    });
   }
 
   get isAuthenticated(): boolean {

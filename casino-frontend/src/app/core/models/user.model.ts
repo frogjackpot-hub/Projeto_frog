@@ -10,6 +10,9 @@ export interface User {
   isVerified: boolean;
   createdAt: string;
   updatedAt: string;
+  lastLoginAt?: string;
+  lastActivityAt?: string;
+  isOnline?: boolean;
 }
 
 export interface LoginRequest {

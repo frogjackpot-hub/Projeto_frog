@@ -200,6 +200,50 @@
   }
 }
 
+/* ===== INDICADOR ONLINE/OFFLINE ===== */
+.online-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 12px;
+  white-space: nowrap;
+
+  .online-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  &.online {
+    background: rgba(76, 175, 80, 0.15);
+    color: #66bb6a;
+
+    .online-dot {
+      background: #66bb6a;
+      box-shadow: 0 0 6px rgba(76, 175, 80, 0.6);
+      animation: pulse-online 2s infinite;
+    }
+  }
+
+  &.offline {
+    background: rgba(158, 158, 158, 0.10);
+    color: #888;
+
+    .online-dot {
+      background: #666;
+    }
+  }
+}
+
+@keyframes pulse-online {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 /* ===== ESTADO VAZIO ===== */
 .empty-state {
   text-align: center;
