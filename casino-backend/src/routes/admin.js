@@ -301,4 +301,155 @@ router.delete('/bonuses/:id',
  */
 router.get('/audit-logs', authenticateToken, requireAdmin, AdminController.getAuditLogs);
 
+// ========== ROTAS AVANÇADAS DE PERFIL DO USUÁRIO ==========
+
+/**
+ * @route   GET /api/admin/users/:id/full-profile
+ * @desc    Obter perfil completo do usuário com todas as informações
+ * @access  Private (Admin only)
+ */
+router.get('/users/:id/full-profile',
+  authenticateToken,
+  requireAdmin,
+  validateParamUUID('id'),
+  AdminController.getUserFullProfile
+);
+
+/**
+ * @route   GET /api/admin/users/:id/transactions
+ * @desc    Obter todas as transações do usuário com filtros
+ * @access  Private (Admin only)
+ */
+router.get('/users/:id/transactions',
+  authenticateToken,
+  requireAdmin,
+  validateParamUUID('id'),
+  AdminController.getUserTransactions
+);
+
+/**
+ * @route   GET /api/admin/users/:id/game-history
+ * @desc    Obter histórico de jogos do usuário
+ * @access  Private (Admin only)
+ */
+router.get('/users/:id/game-history',
+  authenticateToken,
+  requireAdmin,
+  validateParamUUID('id'),
+  AdminController.getUserGameHistory
+);
+
+/**
+ * @route   GET /api/admin/users/:id/login-history
+ * @desc    Obter histórico de login do usuário
+ * @access  Private (Admin only)
+ */
+router.get('/users/:id/login-history',
+  authenticateToken,
+  requireAdmin,
+  validateParamUUID('id'),
+  AdminController.getUserLoginHistory
+);
+
+/**
+ * @route   POST /api/admin/users/:id/notes
+ * @desc    Adicionar nota ao perfil do usuário
+ * @access  Private (Admin only)
+ */
+const noteSchema = Joi.object({
+  content: Joi.string().min(1).max(2000).required(),
+  isPinned: Joi.boolean()
+});
+
+router.post('/users/:id/notes',
+  authenticateToken,
+  requireAdmin,
+  validateParamUUID('id'),
+  validate(noteSchema),
+  AdminController.addUserNote
+);
+
+/**
+ * @route   DELETE /api/admin/users/:id/notes/:noteId
+ * @desc    Deletar nota do perfil do usuário
+ * @access  Private (Admin only)
+ */
+router.delete('/users/:id/notes/:noteId',
+  authenticateToken,
+  requireAdmin,
+  validateParamUUID('id'),
+  AdminController.deleteUserNote
+);
+
+/**
+ * @route   POST /api/admin/users/:id/tags
+ * @desc    Adicionar tag ao usuário
+ * @access  Private (Admin only)
+ */
+const tagSchema = Joi.object({
+  tag: Joi.string().min(1).max(50).required(),
+  color: Joi.string().pattern(/^#[0-9a-fA-F]{6}$/).default('#667eea')
+});
+
+router.post('/users/:id/tags',
+  authenticateToken,
+  requireAdmin,
+  validateParamUUID('id'),
+  validate(tagSchema),
+  AdminController.addUserTag
+);
+
+/**
+ * @route   DELETE /api/admin/users/:id/tags/:tagId
+ * @desc    Remover tag do usuário
+ * @access  Private (Admin only)
+ */
+router.delete('/users/:id/tags/:tagId',
+  authenticateToken,
+  requireAdmin,
+  validateParamUUID('id'),
+  AdminController.removeUserTag
+);
+
+/**
+ * @route   PATCH /api/admin/users/:id/security-alerts/:alertId/resolve
+ * @desc    Resolver alerta de segurança
+ * @access  Private (Admin only)
+ */
+router.patch('/users/:id/security-alerts/:alertId/resolve',
+  authenticateToken,
+  requireAdmin,
+  validateParamUUID('id'),
+  AdminController.resolveSecurityAlert
+);
+
+/**
+ * @route   POST /api/admin/users/:id/reset-password
+ * @desc    Resetar senha do usuário
+ * @access  Private (Admin only)
+ */
+const resetPasswordSchema = Joi.object({
+  newPassword: Joi.string().min(6).max(128).required()
+});
+
+router.post('/users/:id/reset-password',
+  authenticateToken,
+  requireAdmin,
+  validateParamUUID('id'),
+  validate(resetPasswordSchema),
+  AdminController.resetUserPassword
+);
+
+/**
+ * @route   GET /api/admin/users/:id/export
+ * @desc    Exportar dados do usuário
+ * @access  Private (Admin only)
+ */
+router.get('/users/:id/export',
+  authenticateToken,
+  requireAdmin,
+  validateParamUUID('id'),
+  AdminController.exportUserData
+);
+
 module.exports = router;

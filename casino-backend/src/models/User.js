@@ -86,6 +86,17 @@ class User {
     }
   }
 
+  static async findByEmailIncludingInactive(email) {
+    const query = 'SELECT * FROM users WHERE email = $1';
+    
+    try {
+      const result = await db.query(query, [email]);
+      return result.rows.length > 0 ? new User(result.rows[0]) : null;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   static async findByUsername(username) {
     const query = 'SELECT * FROM users WHERE username = $1 AND is_active = true';
     

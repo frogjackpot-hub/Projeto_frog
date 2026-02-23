@@ -268,6 +268,111 @@ export class AdminService {
   }
 
   /**
+   * Obter perfil completo do usuário com todas as informações
+   */
+  getUserFullProfile(id: string): Observable<ApiResponse<any>> {
+    return this.apiService.get(`/admin/users/${id}/full-profile`);
+  }
+
+  /**
+   * Obter transações do usuário com filtros e paginação
+   */
+  getUserTransactions(id: string, filters: any = {}): Observable<ApiResponse<any>> {
+    const params = new URLSearchParams();
+    Object.keys(filters).forEach(key => {
+      if (filters[key] !== undefined && filters[key] !== null && filters[key] !== '') {
+        params.append(key, filters[key].toString());
+      }
+    });
+    const qs = params.toString();
+    return this.apiService.get(`/admin/users/${id}/transactions${qs ? '?' + qs : ''}`);
+  }
+
+  /**
+   * Obter histórico de jogos do usuário
+   */
+  getUserGameHistory(id: string, filters: any = {}): Observable<ApiResponse<any>> {
+    const params = new URLSearchParams();
+    Object.keys(filters).forEach(key => {
+      if (filters[key] !== undefined && filters[key] !== null && filters[key] !== '') {
+        params.append(key, filters[key].toString());
+      }
+    });
+    const qs = params.toString();
+    return this.apiService.get(`/admin/users/${id}/game-history${qs ? '?' + qs : ''}`);
+  }
+
+  /**
+   * Obter histórico de login do usuário
+   */
+  getUserLoginHistory(id: string, filters: any = {}): Observable<ApiResponse<any>> {
+    const params = new URLSearchParams();
+    Object.keys(filters).forEach(key => {
+      if (filters[key] !== undefined && filters[key] !== null && filters[key] !== '') {
+        params.append(key, filters[key].toString());
+      }
+    });
+    const qs = params.toString();
+    return this.apiService.get(`/admin/users/${id}/login-history${qs ? '?' + qs : ''}`);
+  }
+
+  /**
+   * Adicionar nota ao perfil do usuário
+   */
+  addUserNote(userId: string, content: string, isPinned: boolean = false): Observable<ApiResponse<any>> {
+    return this.apiService.post(`/admin/users/${userId}/notes`, { content, isPinned });
+  }
+
+  /**
+   * Deletar nota do perfil do usuário
+   */
+  deleteUserNote(userId: string, noteId: string): Observable<ApiResponse<any>> {
+    return this.apiService.delete(`/admin/users/${userId}/notes/${noteId}`);
+  }
+
+  /**
+   * Adicionar tag ao usuário
+   */
+  addUserTag(userId: string, tag: string, color: string = '#667eea'): Observable<ApiResponse<any>> {
+    return this.apiService.post(`/admin/users/${userId}/tags`, { tag, color });
+  }
+
+  /**
+   * Remover tag do usuário
+   */
+  removeUserTag(userId: string, tagId: string): Observable<ApiResponse<any>> {
+    return this.apiService.delete(`/admin/users/${userId}/tags/${tagId}`);
+  }
+
+  /**
+   * Resolver alerta de segurança
+   */
+  resolveSecurityAlert(userId: string, alertId: string): Observable<ApiResponse<any>> {
+    return this.apiService.patch(`/admin/users/${userId}/security-alerts/${alertId}/resolve`, {});
+  }
+
+  /**
+   * Resetar senha do usuário
+   */
+  resetUserPassword(userId: string, newPassword: string): Observable<ApiResponse<any>> {
+    return this.apiService.post(`/admin/users/${userId}/reset-password`, { newPassword });
+  }
+
+  /**
+   * Exportar dados do usuário (JSON)
+   */
+  exportUserData(userId: string, format: 'json' | 'csv' = 'json'): Observable<ApiResponse<any>> {
+    return this.apiService.get(`/admin/users/${userId}/export?format=${format}`);
+  }
+
+  /**
+   * Exportar dados do usuário (CSV - retorna texto puro)
+   */
+  exportUserDataCsv(userId: string): Observable<string> {
+    return this.apiService.getText(`/admin/users/${userId}/export?format=csv`);
+  }
+
+  /**
    * Atualizar usuário
    */
   updateUser(id: string, updateData: any): Observable<ApiResponse<User>> {

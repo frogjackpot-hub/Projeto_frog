@@ -53,6 +53,12 @@ export class AuthInterceptor implements HttpInterceptor {
         if (isBlocked) {
           console.log('❌ Usuário BLOQUEADO detectado - Redirecionando para login');
           
+          // Se o bloqueio foi detectado na tela de login, não redirecionar
+          // O componente de login já trata isso diretamente
+          if (req.url.includes('/auth/login') || req.url.includes('/auth/register')) {
+            return throwError(() => error);
+          }
+          
           // Limpar IMEDIATAMENTE os dados de autenticação
           this.authService.clearAuthDataOnly();
           

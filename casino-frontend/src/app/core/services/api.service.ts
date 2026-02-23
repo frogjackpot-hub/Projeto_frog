@@ -94,4 +94,15 @@ export class ApiService {
       catchError(this.handleError)
     );
   }
+
+  getText(endpoint: string): Observable<string> {
+    const headers = this.getHeaders().delete('Content-Type');
+    return this.http.get(this.buildUrl(endpoint), {
+      headers,
+      responseType: 'text',
+      withCredentials: true
+    }).pipe(
+      catchError(this.handleError)
+    );
+  }
 }

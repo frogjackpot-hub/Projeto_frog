@@ -53,12 +53,22 @@ class AuthService {
   }
 
   static async login(email, password) {
-    const user = await User.findByEmail(email);
+    // Buscar usuário incluindo inativos para poder diferenciar
+    // "credenciais inválidas" de "conta bloqueada"
+    const user = await User.findByEmailIncludingInactive(email);
     
     if (!user) {
       const error = new Error('Credenciais inválidas');
       error.code = 'INVALID_CREDENTIALS';
       error.statusCode = 401;
+      throw error;
+    }
+
+    // Verificar se o usuário está bloqueado ANTES de validar a senha
+    if (!user.isActive) {
+      const error = new Error('Sua conta foi bloqueada. Entre em contato com o suporte.');
+      error.code = 'USER_BLOCKED';
+      error.statusCode = 403;
       throw error;
     }
 
@@ -68,14 +78,6 @@ class AuthService {
       const error = new Error('Credenciais inválidas');
       error.code = 'INVALID_CREDENTIALS';
       error.statusCode = 401;
-      throw error;
-    }
-
-    // Verificar se o usuário está bloqueado
-    if (!user.isActive) {
-      const error = new Error('Sua conta foi bloqueada. Entre em contato com o suporte.');
-      error.code = 'USER_BLOCKED';
-      error.statusCode = 403;
       throw error;
     }
 

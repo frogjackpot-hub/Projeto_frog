@@ -1095,6 +1095,766 @@ class AdminController {
       next(error);
     }
   }
+
+  // ========== PERFIL COMPLETO DO USUÁRIO ==========
+
+  /**
+   * Obter perfil completo do usuário com estatísticas avançadas
+   */
+  static async getUserFullProfile(req, res, next) {
+    try {
+      const { id } = req.params;
+      const db = require('../config/database');
+
+      // 1) Dados do usuário
+      const userResult = await db.query(
+        `SELECT id, email, username, first_name, last_name, balance, role, 
+                is_active, is_verified, created_at, updated_at,
+                last_login_at, last_login_ip, total_login_count, phone
+         FROM users WHERE id = $1`, [id]
+      );
+
+      if (userResult.rows.length === 0) {
+        return res.status(404).json({ success: false, message: 'Usuário não encontrado' });
+      }
+
+      const userRow = userResult.rows[0];
+      const user = {
+        id: userRow.id,
+        email: userRow.email,
+        username: userRow.username,
+        firstName: userRow.first_name,
+        lastName: userRow.last_name,
+        balance: parseFloat(userRow.balance),
+        role: userRow.role,
+        isActive: userRow.is_active,
+        isVerified: userRow.is_verified,
+        createdAt: userRow.created_at,
+        updatedAt: userRow.updated_at,
+        lastLoginAt: userRow.last_login_at,
+        lastLoginIp: userRow.last_login_ip,
+        totalLoginCount: userRow.total_login_count || 0,
+        phone: userRow.phone
+      };
+
+      // 2) Estatísticas avançadas das transações
+      const statsResult = await db.query(`
+        SELECT 
+          COUNT(*) FILTER (WHERE type = 'bet') as total_bets,
+          COUNT(*) FILTER (WHERE type = 'win') as total_wins,
+          COUNT(*) FILTER (WHERE type = 'deposit') as total_deposits_count,
+          COUNT(*) FILTER (WHERE type = 'withdrawal') as total_withdrawals_count,
+          COALESCE(SUM(amount) FILTER (WHERE type = 'bet'), 0) as total_wagered,
+          COALESCE(SUM(amount) FILTER (WHERE type = 'win'), 0) as total_won,
+          COALESCE(SUM(amount) FILTER (WHERE type = 'deposit'), 0) as total_deposited,
+          COALESCE(SUM(amount) FILTER (WHERE type = 'withdrawal'), 0) as total_withdrawn,
+          COALESCE(AVG(amount) FILTER (WHERE type = 'bet'), 0) as avg_bet,
+          COALESCE(MAX(amount) FILTER (WHERE type = 'bet'), 0) as max_bet,
+          COALESCE(MAX(amount) FILTER (WHERE type = 'win'), 0) as biggest_win,
+          MIN(created_at) as first_transaction,
+          MAX(created_at) as last_transaction
+        FROM transactions WHERE user_id = $1
+      `, [id]);
+
+      const s = statsResult.rows[0];
+      const totalBets = parseInt(s.total_bets) || 0;
+      const totalWins = parseInt(s.total_wins) || 0;
+
+      const stats = {
+        totalBets,
+        totalWins,
+        totalDepositsCount: parseInt(s.total_deposits_count) || 0,
+        totalWithdrawalsCount: parseInt(s.total_withdrawals_count) || 0,
+        totalWagered: parseFloat(s.total_wagered),
+        totalWon: parseFloat(s.total_won),
+        totalLost: parseFloat(s.total_wagered) - parseFloat(s.total_won),
+        totalDeposited: parseFloat(s.total_deposited),
+        totalWithdrawn: parseFloat(s.total_withdrawn),
+        avgBet: parseFloat(parseFloat(s.avg_bet).toFixed(2)),
+        maxBet: parseFloat(s.max_bet),
+        biggestWin: parseFloat(s.biggest_win),
+        winRate: totalBets > 0 ? ((totalWins / totalBets) * 100).toFixed(1) + '%' : '0%',
+        netProfit: parseFloat(s.total_won) - parseFloat(s.total_wagered),
+        firstTransaction: s.first_transaction,
+        lastTransaction: s.last_transaction
+      };
+
+      // 3) Transações recentes (últimas 20)
+      const txResult = await db.query(`
+        SELECT t.id, t.type, t.amount, t.status, t.description, t.game_id, t.created_at,
+               g.name as game_name
+        FROM transactions t
+        LEFT JOIN games g ON t.game_id = g.id
+        WHERE t.user_id = $1
+        ORDER BY t.created_at DESC
+        LIMIT 20
+      `, [id]);
+
+      const recentTransactions = txResult.rows.map(r => ({
+        id: r.id,
+        type: r.type,
+        amount: parseFloat(r.amount),
+        status: r.status,
+        description: r.description,
+        gameId: r.game_id,
+        gameName: r.game_name,
+        createdAt: r.created_at
+      }));
+
+      // 4) Histórico de jogos (sessões)
+      const gameHistoryResult = await db.query(`
+        SELECT gs.id, gs.game_id, gs.start_time, gs.end_time, gs.total_bet, gs.total_win,
+               g.name as game_name, g.type as game_type
+        FROM game_sessions gs
+        LEFT JOIN games g ON gs.game_id = g.id
+        WHERE gs.user_id = $1
+        ORDER BY gs.start_time DESC
+        LIMIT 50
+      `, [id]);
+
+      const gameHistory = gameHistoryResult.rows.map(r => ({
+        id: r.id,
+        gameId: r.game_id,
+        gameName: r.game_name,
+        gameType: r.game_type,
+        startTime: r.start_time,
+        endTime: r.end_time,
+        totalBet: parseFloat(r.total_bet || 0),
+        totalWin: parseFloat(r.total_win || 0),
+        profit: parseFloat(r.total_win || 0) - parseFloat(r.total_bet || 0),
+        duration: r.end_time ? Math.round((new Date(r.end_time) - new Date(r.start_time)) / 60000) : null
+      }));
+
+      // 5) Estatísticas por jogo
+      const gameStatsResult = await db.query(`
+        SELECT g.name as game_name, g.type as game_type,
+               COUNT(*) FILTER (WHERE t.type = 'bet') as bets,
+               COUNT(*) FILTER (WHERE t.type = 'win') as wins,
+               COALESCE(SUM(t.amount) FILTER (WHERE t.type = 'bet'), 0) as wagered,
+               COALESCE(SUM(t.amount) FILTER (WHERE t.type = 'win'), 0) as won
+        FROM transactions t
+        JOIN games g ON t.game_id = g.id
+        WHERE t.user_id = $1
+        GROUP BY g.id, g.name, g.type
+        ORDER BY wagered DESC
+      `, [id]);
+
+      const gameStats = gameStatsResult.rows.map(r => ({
+        gameName: r.game_name,
+        gameType: r.game_type,
+        totalBets: parseInt(r.bets) || 0,
+        totalWins: parseInt(r.wins) || 0,
+        totalWagered: parseFloat(r.wagered),
+        totalWon: parseFloat(r.won),
+        profit: parseFloat(r.won) - parseFloat(r.wagered),
+        winRate: parseInt(r.bets) > 0 ? ((parseInt(r.wins) / parseInt(r.bets)) * 100).toFixed(1) + '%' : '0%'
+      }));
+
+      // 6) Histórico de login
+      let loginHistory = [];
+      try {
+        const loginResult = await db.query(`
+          SELECT id, ip_address, user_agent, device_type, browser, os, location, success, created_at
+          FROM login_history
+          WHERE user_id = $1
+          ORDER BY created_at DESC
+          LIMIT 20
+        `, [id]);
+        loginHistory = loginResult.rows.map(r => ({
+          id: r.id,
+          ipAddress: r.ip_address,
+          userAgent: r.user_agent,
+          deviceType: r.device_type,
+          browser: r.browser,
+          os: r.os,
+          location: r.location,
+          success: r.success,
+          createdAt: r.created_at
+        }));
+      } catch (e) {
+        // Tabela pode não existir ainda
+        logger.warn('Tabela login_history não encontrada');
+      }
+
+      // 7) Notas do admin
+      let adminNotes = [];
+      try {
+        const notesResult = await db.query(`
+          SELECT n.id, n.content, n.is_pinned, n.created_at, n.updated_at,
+                 u.username as admin_username, u.first_name as admin_first_name, u.last_name as admin_last_name
+          FROM admin_notes n
+          JOIN users u ON n.admin_id = u.id
+          WHERE n.user_id = $1
+          ORDER BY n.is_pinned DESC, n.created_at DESC
+        `, [id]);
+        adminNotes = notesResult.rows.map(r => ({
+          id: r.id,
+          content: r.content,
+          isPinned: r.is_pinned,
+          createdAt: r.created_at,
+          updatedAt: r.updated_at,
+          adminUsername: r.admin_username,
+          adminName: `${r.admin_first_name || ''} ${r.admin_last_name || ''}`.trim()
+        }));
+      } catch (e) {
+        logger.warn('Tabela admin_notes não encontrada');
+      }
+
+      // 8) Tags do usuário
+      let tags = [];
+      try {
+        const tagsResult = await db.query(`
+          SELECT id, tag, color, created_at FROM user_tags WHERE user_id = $1 ORDER BY created_at
+        `, [id]);
+        tags = tagsResult.rows.map(r => ({
+          id: r.id,
+          tag: r.tag,
+          color: r.color,
+          createdAt: r.created_at
+        }));
+      } catch (e) {
+        logger.warn('Tabela user_tags não encontrada');
+      }
+
+      // 9) Alertas de segurança
+      let securityAlerts = [];
+      try {
+        const alertsResult = await db.query(`
+          SELECT sa.id, sa.alert_type, sa.severity, sa.description, sa.is_resolved, sa.created_at,
+                 sa.resolved_at, u.username as resolved_by_username
+          FROM security_alerts sa
+          LEFT JOIN users u ON sa.resolved_by = u.id
+          WHERE sa.user_id = $1
+          ORDER BY sa.is_resolved ASC, sa.created_at DESC
+          LIMIT 20
+        `, [id]);
+        securityAlerts = alertsResult.rows.map(r => ({
+          id: r.id,
+          alertType: r.alert_type,
+          severity: r.severity,
+          description: r.description,
+          isResolved: r.is_resolved,
+          createdAt: r.created_at,
+          resolvedAt: r.resolved_at,
+          resolvedByUsername: r.resolved_by_username
+        }));
+      } catch (e) {
+        logger.warn('Tabela security_alerts não encontrada');
+      }
+
+      // 10) Tempo total de jogo (de sessões)
+      const totalPlaytimeResult = await db.query(`
+        SELECT COALESCE(SUM(EXTRACT(EPOCH FROM (COALESCE(end_time, NOW()) - start_time))), 0) as total_seconds
+        FROM game_sessions WHERE user_id = $1
+      `, [id]);
+      const totalPlaytimeSeconds = parseInt(totalPlaytimeResult.rows[0].total_seconds) || 0;
+      const totalPlaytimeHours = Math.floor(totalPlaytimeSeconds / 3600);
+      const totalPlaytimeMinutes = Math.floor((totalPlaytimeSeconds % 3600) / 60);
+
+      // 11) Logs de atividade do audit_logs relevantes
+      let activityLogs = [];
+      try {
+        const activityResult = await db.query(`
+          SELECT al.id, al.action, al.resource_type, al.details, al.ip_address, al.created_at,
+                 u.username as admin_username
+          FROM audit_logs al
+          LEFT JOIN users u ON al.admin_id = u.id
+          WHERE al.resource_id = $1
+          ORDER BY al.created_at DESC
+          LIMIT 20
+        `, [id]);
+        activityLogs = activityResult.rows.map(r => ({
+          id: r.id,
+          action: r.action,
+          resourceType: r.resource_type,
+          details: r.details,
+          ipAddress: r.ip_address,
+          createdAt: r.created_at,
+          adminUsername: r.admin_username
+        }));
+      } catch (e) {
+        logger.warn('Erro ao buscar activity logs');
+      }
+
+      logger.info(`Admin ${req.user.email} visualizou perfil completo do usuário ${id}`);
+
+      res.json({
+        success: true,
+        data: {
+          user,
+          stats,
+          recentTransactions,
+          gameHistory,
+          gameStats,
+          loginHistory,
+          adminNotes,
+          tags,
+          securityAlerts,
+          activityLogs,
+          totalPlaytime: {
+            hours: totalPlaytimeHours,
+            minutes: totalPlaytimeMinutes,
+            formatted: `${totalPlaytimeHours}h ${totalPlaytimeMinutes}min`
+          }
+        }
+      });
+    } catch (error) {
+      logger.error('Erro ao obter perfil completo:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * Obter todas as transações de um usuário com paginação e filtros
+   */
+  static async getUserTransactions(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { type, status, startDate, endDate, limit = 50, offset = 0 } = req.query;
+      const db = require('../config/database');
+
+      let query = `
+        SELECT t.id, t.type, t.amount, t.status, t.description, t.game_id, t.created_at,
+               g.name as game_name
+        FROM transactions t
+        LEFT JOIN games g ON t.game_id = g.id
+        WHERE t.user_id = $1
+      `;
+      let countQuery = `SELECT COUNT(*) FROM transactions WHERE user_id = $1`;
+      const params = [id];
+      const countParams = [id];
+      let paramIndex = 2;
+
+      if (type) {
+        query += ` AND t.type = $${paramIndex}`;
+        countQuery += ` AND type = $${paramIndex}`;
+        params.push(type);
+        countParams.push(type);
+        paramIndex++;
+      }
+      if (status) {
+        query += ` AND t.status = $${paramIndex}`;
+        countQuery += ` AND status = $${paramIndex}`;
+        params.push(status);
+        countParams.push(status);
+        paramIndex++;
+      }
+      if (startDate) {
+        query += ` AND t.created_at >= $${paramIndex}`;
+        countQuery += ` AND created_at >= $${paramIndex}`;
+        params.push(startDate);
+        countParams.push(startDate);
+        paramIndex++;
+      }
+      if (endDate) {
+        query += ` AND t.created_at <= $${paramIndex}`;
+        countQuery += ` AND created_at <= $${paramIndex}`;
+        params.push(endDate);
+        countParams.push(endDate);
+        paramIndex++;
+      }
+
+      query += ` ORDER BY t.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+      params.push(parseInt(limit), parseInt(offset));
+
+      const [txResult, countResult] = await Promise.all([
+        db.query(query, params),
+        db.query(countQuery, countParams)
+      ]);
+
+      const transactions = txResult.rows.map(r => ({
+        id: r.id,
+        type: r.type,
+        amount: parseFloat(r.amount),
+        status: r.status,
+        description: r.description,
+        gameId: r.game_id,
+        gameName: r.game_name,
+        createdAt: r.created_at
+      }));
+
+      res.json({
+        success: true,
+        data: {
+          transactions,
+          pagination: {
+            total: parseInt(countResult.rows[0].count),
+            limit: parseInt(limit),
+            offset: parseInt(offset)
+          }
+        }
+      });
+    } catch (error) {
+      logger.error('Erro ao buscar transações do usuário:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * Obter histórico de jogos do usuário
+   */
+  static async getUserGameHistory(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { limit = 50, offset = 0 } = req.query;
+      const db = require('../config/database');
+
+      const result = await db.query(`
+        SELECT gs.id, gs.game_id, gs.start_time, gs.end_time, gs.total_bet, gs.total_win, gs.is_active,
+               g.name as game_name, g.type as game_type
+        FROM game_sessions gs
+        LEFT JOIN games g ON gs.game_id = g.id
+        WHERE gs.user_id = $1
+        ORDER BY gs.start_time DESC
+        LIMIT $2 OFFSET $3
+      `, [id, parseInt(limit), parseInt(offset)]);
+
+      const countResult = await db.query(
+        `SELECT COUNT(*) FROM game_sessions WHERE user_id = $1`, [id]
+      );
+
+      const sessions = result.rows.map(r => ({
+        id: r.id,
+        gameId: r.game_id,
+        gameName: r.game_name,
+        gameType: r.game_type,
+        startTime: r.start_time,
+        endTime: r.end_time,
+        totalBet: parseFloat(r.total_bet || 0),
+        totalWin: parseFloat(r.total_win || 0),
+        profit: parseFloat(r.total_win || 0) - parseFloat(r.total_bet || 0),
+        duration: r.end_time ? Math.round((new Date(r.end_time) - new Date(r.start_time)) / 60000) : null,
+        isActive: r.is_active
+      }));
+
+      res.json({
+        success: true,
+        data: {
+          sessions,
+          pagination: {
+            total: parseInt(countResult.rows[0].count),
+            limit: parseInt(limit),
+            offset: parseInt(offset)
+          }
+        }
+      });
+    } catch (error) {
+      logger.error('Erro ao buscar histórico de jogos:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * Obter histórico de login do usuário
+   */
+  static async getUserLoginHistory(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { limit = 30, offset = 0 } = req.query;
+      const db = require('../config/database');
+
+      const result = await db.query(`
+        SELECT id, ip_address, user_agent, device_type, browser, os, location, success, created_at
+        FROM login_history
+        WHERE user_id = $1
+        ORDER BY created_at DESC
+        LIMIT $2 OFFSET $3
+      `, [id, parseInt(limit), parseInt(offset)]);
+
+      const countResult = await db.query(
+        `SELECT COUNT(*) FROM login_history WHERE user_id = $1`, [id]
+      );
+
+      const history = result.rows.map(r => ({
+        id: r.id,
+        ipAddress: r.ip_address,
+        userAgent: r.user_agent,
+        deviceType: r.device_type,
+        browser: r.browser,
+        os: r.os,
+        location: r.location,
+        success: r.success,
+        createdAt: r.created_at
+      }));
+
+      res.json({
+        success: true,
+        data: {
+          history,
+          pagination: {
+            total: parseInt(countResult.rows[0].count),
+            limit: parseInt(limit),
+            offset: parseInt(offset)
+          }
+        }
+      });
+    } catch (error) {
+      logger.error('Erro ao buscar histórico de login:', error);
+      next(error);
+    }
+  }
+
+  // ========== NOTAS DO ADMIN ==========
+
+  /**
+   * Adicionar nota ao perfil do usuário
+   */
+  static async addUserNote(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { content, isPinned } = req.body;
+      const db = require('../config/database');
+
+      const result = await db.query(`
+        INSERT INTO admin_notes (id, user_id, admin_id, content, is_pinned)
+        VALUES (gen_random_uuid(), $1, $2, $3, $4)
+        RETURNING id, content, is_pinned, created_at
+      `, [id, req.user.id, content, isPinned || false]);
+
+      await AuditLog.create({
+        adminId: req.user.id,
+        action: 'ADD_NOTE',
+        resourceType: 'user',
+        resourceId: id,
+        details: { content: content.substring(0, 100) },
+        ipAddress: req.ip,
+        userAgent: req.get('user-agent')
+      });
+
+      res.json({
+        success: true,
+        message: 'Nota adicionada com sucesso',
+        data: {
+          id: result.rows[0].id,
+          content: result.rows[0].content,
+          isPinned: result.rows[0].is_pinned,
+          createdAt: result.rows[0].created_at,
+          adminUsername: req.user.username,
+          adminName: `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim()
+        }
+      });
+    } catch (error) {
+      logger.error('Erro ao adicionar nota:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * Deletar nota do perfil do usuário
+   */
+  static async deleteUserNote(req, res, next) {
+    try {
+      const { id, noteId } = req.params;
+      const db = require('../config/database');
+
+      const result = await db.query(
+        `DELETE FROM admin_notes WHERE id = $1 AND user_id = $2 RETURNING id`, [noteId, id]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ success: false, message: 'Nota não encontrada' });
+      }
+
+      res.json({ success: true, message: 'Nota deletada com sucesso' });
+    } catch (error) {
+      logger.error('Erro ao deletar nota:', error);
+      next(error);
+    }
+  }
+
+  // ========== TAGS DE USUÁRIO ==========
+
+  /**
+   * Adicionar tag ao usuário
+   */
+  static async addUserTag(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { tag, color } = req.body;
+      const db = require('../config/database');
+
+      const result = await db.query(`
+        INSERT INTO user_tags (id, user_id, tag, color, added_by)
+        VALUES (gen_random_uuid(), $1, $2, $3, $4)
+        ON CONFLICT (user_id, tag) DO NOTHING
+        RETURNING id, tag, color, created_at
+      `, [id, tag, color || '#667eea', req.user.id]);
+
+      if (result.rows.length === 0) {
+        return res.status(409).json({ success: false, message: 'Tag já existe para este usuário' });
+      }
+
+      await AuditLog.create({
+        adminId: req.user.id,
+        action: 'ADD_TAG',
+        resourceType: 'user',
+        resourceId: id,
+        details: { tag, color },
+        ipAddress: req.ip,
+        userAgent: req.get('user-agent')
+      });
+
+      res.json({
+        success: true,
+        message: 'Tag adicionada com sucesso',
+        data: result.rows[0]
+      });
+    } catch (error) {
+      logger.error('Erro ao adicionar tag:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * Remover tag do usuário
+   */
+  static async removeUserTag(req, res, next) {
+    try {
+      const { id, tagId } = req.params;
+      const db = require('../config/database');
+
+      const result = await db.query(
+        `DELETE FROM user_tags WHERE id = $1 AND user_id = $2 RETURNING id, tag`, [tagId, id]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ success: false, message: 'Tag não encontrada' });
+      }
+
+      res.json({ success: true, message: 'Tag removida com sucesso' });
+    } catch (error) {
+      logger.error('Erro ao remover tag:', error);
+      next(error);
+    }
+  }
+
+  // ========== SEGURANÇA ==========
+
+  /**
+   * Resolver alerta de segurança
+   */
+  static async resolveSecurityAlert(req, res, next) {
+    try {
+      const { id, alertId } = req.params;
+      const db = require('../config/database');
+
+      const result = await db.query(`
+        UPDATE security_alerts 
+        SET is_resolved = true, resolved_by = $1, resolved_at = NOW()
+        WHERE id = $2 AND user_id = $3
+        RETURNING id, alert_type, is_resolved, resolved_at
+      `, [req.user.id, alertId, id]);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ success: false, message: 'Alerta não encontrado' });
+      }
+
+      res.json({ success: true, message: 'Alerta resolvido', data: result.rows[0] });
+    } catch (error) {
+      logger.error('Erro ao resolver alerta:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * Reset de senha do usuário
+   */
+  static async resetUserPassword(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { newPassword } = req.body;
+      const db = require('../config/database');
+
+      const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+      const result = await db.query(
+        `UPDATE users SET password = $1, updated_at = NOW() WHERE id = $2 RETURNING id, username`,
+        [hashedPassword, id]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ success: false, message: 'Usuário não encontrado' });
+      }
+
+      await AuditLog.create({
+        adminId: req.user.id,
+        action: 'RESET_PASSWORD',
+        resourceType: 'user',
+        resourceId: id,
+        details: { username: result.rows[0].username },
+        ipAddress: req.ip,
+        userAgent: req.get('user-agent')
+      });
+
+      logger.info(`Admin ${req.user.email} resetou senha do usuário ${id}`);
+
+      res.json({ success: true, message: 'Senha redefinida com sucesso' });
+    } catch (error) {
+      logger.error('Erro ao resetar senha:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * Exportar dados do usuário em JSON (para CSV/PDF no frontend)
+   */
+  static async exportUserData(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { format = 'json' } = req.query;
+      const db = require('../config/database');
+
+      // Buscar todos os dados
+      const [userResult, txResult, sessionResult] = await Promise.all([
+        db.query(`SELECT id, email, username, first_name, last_name, balance, role, is_active, 
+                         created_at, last_login_at, last_login_ip FROM users WHERE id = $1`, [id]),
+        db.query(`SELECT type, amount, status, description, created_at FROM transactions 
+                  WHERE user_id = $1 ORDER BY created_at DESC`, [id]),
+        db.query(`SELECT gs.start_time, gs.end_time, gs.total_bet, gs.total_win, g.name as game_name
+                  FROM game_sessions gs LEFT JOIN games g ON gs.game_id = g.id
+                  WHERE gs.user_id = $1 ORDER BY gs.start_time DESC`, [id])
+      ]);
+
+      if (userResult.rows.length === 0) {
+        return res.status(404).json({ success: false, message: 'Usuário não encontrado' });
+      }
+
+      const exportData = {
+        exportedAt: new Date().toISOString(),
+        exportedBy: req.user.email,
+        user: userResult.rows[0],
+        transactions: txResult.rows,
+        gameSessions: sessionResult.rows
+      };
+
+      if (format === 'csv') {
+        // Gerar CSV das transações
+        const header = 'Tipo,Valor,Status,Descrição,Data\n';
+        const csvRows = txResult.rows.map(r => 
+          `${r.type},${r.amount},${r.status},"${(r.description || '').replace(/"/g, '""')}",${r.created_at}`
+        ).join('\n');
+        
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=user_${id}_transactions.csv`);
+        return res.send(header + csvRows);
+      }
+
+      await AuditLog.create({
+        adminId: req.user.id,
+        action: 'EXPORT_USER_DATA',
+        resourceType: 'user',
+        resourceId: id,
+        details: { format },
+        ipAddress: req.ip,
+        userAgent: req.get('user-agent')
+      });
+
+      res.json({ success: true, data: exportData });
+    } catch (error) {
+      logger.error('Erro ao exportar dados:', error);
+      next(error);
+    }
+  }
 }
 
 module.exports = AdminController;
