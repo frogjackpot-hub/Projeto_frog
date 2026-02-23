@@ -221,7 +221,7 @@ class AdminController {
     try {
       const db = require('../config/database');
       const result = await db.query(
-        'SELECT id, email, username, first_name, last_name, balance, role, is_active, is_verified, created_at, updated_at FROM users ORDER BY created_at DESC'
+        'SELECT id, email, username, first_name, last_name, balance, role, is_active, is_verified, created_at, updated_at, last_login_at, last_activity_at FROM users ORDER BY created_at DESC'
       );
 
       // Converter snake_case para camelCase
@@ -236,7 +236,10 @@ class AdminController {
         isActive: user.is_active,
         isVerified: user.is_verified,
         createdAt: user.created_at,
-        updatedAt: user.updated_at
+        updatedAt: user.updated_at,
+        lastLoginAt: user.last_login_at,
+        lastActivityAt: user.last_activity_at,
+        isOnline: user.last_activity_at ? (Date.now() - new Date(user.last_activity_at).getTime()) < 5 * 60 * 1000 : false
       }));
 
       logger.info(`Admin ${req.user.email} listou todos os usuários`);
@@ -330,7 +333,15 @@ class AdminController {
       const { id } = req.params;
       const updateData = req.body;
 
-      const user = await User.update(id, updateData);
+      // Converter camelCase para snake_case para o modelo
+      const dbData = {};
+      if (updateData.firstName !== undefined) dbData.first_name = updateData.firstName;
+      if (updateData.lastName !== undefined) dbData.last_name = updateData.lastName;
+      if (updateData.email !== undefined) dbData.email = updateData.email;
+      if (updateData.username !== undefined) dbData.username = updateData.username;
+      if (updateData.isActive !== undefined) dbData.is_active = updateData.isActive;
+
+      const user = await User.update(id, dbData);
 
       if (!user) {
         return res.status(404).json({
@@ -1110,7 +1121,7 @@ class AdminController {
       const userResult = await db.query(
         `SELECT id, email, username, first_name, last_name, balance, role, 
                 is_active, is_verified, created_at, updated_at,
-                last_login_at, last_login_ip, total_login_count, phone
+                last_login_at, last_login_ip, total_login_count, phone, last_activity_at
          FROM users WHERE id = $1`, [id]
       );
 
@@ -1134,7 +1145,8 @@ class AdminController {
         lastLoginAt: userRow.last_login_at,
         lastLoginIp: userRow.last_login_ip,
         totalLoginCount: userRow.total_login_count || 0,
-        phone: userRow.phone
+        phone: userRow.phone,
+        lastActivityAt: userRow.last_activity_at
       };
 
       // 2) Estatísticas avançadas das transações
@@ -1342,14 +1354,41 @@ class AdminController {
         logger.warn('Tabela security_alerts não encontrada');
       }
 
-      // 10) Tempo total de jogo (de sessões)
-      const totalPlaytimeResult = await db.query(`
-        SELECT COALESCE(SUM(EXTRACT(EPOCH FROM (COALESCE(end_time, NOW()) - start_time))), 0) as total_seconds
-        FROM game_sessions WHERE user_id = $1
-      `, [id]);
-      const totalPlaytimeSeconds = parseInt(totalPlaytimeResult.rows[0].total_seconds) || 0;
-      const totalPlaytimeHours = Math.floor(totalPlaytimeSeconds / 3600);
-      const totalPlaytimeMinutes = Math.floor((totalPlaytimeSeconds % 3600) / 60);
+      // 10) Tempo total conectado (baseado em login_history - sessões de login)
+      // Calcula o tempo entre logins bem-sucedidos consecutivos, com cap de 30min por sessão
+      let totalConnectedSeconds = 0;
+      try {
+        const loginSessions = await db.query(`
+          SELECT created_at FROM login_history 
+          WHERE user_id = $1 AND success = true 
+          ORDER BY created_at ASC
+        `, [id]);
+        
+        if (loginSessions.rows.length > 0) {
+          // Cada login representa uma sessão; estimamos duração pela diferença de last_activity_at ou 30min cap
+          for (let i = 0; i < loginSessions.rows.length; i++) {
+            const loginTime = new Date(loginSessions.rows[i].created_at).getTime();
+            let sessionEnd;
+            if (i + 1 < loginSessions.rows.length) {
+              sessionEnd = new Date(loginSessions.rows[i + 1].created_at).getTime();
+            } else {
+              // Última sessão - usar last_activity_at se disponível
+              const lastActivity = user.lastActivityAt ? new Date(user.lastActivityAt).getTime() : loginTime;
+              sessionEnd = lastActivity;
+            }
+            // Cap de 2h por sessão para evitar inflação
+            const sessionDuration = Math.min(sessionEnd - loginTime, 2 * 60 * 60 * 1000);
+            totalConnectedSeconds += Math.max(sessionDuration / 1000, 0);
+          }
+        }
+      } catch (e) {
+        logger.warn('Erro ao calcular tempo conectado:', e.message);
+      }
+      const totalConnectedHours = Math.floor(totalConnectedSeconds / 3600);
+      const totalConnectedMinutes = Math.floor((totalConnectedSeconds % 3600) / 60);
+
+      // Status online (ativo nos últimos 5 minutos)
+      const isOnline = user.lastActivityAt ? (Date.now() - new Date(user.lastActivityAt).getTime()) < 5 * 60 * 1000 : false;
 
       // 11) Logs de atividade do audit_logs relevantes
       let activityLogs = [];
@@ -1391,11 +1430,12 @@ class AdminController {
           tags,
           securityAlerts,
           activityLogs,
-          totalPlaytime: {
-            hours: totalPlaytimeHours,
-            minutes: totalPlaytimeMinutes,
-            formatted: `${totalPlaytimeHours}h ${totalPlaytimeMinutes}min`
-          }
+          totalConnectedTime: {
+            hours: totalConnectedHours,
+            minutes: totalConnectedMinutes,
+            formatted: `${totalConnectedHours}h ${totalConnectedMinutes}min`
+          },
+          isOnline
         }
       });
     } catch (error) {

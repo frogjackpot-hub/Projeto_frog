@@ -13,6 +13,11 @@ router.post('/login', validate(schemas.login), AuthController.login);
 // Perfil do usuário (requer autenticação)
 router.get('/profile', authenticateToken, AuthController.profile);
 
+// Heartbeat - atualiza last_activity_at (o middleware authenticateToken já faz isso)
+router.post('/heartbeat', authenticateToken, (req, res) => {
+  res.json({ success: true, timestamp: new Date().toISOString() });
+});
+
 // Logout (requer autenticação)
 router.post('/logout', authenticateToken, AuthController.logout);
 

@@ -79,6 +79,9 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'notes_internal') THEN
         ALTER TABLE users ADD COLUMN notes_internal TEXT;
     END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'last_activity_at') THEN
+        ALTER TABLE users ADD COLUMN last_activity_at TIMESTAMP DEFAULT NULL;
+    END IF;
 END $$;
 
 -- ===== 6. TRIGGER PARA admin_notes =====

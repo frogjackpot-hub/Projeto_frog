@@ -97,6 +97,29 @@ class AuthController {
             INSERT INTO login_history (id, user_id, ip_address, user_agent, device_type, browser, os, success)
             VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, true)
           `, [result.user.id, ipAddress, userAgent, parsedUA.deviceType, parsedUA.browser, parsedUA.os]);
+
+          // Gerar alerta se login de IP novo (não visto nos últimos 30 dias)
+          const knownIp = await db.query(
+            `SELECT COUNT(*) as cnt FROM login_history 
+             WHERE user_id = $1 AND ip_address = $2 AND success = true 
+               AND created_at > NOW() - INTERVAL '30 days'
+               AND id != (SELECT id FROM login_history WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1)`,
+            [result.user.id, ipAddress]
+          );
+          if (parseInt(knownIp.rows[0].cnt) === 0) {
+            // Verificar se já tem pelo menos 1 login anterior (não é primeiro login)
+            const totalLogins = await db.query(
+              'SELECT COUNT(*) as cnt FROM login_history WHERE user_id = $1 AND success = true',
+              [result.user.id]
+            );
+            if (parseInt(totalLogins.rows[0].cnt) > 1) {
+              await db.query(
+                `INSERT INTO security_alerts (id, user_id, alert_type, severity, description)
+                 VALUES (gen_random_uuid(), $1, 'new_ip', 'medium', $2)`,
+                [result.user.id, `Login de novo IP detectado: ${ipAddress} (${parsedUA.browser} / ${parsedUA.os})`]
+              );
+            }
+          }
         } catch (e) {
           logger.warn('Erro ao registrar histórico de login:', e.message);
         }
@@ -123,6 +146,30 @@ class AuthController {
                 INSERT INTO login_history (id, user_id, ip_address, user_agent, device_type, browser, os, success)
                 VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, false)
               `, [failedUserId, ipAddress, userAgent, parsedUA.deviceType, parsedUA.browser, parsedUA.os]);
+
+              // Gerar alerta se muitas tentativas falhas na última hora (>= 3)
+              const failedCount = await db.query(
+                `SELECT COUNT(*) as cnt FROM login_history 
+                 WHERE user_id = $1 AND success = false 
+                   AND created_at > NOW() - INTERVAL '1 hour'`,
+                [failedUserId]
+              );
+              if (parseInt(failedCount.rows[0].cnt) >= 3) {
+                // Verificar se já não gerou alerta nas últimas 2 horas
+                const recentAlert = await db.query(
+                  `SELECT id FROM security_alerts 
+                   WHERE user_id = $1 AND alert_type = 'failed_logins' AND is_resolved = false
+                     AND created_at > NOW() - INTERVAL '2 hours'`,
+                  [failedUserId]
+                );
+                if (recentAlert.rows.length === 0) {
+                  await db.query(
+                    `INSERT INTO security_alerts (id, user_id, alert_type, severity, description)
+                     VALUES (gen_random_uuid(), $1, 'failed_logins', 'high', $2)`,
+                    [failedUserId, `${parseInt(failedCount.rows[0].cnt)} tentativas de login falhas na última hora (IP: ${ipAddress})`]
+                  );
+                }
+              }
             }
           } catch (e) {
             logger.warn('Erro ao registrar login falhado:', e.message);

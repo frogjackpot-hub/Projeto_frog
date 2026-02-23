@@ -3,6 +3,93 @@ const Transaction = require('../models/Transaction');
 const RNGService = require('../services/rngService');
 const db = require('../config/database');
 const logger = require('../utils/logger');
+const { v4: uuidv4 } = require('uuid');
+
+/**
+ * Gerencia sessões de jogo para tracking de tempo de jogo.
+ * - Se existe uma sessão ativa (última atividade < 30min), atualiza ela.
+ * - Se não, fecha sessões antigas e cria uma nova.
+ * - Atualiza total_bet e total_win a cada jogada.
+ */
+async function trackGameSession(userId, gameId, betAmount, winAmount, dbClient = null) {
+  const SESSION_TIMEOUT_MINUTES = 30;
+  const query = dbClient ? dbClient.query.bind(dbClient) : db.query.bind(db);
+
+  try {
+    // Buscar sessão ativa recente para este usuário+jogo
+    const activeSession = await query(
+      `SELECT id, total_bet, total_win, start_time 
+       FROM game_sessions 
+       WHERE user_id = $1 AND game_id = $2 AND is_active = true 
+         AND end_time > NOW() - INTERVAL '${SESSION_TIMEOUT_MINUTES} minutes'
+       ORDER BY start_time DESC LIMIT 1`,
+      [userId, gameId]
+    );
+
+    if (activeSession.rows.length > 0) {
+      // Atualizar sessão existente
+      const session = activeSession.rows[0];
+      const newTotalBet = parseFloat(session.total_bet) + betAmount;
+      const newTotalWin = parseFloat(session.total_win) + winAmount;
+      
+      await query(
+        `UPDATE game_sessions 
+         SET total_bet = $1, total_win = $2, end_time = NOW()
+         WHERE id = $3`,
+        [newTotalBet.toFixed(2), newTotalWin.toFixed(2), session.id]
+      );
+    } else {
+      // Fechar sessões antigas que ainda estão marcadas como ativas
+      await query(
+        `UPDATE game_sessions 
+         SET is_active = false 
+         WHERE user_id = $1 AND is_active = true`,
+        [userId]
+      );
+
+      // Criar nova sessão
+      const sessionId = uuidv4();
+      await query(
+        `INSERT INTO game_sessions (id, user_id, game_id, start_time, end_time, total_bet, total_win, is_active)
+         VALUES ($1, $2, $3, NOW(), NOW(), $4, $5, true)`,
+        [sessionId, userId, gameId, betAmount.toFixed(2), winAmount.toFixed(2)]
+      );
+    }
+  } catch (error) {
+    // Não falhar o jogo por causa de erro no tracking de sessão
+    logger.error('Erro ao rastrear sessão de jogo', { 
+      error: error.message, userId, gameId 
+    });
+  }
+}
+
+/**
+ * Gera alerta de segurança para apostas muito altas.
+ * Configuração: aposta >= 500 gera alerta (se não existir um recente).
+ */
+async function checkHighBetAlert(userId, betAmount, gameName) {
+  const HIGH_BET_THRESHOLD = 500;
+  if (betAmount < HIGH_BET_THRESHOLD) return;
+
+  try {
+    // Verificar se já existe alerta recente (últimas 6h)
+    const recentAlert = await db.query(
+      `SELECT id FROM security_alerts 
+       WHERE user_id = $1 AND alert_type = 'high_bet' AND is_resolved = false
+         AND created_at > NOW() - INTERVAL '6 hours'`,
+      [userId]
+    );
+    if (recentAlert.rows.length === 0) {
+      await db.query(
+        `INSERT INTO security_alerts (id, user_id, alert_type, severity, description)
+         VALUES (gen_random_uuid(), $1, 'high_bet', 'medium', $2)`,
+        [userId, `Aposta alta detectada: R$ ${betAmount.toFixed(2)} no jogo ${gameName}`]
+      );
+    }
+  } catch (error) {
+    logger.error('Erro ao verificar alerta de aposta alta', { error: error.message });
+  }
+}
 
 class GameController {
   static async getGames(req, res, next) {
@@ -135,6 +222,10 @@ class GameController {
 
       // Completar transação de aposta
       await betTransaction.updateStatus('completed');
+
+      // Rastrear sessão de jogo
+      await trackGameSession(user.id, gameId, amount, winAmount);
+      await checkHighBetAlert(user.id, amount, game.name);
 
       logger.info('Jogo de slot jogado', {
         userId: user.id,
@@ -273,6 +364,10 @@ class GameController {
 
       // Completar transação de aposta
       await betTransaction.updateStatus('completed');
+
+      // Rastrear sessão de jogo
+      await trackGameSession(user.id, gameId, amount, winAmount);
+      await checkHighBetAlert(user.id, amount, game.name);
 
       logger.info('Jogo de roleta jogado', {
         userId: user.id,
@@ -447,6 +542,10 @@ class GameController {
 
       // Commit da transação
       await client.query('COMMIT');
+
+      // Rastrear sessão de jogo (fora da transação atômica para não bloquear)
+      await trackGameSession(user.id, gameId, amount, result.winAmount || 0);
+      await checkHighBetAlert(user.id, amount, 'FrogJackpot');
 
       // Atualizar balance no objeto user para o log
       user.balance = finalBalance;

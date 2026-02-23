@@ -160,7 +160,7 @@ class User {
   }
 
   static async update(id, updates) {
-    const allowedFields = ['first_name', 'last_name', 'email', 'username'];
+    const allowedFields = ['first_name', 'last_name', 'email', 'username', 'is_active'];
     const updateFields = [];
     const values = [];
     let valueIndex = 1;

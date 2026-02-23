@@ -24,7 +24,13 @@
       <div class="header-left">
         <div class="profile-avatar">{{ getInitials(profileData.user) }}</div>
         <div class="header-info">
-          <h2>{{ profileData.user.firstName }} {{ profileData.user.lastName }}</h2>
+          <div class="name-online-row">
+            <h2>{{ profileData.user.firstName }} {{ profileData.user.lastName }}</h2>
+            <span class="online-indicator" [class.online]="profileData.isOnline" [class.offline]="!profileData.isOnline">
+              <span class="online-dot"></span>
+              {{ profileData.isOnline ? 'Online' : 'Offline' }}
+            </span>
+          </div>
           <span class="profile-username">&#64;{{ profileData.user.username }}</span>
           <div class="header-badges">
             <span class="role-badge" [class.role-admin]="profileData.user.role === 'admin'">
@@ -111,8 +117,8 @@
                   <span class="info-value">{{ profileData.user.totalLoginCount || 0 }}</span>
                 </div>
                 <div class="info-item">
-                  <span class="info-label">Tempo de Jogo</span>
-                  <span class="info-value">{{ profileData.totalPlaytime?.formatted || '0h 0min' }}</span>
+                  <span class="info-label">Tempo Conectado</span>
+                  <span class="info-value">{{ profileData.totalConnectedTime?.formatted || '0h 0min' }}</span>
                 </div>
               </div>
             </div>
@@ -425,10 +431,22 @@
     <!-- ============================================== -->
     @if (activeTab === 'security') {
       <div class="tab-content">
+        <!-- Botão Atualizar -->
+        <div class="section-header">
+          <h2 class="section-title">🔒 Segurança & Atividade</h2>
+          <button class="btn-refresh" (click)="refreshSecurityTab()" [disabled]="isLoadingLogin">
+            🔄 Atualizar
+          </button>
+        </div>
+
         <div class="security-grid">
           <!-- Alertas de segurança -->
           <div class="card">
             <h3 class="card-title">⚠️ Alertas de Segurança</h3>
+            <p class="card-description">
+              Alertas gerados automaticamente quando atividades suspeitas são detectadas: tentativas de login falhas, 
+              logins de novos IPs, apostas muito altas ou múltiplos dispositivos.
+            </p>
             @if (profileData.securityAlerts?.length > 0) {
               <div class="alerts-list">
                 @for (alert of profileData.securityAlerts; track alert.id) {
@@ -452,7 +470,7 @@
                 }
               </div>
             } @else {
-              <div class="empty-state-small">✅ Nenhum alerta de segurança</div>
+              <div class="empty-state-small">✅ Nenhum alerta de segurança — tudo normal com este usuário</div>
             }
           </div>
 

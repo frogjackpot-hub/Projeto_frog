@@ -51,6 +51,13 @@ const authenticateToken = async (req, res, next) => {
     }
 
     req.user = user;
+
+    // Atualizar last_activity_at para rastrear status online (fire-and-forget)
+    try {
+      const db = require('../config/database');
+      db.query('UPDATE users SET last_activity_at = NOW() WHERE id = $1', [user.id]).catch(() => {});
+    } catch (_) {}
+
     next();
   } catch (error) {
     const logger = require('../utils/logger');

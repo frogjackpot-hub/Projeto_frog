@@ -62,6 +62,7 @@
           <th>Saldo</th>
           <th>Função</th>
           <th>Status</th>
+          <th></th>
           <th>Data de Cadastro</th>
           <th>Ações</th>
         </tr>
@@ -80,6 +81,12 @@
           <td>
             <span class="status-badge" [ngClass]="getStatusClass(user)">
               {{ getUserStatusBadge(user) }}
+            </span>
+          </td>
+          <td>
+            <span class="online-indicator" [class.online]="user.isOnline" [class.offline]="!user.isOnline">
+              <span class="online-dot"></span>
+              {{ user.isOnline ? 'Online' : 'Offline' }}
             </span>
           </td>
           <td>{{ user.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>

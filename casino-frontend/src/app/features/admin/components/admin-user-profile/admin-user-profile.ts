@@ -277,6 +277,12 @@ export class AdminUserProfileComponent implements OnInit, OnDestroy {
 
   // ===== SEGURANÇA / LOGIN HISTORY =====
 
+  refreshSecurityTab(): void {
+    this.loadLoginHistory();
+    this.loadFullProfile(); // recarrega alertas e logs de atividade
+    this.notificationService.success('Atualizado', 'Dados de segurança atualizados');
+  }
+
   loadLoginHistory(): void {
     this.isLoadingLogin = true;
 
@@ -433,10 +439,10 @@ export class AdminUserProfileComponent implements OnInit, OnDestroy {
   saveUserChanges(): void {
     if (!this.profileData) return;
 
-    // Converter para snake_case que o backend espera
+    // Enviar camelCase (o schema Joi aceita camelCase)
     const updatePayload = {
-      first_name: this.editForm.firstName,
-      last_name: this.editForm.lastName,
+      firstName: this.editForm.firstName,
+      lastName: this.editForm.lastName,
       email: this.editForm.email,
       username: this.editForm.username
     };
