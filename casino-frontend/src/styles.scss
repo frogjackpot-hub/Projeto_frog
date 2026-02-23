@@ -1,6 +1,7 @@
 @use 'styles/variables' as *;
 @use 'sass:color';
 @use 'styles/mixins' as *;
+@use 'styles/admin-shared';
 
 // Reset básico
 * {
