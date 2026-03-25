@@ -1,17 +1,17 @@
 # See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
-# Compiled output
-/dist
-/tmp
-/out-tsc
-/bazel-out
-
-# Node
-/node_modules
+# ==================== Node ====================
+node_modules/
 npm-debug.log
 yarn-error.log
+*.log
 
-# IDEs and editors
+# ==================== Variáveis de ambiente ====================
+.env
+.env.*
+*.env.*
+
+# ==================== IDEs e editores ====================
 .idea/
 .project
 .classpath
@@ -19,8 +19,6 @@ yarn-error.log
 *.launch
 .settings/
 *.sublime-workspace
-
-# Visual Studio Code
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -28,8 +26,10 @@ yarn-error.log
 !.vscode/extensions.json
 .history/*
 
-# Miscellaneous
-/.angular/cache
+# ==================== Frontend Angular ====================
+/casino-frontend/dist/
+/casino-frontend/.angular/cache
+/casino-frontend/out-tsc/
 .sass-cache/
 /connect.lock
 /coverage
@@ -37,20 +37,19 @@ yarn-error.log
 testem.log
 /typings
 
-# System files
+# ==================== Backend ====================
+/casino-backend/dist/
+/casino-backend/build/
+/casino-backend/logs/
+
+# ==================== Docker ====================
+# (manter docker-compose.yml e Dockerfiles versionados)
+
+# ==================== Sistema ====================
 .DS_Store
 Thumbs.db
+tmp/
+/tmp
 
-
-
-# Backend 
-
-node_modules/
-.env
-.DS_Store
-build/
-dist/
-logs/
-*.log
-*.env.*
-Add-Content -Path .gitignore -Value 'Tutorial Completo_ Desenvolvendo o Backend de um Cassino Online com Node.js_Express e Docker.pdf'
+# ==================== PDFs e arquivos pessoais ====================
+*.pdf
