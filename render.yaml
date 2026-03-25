@@ -17,9 +17,7 @@ services:
       - key: PORT
         value: 3000
       - key: DATABASE_URL
-        fromDatabase:
-          name: casino-db
-          property: connectionString
+        sync: false # Cole aqui a connection string do Neon (neon.tech)
       - key: JWT_SECRET
         generateValue: true # Gera um valor aleatório seguro
       - key: CORS_ORIGIN
@@ -64,11 +62,5 @@ services:
     autoDeploy: true
     rootDir: .
 
-databases:
-  # PostgreSQL Database
-  - name: casino-db
-    region: oregon
-    plan: free # 90 dias grátis, depois precisa renovar
-    databaseName: casino_db
-    user: casino_user
-    ipAllowList: [] # Vazio = permite de qualquer lugar
+# Banco de dados hospedado no Neon (neon.tech) - persistente e gratuito
+# Configure DATABASE_URL nas variáveis de ambiente do serviço casino-backend no Render Dashboard

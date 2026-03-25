@@ -1,9 +1,13 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
+// Neon requer SSL mesmo em desenvolvimento
+const isNeon = process.env.DATABASE_URL?.includes('.neon.tech');
+const useSSL = process.env.NODE_ENV === 'production' || isNeon;
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl: useSSL ? { rejectUnauthorized: false } : false,
 });
 
 // Teste de conexão
