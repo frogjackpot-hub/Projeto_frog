@@ -57,7 +57,12 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
   }
 
   playGame(game: Game): void {
-    this.router.navigate(['/games', game.type, game.id]);
+    // FrogJackpot tem rota dedicada
+    if (game.name.toLowerCase().includes('frog')) {
+      this.router.navigate(['/games/frogjackpot']);
+    } else {
+      this.router.navigate(['/games']);
+    }
   }
 
   getGameIcon(type: string): string {

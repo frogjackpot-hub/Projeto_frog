@@ -1,0 +1,153 @@
+<div class="withdraw-page">
+  <!-- Sucesso -->
+  <div class="success-overlay" *ngIf="showSuccess">
+    <div class="success-card">
+      <div class="success-icon">💸</div>
+      <h2>Saque Solicitado!</h2>
+      <p class="success-amount">{{ lastWithdrawAmount | appCurrency }}</p>
+      <p class="success-text">Seu saque está sendo processado.<br>Tempo estimado: {{ selectedMethod?.processingTime }}</p>
+      <div class="success-actions">
+        <button class="btn-primary" (click)="newWithdraw()">Novo Saque</button>
+        <a class="btn-secondary" routerLink="/wallet/transactions">Ver Transações</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmação -->
+  <div class="confirm-overlay" *ngIf="showConfirmation">
+    <div class="confirm-card">
+      <h2>Confirmar Saque</h2>
+      <div class="confirm-details">
+        <div class="confirm-row">
+          <span>Valor</span>
+          <span class="val">{{ (amount ?? 0) | appCurrency }}</span>
+        </div>
+        <div class="confirm-row" *ngIf="feeAmount > 0">
+          <span>Taxa</span>
+          <span class="fee">-{{ feeAmount | appCurrency }}</span>
+        </div>
+        <div class="confirm-row receive">
+          <span>Você recebe</span>
+          <span>{{ receiveAmount | appCurrency }}</span>
+        </div>
+        <div class="confirm-row">
+          <span>Via</span>
+          <span>{{ selectedMethod?.icon }} {{ selectedMethod?.name }}</span>
+        </div>
+      </div>
+      <p class="confirm-warning">⚠️ Esta ação não pode ser desfeita.</p>
+      <div class="confirm-actions">
+        <button class="btn-danger" (click)="confirmWithdraw()">Confirmar Saque</button>
+        <button class="btn-cancel" (click)="cancelConfirmation()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="page-header">
+    <a routerLink="/dashboard/home" class="back-link">← Voltar</a>
+    <h1>Sacar</h1>
+    <div class="current-balance" *ngIf="currentUser">
+      <span class="balance-label">Saldo disponível</span>
+      <span class="balance-value">{{ currentUser.balance | appCurrency }}</span>
+    </div>
+  </div>
+
+  <div class="withdraw-content">
+    <!-- Métodos -->
+    <div class="section">
+      <h2>Método de Saque</h2>
+      <div class="methods-grid">
+        <div
+          *ngFor="let method of withdrawMethods"
+          class="method-card"
+          [class.selected]="selectedMethod?.id === method.id"
+          (click)="selectMethod(method)"
+        >
+          <div class="method-icon">{{ method.icon }}</div>
+          <div class="method-info">
+            <span class="method-name">{{ method.name }}</span>
+            <span class="method-desc">{{ method.description }}</span>
+          </div>
+          <div class="method-meta">
+            <span class="method-time">{{ method.processingTime }}</span>
+            <span class="method-fee" *ngIf="method.fee > 0">Taxa: {{ method.fee }}%</span>
+            <span class="method-fee free" *ngIf="method.fee === 0">Sem taxa</span>
+          </div>
+          <div class="method-check" *ngIf="selectedMethod?.id === method.id">✓</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Valor -->
+    <div class="section">
+      <h2>Valor do Saque</h2>
+      <div class="amount-input-group">
+        <span class="currency-prefix">R$</span>
+        <input
+          type="number"
+          [(ngModel)]="amount"
+          [placeholder]="selectedMethod ? 'Mín ' + selectedMethod.minWithdraw : '0,00'"
+          class="amount-input"
+        />
+      </div>
+
+      <div class="amount-limits" *ngIf="selectedMethod">
+        <span>Mín: {{ selectedMethod.minWithdraw | appCurrency }}</span>
+        <span>Máx: {{ selectedMethod.maxWithdraw | appCurrency }}</span>
+      </div>
+
+      <div class="percentage-btns">
+        <button class="pct-btn" (click)="setPercentage(25)">25%</button>
+        <button class="pct-btn" (click)="setPercentage(50)">50%</button>
+        <button class="pct-btn" (click)="setPercentage(75)">75%</button>
+        <button class="pct-btn" (click)="setPercentage(100)">100%</button>
+      </div>
+    </div>
+
+    <!-- Resumo -->
+    <div class="section" *ngIf="amount && isValidAmount">
+      <h2>Resumo do Saque</h2>
+      <div class="summary-card">
+        <div class="summary-row">
+          <span>Valor do saque</span>
+          <span>{{ amount | appCurrency }}</span>
+        </div>
+        <div class="summary-row" *ngIf="feeAmount > 0">
+          <span>Taxa ({{ selectedMethod?.fee }}%)</span>
+          <span class="fee-value">-{{ feeAmount | appCurrency }}</span>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-row total">
+          <span>Você recebe</span>
+          <span class="receive">{{ receiveAmount | appCurrency }}</span>
+        </div>
+        <div class="summary-row">
+          <span>Processamento</span>
+          <span>{{ selectedMethod?.processingTime }}</span>
+        </div>
+      </div>
+
+      <button
+        class="withdraw-btn"
+        [disabled]="!canSubmit"
+        (click)="requestWithdraw()"
+      >
+        <span *ngIf="!isProcessing">Solicitar Saque</span>
+        <span *ngIf="isProcessing" class="loading-text">
+          <span class="spinner"></span>
+          Processando...
+        </span>
+      </button>
+    </div>
+
+    <!-- Erros -->
+    <div class="amount-error" *ngIf="insufficientBalance">
+      Saldo insuficiente. Seu saldo é {{ (currentUser?.balance ?? 0) | appCurrency }}.
+    </div>
+    <div class="amount-error" *ngIf="amount && !insufficientBalance && !isValidAmount && selectedMethod">
+      <span *ngIf="amount < selectedMethod.minWithdraw">Valor mínimo: {{ selectedMethod.minWithdraw | appCurrency }}</span>
+      <span *ngIf="amount > selectedMethod.maxWithdraw">Valor máximo: {{ selectedMethod.maxWithdraw | appCurrency }}</span>
+    </div>
+  </div>
+</div>

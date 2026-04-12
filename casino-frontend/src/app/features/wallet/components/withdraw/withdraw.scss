@@ -1,0 +1,353 @@
+.withdraw-page {
+  max-width: 800px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+
+  .back-link {
+    color: #b0b0b0;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color 0.3s;
+    &:hover { color: #ffd700; }
+  }
+
+  h1 {
+    flex: 1;
+    color: #ffffff;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+  }
+}
+
+.current-balance {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  background: rgba(76, 175, 80, 0.1);
+  padding: 0.6rem 1.2rem;
+  border-radius: 10px;
+  border: 1px solid rgba(76, 175, 80, 0.25);
+
+  .balance-label { color: #b0b0b0; font-size: 0.8rem; }
+  .balance-value { color: #4caf50; font-size: 1.3rem; font-weight: 700; }
+}
+
+.section {
+  background: rgba(42, 42, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 1.75rem;
+  margin-bottom: 1.25rem;
+
+  h2 { color: #fff; font-size: 1.2rem; font-weight: 600; margin: 0 0 1.25rem; }
+}
+
+.methods-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.method-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover { background: rgba(255, 255, 255, 0.07); border-color: rgba(255, 255, 255, 0.15); }
+  &.selected {
+    border-color: #ff9800;
+    background: rgba(255, 152, 0, 0.08);
+    box-shadow: 0 0 20px rgba(255, 152, 0, 0.1);
+  }
+}
+
+.method-icon {
+  font-size: 1.8rem;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 152, 0, 0.1);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.method-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  .method-name { color: #fff; font-weight: 600; }
+  .method-desc { color: #888; font-size: 0.82rem; margin-top: 0.15rem; }
+}
+
+.method-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  .method-time { color: #b0b0b0; font-size: 0.78rem; }
+  .method-fee { color: #ff9800; font-size: 0.78rem;
+    &.free { color: #4caf50; }
+  }
+}
+
+.method-check {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  color: #ff9800;
+  font-weight: 700;
+}
+
+.amount-input-group {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 0 1rem;
+  transition: border-color 0.3s;
+
+  &:focus-within { border-color: #ff9800; }
+
+  .currency-prefix { color: #ff9800; font-size: 1.3rem; font-weight: 700; margin-right: 0.5rem; }
+  .amount-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 1.6rem;
+    font-weight: 700;
+    padding: 1rem 0;
+    outline: none;
+    width: 100%;
+    &::placeholder { color: #555; font-weight: 400; font-size: 1.1rem; }
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button { -webkit-appearance: none; }
+    -moz-appearance: textfield;
+  }
+}
+
+.amount-limits {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  color: #888;
+  font-size: 0.82rem;
+}
+
+.percentage-btns {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.pct-btn {
+  padding: 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+
+  &:hover {
+    background: rgba(255, 152, 0, 0.15);
+    border-color: rgba(255, 152, 0, 0.3);
+    color: #ff9800;
+  }
+}
+
+.summary-card {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  color: #b0b0b0;
+  font-size: 0.95rem;
+
+  &.total { color: #fff; font-size: 1.15rem; font-weight: 700; }
+  .fee-value { color: #f44336; }
+  .receive { color: #4caf50; }
+}
+
+.summary-divider { border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 0.4rem 0; }
+
+.withdraw-btn {
+  width: 100%;
+  margin-top: 1.25rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+
+  &:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255, 152, 0, 0.4); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.loading-text { display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+.spinner {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.amount-error {
+  background: rgba(244, 67, 54, 0.1);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  color: #f44336;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+// ===== OVERLAYS =====
+.success-overlay, .confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.success-card, .confirm-card {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 20px;
+  padding: 2.5rem;
+  text-align: center;
+  max-width: 420px;
+  width: 90%;
+  animation: scaleIn 0.4s ease;
+}
+
+.success-card {
+  border: 1px solid rgba(255, 152, 0, 0.3);
+  .success-icon { font-size: 4rem; margin-bottom: 1rem; }
+  h2 { color: #ff9800; font-size: 1.6rem; margin: 0 0 0.75rem; }
+  .success-amount { color: #fff; font-size: 2rem; font-weight: 700; margin: 0 0 0.5rem; }
+  .success-text { color: #b0b0b0; margin: 0 0 2rem; line-height: 1.5; }
+}
+
+.confirm-card {
+  border: 1px solid rgba(255, 152, 0, 0.3);
+  h2 { color: #fff; font-size: 1.4rem; margin: 0 0 1.5rem; }
+}
+
+.confirm-details {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+
+  .confirm-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    color: #b0b0b0;
+
+    &.receive { color: #fff; font-weight: 700; font-size: 1.1rem; }
+    .val { color: #fff; font-weight: 600; }
+    .fee { color: #f44336; }
+  }
+}
+
+.confirm-warning {
+  color: #ff9800;
+  font-size: 0.85rem;
+  margin: 0 0 1.5rem;
+}
+
+.confirm-actions, .success-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.btn-danger {
+  padding: 0.85rem;
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  &:hover { box-shadow: 0 6px 20px rgba(244, 67, 54, 0.3); }
+}
+
+.btn-cancel {
+  padding: 0.85rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  &:hover { background: rgba(255, 255, 255, 0.12); }
+}
+
+.btn-primary {
+  padding: 0.85rem;
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  &:hover { box-shadow: 0 6px 20px rgba(255, 152, 0, 0.3); }
+}
+
+.btn-secondary {
+  padding: 0.85rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+  transition: all 0.3s;
+  &:hover { background: rgba(255, 255, 255, 0.12); }
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+@keyframes spin { to { transform: rotate(360deg); } }

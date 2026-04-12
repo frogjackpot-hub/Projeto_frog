@@ -1,0 +1,121 @@
+<div class="transactions-page">
+  <!-- Header -->
+  <div class="page-header">
+    <a routerLink="/dashboard/home" class="back-link">← Voltar</a>
+    <h1>Transações</h1>
+    <button class="refresh-btn" (click)="refresh()" [disabled]="isLoading">
+      🔄 Atualizar
+    </button>
+  </div>
+
+  <!-- Resumo Financeiro -->
+  <div class="financial-summary">
+    <div class="summary-item deposits">
+      <span class="summary-icon">📥</span>
+      <div class="summary-info">
+        <span class="summary-label">Depósitos</span>
+        <span class="summary-value positive">{{ totalDeposits | appCurrency }}</span>
+      </div>
+    </div>
+    <div class="summary-item withdrawals">
+      <span class="summary-icon">📤</span>
+      <div class="summary-info">
+        <span class="summary-label">Saques</span>
+        <span class="summary-value negative">{{ totalWithdrawals | appCurrency }}</span>
+      </div>
+    </div>
+    <div class="summary-item wins">
+      <span class="summary-icon">🏆</span>
+      <div class="summary-info">
+        <span class="summary-label">Ganhos</span>
+        <span class="summary-value positive">{{ totalWins | appCurrency }}</span>
+      </div>
+    </div>
+    <div class="summary-item bets">
+      <span class="summary-icon">🎲</span>
+      <div class="summary-info">
+        <span class="summary-label">Apostas</span>
+        <span class="summary-value negative">{{ totalBets | appCurrency }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters-section">
+    <div class="filter-group">
+      <label>Tipo</label>
+      <div class="filter-btns">
+        <button [class.active]="filterType === 'all'" (click)="setFilterType('all')">Todos</button>
+        <button [class.active]="filterType === 'deposit'" (click)="setFilterType('deposit')">Depósitos</button>
+        <button [class.active]="filterType === 'withdrawal'" (click)="setFilterType('withdrawal')">Saques</button>
+        <button [class.active]="filterType === 'bet'" (click)="setFilterType('bet')">Apostas</button>
+        <button [class.active]="filterType === 'win'" (click)="setFilterType('win')">Ganhos</button>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label>Status</label>
+      <div class="filter-btns">
+        <button [class.active]="filterStatus === 'all'" (click)="setFilterStatus('all')">Todos</button>
+        <button [class.active]="filterStatus === 'completed'" (click)="setFilterStatus('completed')">Concluídas</button>
+        <button [class.active]="filterStatus === 'pending'" (click)="setFilterStatus('pending')">Pendentes</button>
+        <button [class.active]="filterStatus === 'failed'" (click)="setFilterStatus('failed')">Falhas</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner-large"></div>
+    <p>Carregando transações...</p>
+  </div>
+
+  <!-- Lista de Transações -->
+  <div class="transactions-list" *ngIf="!isLoading">
+    <div
+      *ngFor="let t of filteredTransactions; trackBy: trackById"
+      class="transaction-row"
+    >
+      <div class="tx-icon" [ngClass]="'tx-' + t.type">
+        {{ getTypeIcon(t.type) }}
+      </div>
+      <div class="tx-info">
+        <div class="tx-main">
+          <span class="tx-description">{{ t.description }}</span>
+          <span class="tx-type-badge" [ngClass]="'badge-' + t.type">{{ getTypeLabel(t.type) }}</span>
+        </div>
+        <div class="tx-meta">
+          <span class="tx-date">{{ t.createdAt | appDateFormat:'relative' }}</span>
+          <span class="tx-status" [ngClass]="'status-' + t.status">{{ getStatusLabel(t.status) }}</span>
+        </div>
+      </div>
+      <div class="tx-amount" [ngClass]="getAmountClass(t.type)">
+        {{ getAmountPrefix(t.type) }}{{ t.amount | appCurrency }}
+      </div>
+    </div>
+
+    <!-- Empty -->
+    <div *ngIf="filteredTransactions.length === 0" class="empty-state">
+      <span class="empty-icon">📋</span>
+      <h3>Nenhuma transação encontrada</h3>
+      <p *ngIf="filterType !== 'all' || filterStatus !== 'all'">Tente alterar os filtros.</p>
+      <p *ngIf="filterType === 'all' && filterStatus === 'all'">Suas transações aparecerão aqui.</p>
+    </div>
+  </div>
+
+  <!-- Paginação -->
+  <div class="pagination" *ngIf="!isLoading && totalPages > 1">
+    <button class="page-btn" [disabled]="currentPage <= 1" (click)="prevPage()">← Anterior</button>
+    <span class="page-info">Página {{ currentPage }} de {{ totalPages }}</span>
+    <button class="page-btn" [disabled]="currentPage >= totalPages" (click)="nextPage()">Próxima →</button>
+  </div>
+
+  <!-- Ações rápidas -->
+  <div class="quick-links">
+    <a routerLink="/wallet/deposit" class="quick-link deposit">
+      <span>💳</span> Depositar
+    </a>
+    <a routerLink="/wallet/withdraw" class="quick-link withdraw">
+      <span>💸</span> Sacar
+    </a>
+  </div>
+</div>
