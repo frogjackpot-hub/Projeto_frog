@@ -1,1 +1,159 @@
-<p>user-profile works!</p>
+<div class="user-profile">
+  <!-- Header do Perfil -->
+  <div class="profile-header">
+    <div class="profile-avatar">
+      <div class="avatar-circle">
+        <span class="avatar-initials">{{ getUserInitials() }}</span>
+      </div>
+      <div class="online-indicator"></div>
+    </div>
+
+    <div class="profile-info" *ngIf="currentUser">
+      <h1 class="profile-name">{{ currentUser.firstName }} {{ currentUser.lastName }}</h1>
+      <p class="profile-username">@{{ currentUser.username }}</p>
+      <p class="profile-member-since">Membro desde {{ getMemberSince() }}</p>
+    </div>
+  </div>
+
+  <!-- Saldo e Ações Financeiras -->
+  <div class="balance-section" *ngIf="currentUser">
+    <div class="balance-display">
+      <span class="balance-label">Saldo disponível</span>
+      <span class="balance-amount">{{ currentUser.balance | appCurrency }}</span>
+    </div>
+    <div class="balance-actions">
+      <button class="btn-deposit" routerLink="/wallet/deposit">
+        <span class="btn-icon">💳</span>
+        Depositar
+      </button>
+      <button class="btn-withdraw" routerLink="/wallet/withdraw">
+        <span class="btn-icon">💸</span>
+        Sacar
+      </button>
+    </div>
+  </div>
+
+  <!-- Estatísticas do Jogador -->
+  <div class="stats-section">
+    <h2>Suas Estatísticas</h2>
+    <div class="stats-grid" *ngIf="stats">
+      <div class="stat-card">
+        <div class="stat-icon games">🎮</div>
+        <div class="stat-content">
+          <span class="stat-value">{{ stats.totalGamesPlayed }}</span>
+          <span class="stat-label">Jogos Jogados</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon winnings">💰</div>
+        <div class="stat-content">
+          <span class="stat-value">{{ stats.totalWinnings | appCurrency }}</span>
+          <span class="stat-label">Total Ganho</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon winrate">📈</div>
+        <div class="stat-content">
+          <span class="stat-value">{{ stats.winRate }}%</span>
+          <span class="stat-label">Taxa de Vitória</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon streak">🔥</div>
+        <div class="stat-content">
+          <span class="stat-value">{{ stats.currentStreak }}</span>
+          <span class="stat-label">Sequência Atual</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon deposits">📥</div>
+        <div class="stat-content">
+          <span class="stat-value">{{ stats.totalDeposits | appCurrency }}</span>
+          <span class="stat-label">Total Depositado</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon favorite">⭐</div>
+        <div class="stat-content">
+          <span class="stat-value favorite-text">{{ stats.favoriteGame }}</span>
+          <span class="stat-label">Jogo Favorito</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Atividade Recente -->
+  <div class="activity-section">
+    <h2>Atividade Recente</h2>
+    <div class="activity-tabs">
+      <button
+        class="tab-btn"
+        [class.active]="activeTab === 'transactions'"
+        (click)="setActiveTab('transactions')"
+      >
+        Transações
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="activeTab === 'games'"
+        (click)="setActiveTab('games')"
+      >
+        Jogos
+      </button>
+    </div>
+
+    <div class="activity-content">
+      <!-- Transações -->
+      <div *ngIf="activeTab === 'transactions'" class="transactions-list">
+        <div
+          *ngFor="let transaction of recentActivity?.transactions; trackBy: trackByTransactionId"
+          class="activity-item"
+        >
+          <div class="activity-icon" [ngClass]="'icon-' + transaction.type">
+            {{ getTransactionIcon(transaction.type) }}
+          </div>
+          <div class="activity-details">
+            <span class="activity-description">{{ transaction.description }}</span>
+            <span class="activity-date">{{ transaction.createdAt | appDateFormat:'relative' }}</span>
+          </div>
+          <div class="activity-amount" [ngClass]="getAmountClass(transaction.type)">
+            {{ getAmountPrefix(transaction.type) }}{{ transaction.amount | appCurrency }}
+          </div>
+        </div>
+
+        <div *ngIf="!recentActivity?.transactions?.length" class="empty-state">
+          <span class="empty-icon">📋</span>
+          <p>Nenhuma transação recente</p>
+        </div>
+      </div>
+
+      <!-- Jogos -->
+      <div *ngIf="activeTab === 'games'" class="games-history-list">
+        <div *ngFor="let game of recentActivity?.games; trackBy: trackByGameId" class="activity-item">
+          <div class="activity-icon icon-game">🎮</div>
+          <div class="activity-details">
+            <span class="activity-description">{{ game.name }}</span>
+            <span class="activity-date">{{ game.playedAt | appDateFormat:'relative' }}</span>
+          </div>
+          <div class="activity-amount" [ngClass]="game.isWin ? 'positive' : 'negative'">
+            {{ game.isWin ? '+' : '-' }}{{ game.amount | appCurrency }}
+          </div>
+        </div>
+
+        <div *ngIf="!recentActivity?.games?.length" class="empty-state">
+          <span class="empty-icon">🎮</span>
+          <p>Nenhum jogo recente</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="view-all">
+      <a routerLink="/wallet/transactions" class="view-all-link">Ver histórico completo →</a>
+    </div>
+  </div>
+</div>
