@@ -84,8 +84,8 @@ const schemas = {
   }),
 
   bet: Joi.object({
-    gameId: Joi.string().uuid().required().messages({
-      'string.uuid': 'ID do jogo deve ser um UUID válido',
+    gameId: Joi.string().pattern(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i).required().messages({
+      'string.pattern.base': 'ID do jogo deve ser um UUID válido',
       'any.required': 'ID do jogo é obrigatório',
     }),
     amount: Joi.number().positive().precision(2).required().messages({

@@ -1,0 +1,635 @@
+// ============================================
+// SLOT MACHINE - Estilos
+// ============================================
+
+$gold: #ffd700;
+$gold-dark: #b8960c;
+$gold-light: #ffed4e;
+$bg-dark: #0a0a0a;
+$bg-card: #1a1a1a;
+$bg-reel: #111;
+$bg-machine: #1e1e2e;
+$success: #4caf50;
+$danger: #f44336;
+$text-primary: #ffffff;
+$text-secondary: #b0b0b0;
+
+.slot-machine-page {
+  min-height: 100vh;
+  background: $bg-dark;
+  color: $text-primary;
+  padding-bottom: 2rem;
+}
+
+// ===== HEADER =====
+.game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: $bg-card;
+  border-bottom: 2px solid $gold;
+
+  .back-btn {
+    background: none;
+    border: none;
+    color: $gold;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: opacity 0.2s;
+
+    &:hover { opacity: 0.8; }
+  }
+
+  h1 {
+    font-size: 1.4rem;
+    margin: 0;
+    color: $gold;
+  }
+
+  .balance-display {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+
+    .balance-label {
+      font-size: 0.75rem;
+      color: $text-secondary;
+    }
+
+    .balance-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: $gold;
+    }
+  }
+}
+
+// ===== MÁQUINA =====
+.machine-container {
+  max-width: 500px;
+  margin: 1.5rem auto;
+  padding: 0 1rem;
+}
+
+.machine-frame {
+  background: linear-gradient(145deg, #1e1e2e, #2a2a3e);
+  border: 3px solid $gold;
+  border-radius: 20px;
+  padding: 1.5rem;
+  position: relative;
+  box-shadow:
+    0 0 30px rgba($gold, 0.15),
+    inset 0 0 30px rgba(0, 0, 0, 0.3);
+
+  .machine-top {
+    text-align: center;
+    margin-bottom: 1rem;
+
+    .machine-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: $gold;
+      letter-spacing: 3px;
+      text-shadow: 0 0 10px rgba($gold, 0.5);
+    }
+  }
+}
+
+// ===== ROLOS =====
+.reels-container {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 0;
+  position: relative;
+}
+
+.reel {
+  width: 90px;
+  height: 100px;
+  background: $bg-reel;
+  border: 2px solid #333;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+
+  .reel-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  .symbol {
+    font-size: 3rem;
+    line-height: 1;
+
+    &.placeholder {
+      color: #333;
+      font-size: 2.5rem;
+    }
+  }
+
+  // ----- Strip de símbolos girando -----
+  .reel-strip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+  }
+
+  .strip-symbol {
+    font-size: 2.8rem;
+    line-height: 1;
+    flex-shrink: 0;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    filter: blur(0.5px);
+  }
+
+  // ----- Spinning por rolo -----
+  &.spinning {
+    border-color: rgba($gold, 0.4);
+    box-shadow: 0 0 10px rgba($gold, 0.1);
+
+    .reel-strip {
+      animation: reelStripSpin 0.25s linear infinite;
+    }
+  }
+
+  &.spinning.reel-0 .reel-strip {
+    animation-duration: 0.20s;
+  }
+  &.spinning.reel-1 .reel-strip {
+    animation-duration: 0.25s;
+  }
+  &.spinning.reel-2 .reel-strip {
+    animation-duration: 0.30s;
+  }
+
+  // ----- Revelação -----
+  &.revealed {
+    border-color: $gold;
+    box-shadow: 0 0 15px rgba($gold, 0.2);
+
+    .symbol {
+      animation: symbolReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+  }
+
+  &.revealed.reel-0 .symbol {
+    animation-delay: 0s;
+  }
+  &.revealed.reel-1 .symbol {
+    animation-delay: 0.2s;
+  }
+  &.revealed.reel-2 .symbol {
+    animation-delay: 0.4s;
+  }
+}
+
+@keyframes reelStripSpin {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-100px); }
+}
+
+@keyframes symbolReveal {
+  0% { transform: scale(0.3) translateY(-30px); opacity: 0; }
+  50% { transform: scale(1.15) translateY(0); opacity: 1; }
+  70% { transform: scale(0.95); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+// ===== PAYLINE =====
+.payline {
+  position: absolute;
+  left: 1.5rem;
+  right: 1.5rem;
+  top: 50%;
+  height: 3px;
+  background: rgba($gold, 0.2);
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 2;
+
+  &.win {
+    background: $gold;
+    box-shadow: 0 0 15px rgba($gold, 0.6);
+    animation: paylinePulse 0.6s ease infinite;
+  }
+}
+
+@keyframes paylinePulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 15px rgba($gold, 0.6); }
+  50% { opacity: 0.6; box-shadow: 0 0 30px rgba($gold, 0.9); }
+}
+
+// ===== RESULTADO =====
+.result-display {
+  text-align: center;
+  margin-top: 1rem;
+  animation: fadeInUp 0.5s ease;
+}
+
+.result-win {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+
+  .win-label {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: $gold;
+    text-shadow: 0 0 20px rgba($gold, 0.5);
+    animation: winPulse 0.8s ease infinite;
+  }
+
+  .win-amount {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: $success;
+  }
+
+  .win-multiplier {
+    font-size: 0.9rem;
+    color: $text-secondary;
+    background: rgba($gold, 0.1);
+    padding: 0.2rem 0.8rem;
+    border-radius: 12px;
+    border: 1px solid rgba($gold, 0.3);
+  }
+}
+
+@keyframes winPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.result-lose {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+
+  .lose-label {
+    font-size: 1.1rem;
+    color: $text-secondary;
+  }
+
+  .lose-text {
+    font-size: 0.85rem;
+    color: #666;
+  }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+// ===== CONTROLES =====
+.controls-section {
+  margin-top: 1.5rem;
+}
+
+.bet-controls {
+  margin-bottom: 1rem;
+
+  .bet-label {
+    display: block;
+    font-size: 0.85rem;
+    color: $text-secondary;
+    margin-bottom: 0.5rem;
+    text-align: center;
+  }
+}
+
+.bet-input-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  .bet-adj-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 2px solid #333;
+    background: $bg-card;
+    color: $text-primary;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+      border-color: $gold;
+      color: $gold;
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+  }
+
+  .bet-display {
+    display: flex;
+    align-items: center;
+    background: $bg-reel;
+    border: 2px solid #333;
+    border-radius: 10px;
+    padding: 0 0.75rem;
+    min-width: 100px;
+
+    .currency {
+      color: $text-secondary;
+      font-size: 0.85rem;
+      margin-right: 0.25rem;
+    }
+
+    .bet-input {
+      width: 60px;
+      background: none;
+      border: none;
+      color: $gold;
+      font-size: 1.2rem;
+      font-weight: 700;
+      text-align: center;
+      padding: 0.5rem 0;
+      outline: none;
+
+      &::-webkit-outer-spin-button,
+      &::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      &[type=number] {
+        -moz-appearance: textfield;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+      }
+    }
+  }
+}
+
+.quick-bets {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+
+  .quick-bet {
+    padding: 0.3rem 0.7rem;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: $bg-card;
+    color: $text-secondary;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+      border-color: $gold;
+      color: $gold;
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// ===== BOTÃO GIRAR =====
+.spin-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 1rem;
+  border: none;
+  border-radius: 14px;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 0.75rem;
+  background: linear-gradient(135deg, $gold, $gold-dark);
+  color: #000;
+  box-shadow: 0 4px 15px rgba($gold, 0.3);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba($gold, 0.4);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  &.spinning-btn {
+    background: linear-gradient(135deg, #333, #222);
+    color: $gold;
+    cursor: wait;
+  }
+
+  &.play-again-btn {
+    background: linear-gradient(135deg, $gold, $gold-dark);
+    color: #000;
+  }
+}
+
+.spinner-dots {
+  span {
+    animation: dotBlink 1.2s ease infinite;
+    font-size: 2rem;
+    
+    &:nth-child(2) { animation-delay: 0.2s; }
+    &:nth-child(3) { animation-delay: 0.4s; }
+  }
+}
+
+@keyframes dotBlink {
+  0%, 60%, 100% { opacity: 0.2; }
+  30% { opacity: 1; }
+}
+
+// ===== ERRO =====
+.error-message {
+  text-align: center;
+  color: $danger;
+  font-size: 0.9rem;
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+  background: rgba($danger, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba($danger, 0.2);
+}
+
+// ===== TABELA DE PAGAMENTO =====
+.paytable-section {
+  max-width: 500px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+
+  h2 {
+    font-size: 1.1rem;
+    color: $gold;
+    margin-bottom: 0.75rem;
+    text-align: center;
+  }
+}
+
+.paytable-grid {
+  background: $bg-card;
+  border-radius: 12px;
+  border: 1px solid #2a2a2a;
+  overflow: hidden;
+}
+
+.paytable-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #222;
+
+  &:last-child { border-bottom: none; }
+
+  .paytable-combo {
+    font-size: 1.1rem;
+  }
+
+  .paytable-mult {
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+
+  &.jackpot {
+    background: rgba($gold, 0.08);
+    .paytable-mult { color: $gold; font-size: 1.1rem; }
+  }
+
+  &.high {
+    .paytable-mult { color: #ff6b6b; }
+  }
+
+  &.mid {
+    .paytable-mult { color: #ffa726; }
+  }
+
+  &.low {
+    .paytable-mult { color: $text-secondary; }
+  }
+
+  &.pair {
+    .paytable-combo { font-size: 0.85rem; color: $text-secondary; }
+    .paytable-mult { color: #666; font-size: 0.85rem; }
+  }
+}
+
+// ===== HISTÓRICO =====
+.history-section {
+  max-width: 500px;
+  margin: 1.5rem auto;
+  padding: 0 1rem;
+
+  h2 {
+    font-size: 1.1rem;
+    color: $gold;
+    margin-bottom: 0.75rem;
+    text-align: center;
+  }
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0.75rem;
+  background: $bg-card;
+  border-radius: 8px;
+  border-left: 3px solid #333;
+  font-size: 0.85rem;
+
+  &.win { border-left-color: $success; }
+  &.lose { border-left-color: #333; }
+
+  .history-reels {
+    font-size: 1rem;
+    min-width: 100px;
+  }
+
+  .history-bet {
+    color: $text-secondary;
+  }
+
+  .history-result {
+    font-weight: 700;
+    color: $danger;
+
+    &.positive { color: $success; }
+  }
+}
+
+// ===== RESPONSIVO =====
+@media (max-width: 400px) {
+  .game-header {
+    padding: 0.75rem 1rem;
+
+    h1 { font-size: 1.1rem; }
+  }
+
+  .reel {
+    width: 75px;
+    height: 85px;
+
+    .symbol { font-size: 2.5rem; }
+  }
+
+  .bet-input-group {
+    gap: 0.3rem;
+
+    .bet-adj-btn {
+      width: 36px;
+      height: 36px;
+      font-size: 0.8rem;
+    }
+  }
+
+  .spin-btn {
+    font-size: 1.1rem;
+    padding: 0.85rem;
+  }
+}

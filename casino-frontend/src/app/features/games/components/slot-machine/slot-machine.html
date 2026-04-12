@@ -1,0 +1,163 @@
+<div class="slot-machine-page">
+  <!-- Header -->
+  <div class="game-header">
+    <button class="back-btn" (click)="goBack()">← Voltar</button>
+    <h1>🎰 Slot Clássico</h1>
+    <div class="balance-display">
+      <span class="balance-label">Saldo</span>
+      <span class="balance-value">{{ balance | appCurrency }}</span>
+    </div>
+  </div>
+
+  <!-- Máquina -->
+  <div class="machine-container">
+    <div class="machine-frame">
+      <div class="machine-top">
+        <span class="machine-title">★ SLOT CLÁSSICO ★</span>
+      </div>
+
+      <!-- Rolos -->
+      <div class="reels-container">
+        <div class="reel" *ngFor="let symbol of reels; let i = index"
+             [class.spinning]="status === 'spinning' || (status === 'revealing' && !symbol)"
+             [class.revealed]="symbol && (status === 'revealing' || status === 'result')"
+             [class.reel-0]="i === 0"
+             [class.reel-1]="i === 1"
+             [class.reel-2]="i === 2">
+          <!-- Strip de símbolos que rola enquanto este rolo ainda não parou -->
+          <div class="reel-strip" *ngIf="status === 'spinning' || (status === 'revealing' && !symbol)">
+            <span class="strip-symbol" *ngFor="let s of spinSymbols">{{ s }}</span>
+          </div>
+          <!-- Símbolo final quando este rolo já parou -->
+          <div class="reel-inner" *ngIf="!(status === 'spinning' || (status === 'revealing' && !symbol))">
+            <span class="symbol" *ngIf="symbol">{{ symbol }}</span>
+            <span class="symbol placeholder" *ngIf="!symbol">?</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Linha de pagamento -->
+      <div class="payline" [class.win]="status === 'result' && isWin"></div>
+
+      <!-- Resultado -->
+      <div class="result-display" *ngIf="status === 'result'">
+        <div class="result-win" *ngIf="isWin">
+          <span class="win-label">{{ getMultiplierLabel(multiplier) }}</span>
+          <span class="win-amount">+{{ winAmount | appCurrency }}</span>
+          <span class="win-multiplier">{{ multiplier }}x</span>
+        </div>
+        <div class="result-lose" *ngIf="!isWin">
+          <span class="lose-label">Não foi dessa vez...</span>
+          <span class="lose-text">Tente novamente!</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controles de aposta -->
+    <div class="controls-section">
+      <div class="bet-controls">
+        <label class="bet-label">Aposta</label>
+        <div class="bet-input-group">
+          <button class="bet-adj-btn" (click)="adjustBet(-5)" [disabled]="status !== 'idle'">−5</button>
+          <button class="bet-adj-btn" (click)="adjustBet(-1)" [disabled]="status !== 'idle'">−1</button>
+          <div class="bet-display">
+            <span class="currency">R$</span>
+            <input type="number" [ngModel]="betAmount" (ngModelChange)="onBetChange($event)"
+                   [disabled]="status !== 'idle'" class="bet-input" min="1" max="100" />
+          </div>
+          <button class="bet-adj-btn" (click)="adjustBet(1)" [disabled]="status !== 'idle'">+1</button>
+          <button class="bet-adj-btn" (click)="adjustBet(5)" [disabled]="status !== 'idle'">+5</button>
+        </div>
+        <div class="quick-bets">
+          <button class="quick-bet" (click)="setQuickBet(1)" [disabled]="status !== 'idle'">R$1</button>
+          <button class="quick-bet" (click)="setQuickBet(5)" [disabled]="status !== 'idle'">R$5</button>
+          <button class="quick-bet" (click)="setQuickBet(10)" [disabled]="status !== 'idle'">R$10</button>
+          <button class="quick-bet" (click)="setQuickBet(25)" [disabled]="status !== 'idle'">R$25</button>
+          <button class="quick-bet" (click)="setQuickBet(50)" [disabled]="status !== 'idle'">R$50</button>
+          <button class="quick-bet" (click)="setQuickBet(100)" [disabled]="status !== 'idle'">R$100</button>
+        </div>
+      </div>
+
+      <!-- Botão principal -->
+      <button class="spin-btn"
+              *ngIf="status === 'idle'"
+              [disabled]="!canSpin"
+              (click)="spin()">
+        🎰 GIRAR
+      </button>
+
+      <button class="spin-btn spinning-btn"
+              *ngIf="status === 'spinning' || status === 'revealing'"
+              disabled>
+        <span class="spinner-dots">
+          <span>.</span><span>.</span><span>.</span>
+        </span>
+      </button>
+
+      <button class="spin-btn play-again-btn"
+              *ngIf="status === 'result'"
+              (click)="playAgain()">
+        🔄 Jogar Novamente
+      </button>
+
+      <!-- Erro -->
+      <div class="error-message" *ngIf="errorMessage">
+        ⚠️ {{ errorMessage }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabela de pagamento -->
+  <div class="paytable-section">
+    <h2>Tabela de Pagamento</h2>
+    <div class="paytable-grid">
+      <div class="paytable-row jackpot">
+        <span class="paytable-combo">7️⃣ 7️⃣ 7️⃣</span>
+        <span class="paytable-mult">60x</span>
+      </div>
+      <div class="paytable-row high">
+        <span class="paytable-combo">💎 💎 💎</span>
+        <span class="paytable-mult">30x</span>
+      </div>
+      <div class="paytable-row high">
+        <span class="paytable-combo">⭐ ⭐ ⭐</span>
+        <span class="paytable-mult">15x</span>
+      </div>
+      <div class="paytable-row mid">
+        <span class="paytable-combo">🍇 🍇 🍇</span>
+        <span class="paytable-mult">7.5x</span>
+      </div>
+      <div class="paytable-row mid">
+        <span class="paytable-combo">🍊 🍊 🍊</span>
+        <span class="paytable-mult">6x</span>
+      </div>
+      <div class="paytable-row low">
+        <span class="paytable-combo">🍋 🍋 🍋</span>
+        <span class="paytable-mult">4.5x</span>
+      </div>
+      <div class="paytable-row low">
+        <span class="paytable-combo">🍒 🍒 🍒</span>
+        <span class="paytable-mult">3x</span>
+      </div>
+      <div class="paytable-row pair">
+        <span class="paytable-combo">2 iguais</span>
+        <span class="paytable-mult">0.5x ~ 10x</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Histórico -->
+  <div class="history-section" *ngIf="lastResults.length > 0">
+    <h2>Últimas Jogadas</h2>
+    <div class="history-list">
+      <div class="history-item" *ngFor="let entry of lastResults"
+           [class.win]="entry.isWin" [class.lose]="!entry.isWin">
+        <span class="history-reels">{{ entry.reels.join(' ') }}</span>
+        <span class="history-bet">{{ entry.bet | appCurrency }}</span>
+        <span class="history-result" [class.positive]="entry.isWin">
+          {{ entry.isWin ? '+' : '' }}{{ entry.win | appCurrency }}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

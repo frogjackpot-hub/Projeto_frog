@@ -50,7 +50,12 @@ export class QuickActionsComponent implements OnInit, OnDestroy {
   }
 
   playGame(game: Game): void {
-    // Navegar para o jogo específico
-    this.router.navigate(['/games', game.type, game.id]);
+    if (game.name.toLowerCase().includes('frog')) {
+      this.router.navigate(['/games/frogjackpot']);
+    } else if (game.type === 'slot' || game.name.toLowerCase().includes('slot')) {
+      this.router.navigate(['/games/slot']);
+    } else {
+      this.router.navigate(['/games']);
+    }
   }
 }

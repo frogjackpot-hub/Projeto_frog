@@ -1,6 +1,6 @@
 const Joi = require('joi');
 
-const uuidSchema = Joi.string().uuid().required();
+const uuidSchema = Joi.string().pattern(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i).required();
 
 function validateParamUUID(paramName) {
   return (req, res, next) => {

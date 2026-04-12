@@ -56,6 +56,11 @@ export class GamesListComponent implements OnInit {
   }
 
   playGame(game: Game): void {
+    if (game.type === 'slot' || game.name.toLowerCase().includes('slot')) {
+      this.router.navigate(['/games/slot']);
+      return;
+    }
+
     this.notificationService.info(
       'Jogo em desenvolvimento',
       `O jogo ${game.name} será implementado em breve!`

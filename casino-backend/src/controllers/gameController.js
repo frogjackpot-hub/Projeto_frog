@@ -5,6 +5,8 @@ const db = require('../config/database');
 const logger = require('../utils/logger');
 const { v4: uuidv4 } = require('uuid');
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * Gerencia sessões de jogo para tracking de tempo de jogo.
  * - Se existe uma sessão ativa (última atividade < 30min), atualiza ela.
@@ -120,8 +122,7 @@ class GameController {
       const { id } = req.params;
 
       // Validação básica de UUID para evitar passar valores literais como ':id' ao Postgres
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-      if (!uuidRegex.test(id)) {
+      if (!UUID_REGEX.test(id)) {
         return res.status(400).json({
           success: false,
           error: 'ID do jogo inválido',
@@ -152,8 +153,7 @@ class GameController {
     try {
       const { gameId, amount } = req.body;
       // Validar gameId
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-      if (!uuidRegex.test(gameId)) {
+      if (!UUID_REGEX.test(gameId)) {
         return res.status(400).json({
           success: false,
           error: 'ID do jogo inválido',
@@ -255,8 +255,7 @@ class GameController {
     try {
       const { gameId, amount, bet } = req.body;
       // Validar gameId
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-      if (!uuidRegex.test(gameId)) {
+      if (!UUID_REGEX.test(gameId)) {
         return res.status(400).json({
           success: false,
           error: 'ID do jogo inválido',
@@ -412,8 +411,7 @@ class GameController {
       // ===== VALIDAÇÕES =====
       
       // Validar gameId (UUID)
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-      if (!uuidRegex.test(gameId)) {
+      if (!UUID_REGEX.test(gameId)) {
         return res.status(400).json({
           success: false,
           error: 'ID do jogo inválido',

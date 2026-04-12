@@ -149,16 +149,16 @@ export class AuthService {
     // Parar heartbeat
     this.stopHeartbeat();
     
-    // Limpar dados ANTES de qualquer navegação para evitar conflito com NoAuthGuard
-    this.clearAuthData();
-    
     if (token) {
-      // Notificar o servidor sobre o logout (fire-and-forget)
+      // Notificar o servidor antes de limpar (getHeaders() lê o token do storage)
       this.apiService.post('auth/logout', {}).subscribe({
         next: () => console.log('Logout realizado com sucesso'),
         error: (error) => console.error('Erro no logout:', error)
       });
     }
+    
+    // Limpar dados locais após disparar a requisição
+    this.clearAuthData();
   }
 
   refreshToken(): Observable<boolean> {

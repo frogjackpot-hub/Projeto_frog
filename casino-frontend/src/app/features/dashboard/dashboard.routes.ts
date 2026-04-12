@@ -15,6 +15,10 @@ const routes: Routes = [
   {
     path: '',
     component: DashboardHomeComponent
+  },
+  {
+    path: 'profile',
+    component: UserProfile
   }
 ];
 
