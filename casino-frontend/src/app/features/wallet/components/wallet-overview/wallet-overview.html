@@ -1,1 +1,91 @@
-<p>wallet-overview works!</p>
+<div class="wallet-overview">
+
+  <!-- Header -->
+  <div class="page-header">
+    <h1>💼 Minha Carteira</h1>
+  </div>
+
+  <!-- Cartão de saldo -->
+  <div class="balance-card" *ngIf="currentUser">
+    <div class="balance-card-bg"></div>
+    <div class="balance-info">
+      <span class="balance-label">Saldo disponível</span>
+      <span class="balance-value">{{ currentUser.balance | appCurrency }}</span>
+    </div>
+    <div class="balance-actions">
+      <a routerLink="/wallet/deposit" class="balance-btn deposit-btn">
+        <span class="btn-icon">💳</span>
+        Depositar
+      </a>
+      <a routerLink="/wallet/withdraw" class="balance-btn withdraw-btn">
+        <span class="btn-icon">💸</span>
+        Sacar
+      </a>
+    </div>
+  </div>
+
+  <!-- Atalhos rápidos -->
+  <div class="shortcuts-section">
+    <h2>Ações</h2>
+    <div class="shortcuts-grid">
+      <a routerLink="/wallet/deposit" class="shortcut-card">
+        <span class="shortcut-icon">💳</span>
+        <span class="shortcut-label">Depositar</span>
+        <span class="shortcut-desc">Adicionar fundos</span>
+      </a>
+      <a routerLink="/wallet/withdraw" class="shortcut-card">
+        <span class="shortcut-icon">💸</span>
+        <span class="shortcut-label">Sacar</span>
+        <span class="shortcut-desc">Retirar fundos</span>
+      </a>
+      <a routerLink="/wallet/transactions" class="shortcut-card">
+        <span class="shortcut-icon">📋</span>
+        <span class="shortcut-label">Histórico</span>
+        <span class="shortcut-desc">Ver transações</span>
+      </a>
+      <a routerLink="/games" class="shortcut-card">
+        <span class="shortcut-icon">🎮</span>
+        <span class="shortcut-label">Jogos</span>
+        <span class="shortcut-desc">Jogar agora</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Últimas transações -->
+  <div class="recent-section">
+    <div class="recent-header">
+      <h2>Últimas Transações</h2>
+      <a routerLink="/wallet/transactions" class="view-all-link">Ver todas →</a>
+    </div>
+
+    <div class="loading-state" *ngIf="isLoading">
+      <span class="spinner"></span>
+      Carregando...
+    </div>
+
+    <div class="transactions-list" *ngIf="!isLoading">
+      <div
+        class="transaction-item"
+        *ngFor="let t of recentTransactions; trackBy: trackById"
+        [class.positive]="isPositive(t.type)"
+        [class.negative]="!isPositive(t.type)"
+      >
+        <div class="tx-icon">{{ getTransactionIcon(t.type) }}</div>
+        <div class="tx-info">
+          <span class="tx-desc">{{ t.description }}</span>
+          <span class="tx-date">{{ t.createdAt | appDateFormat:'relative' }}</span>
+        </div>
+        <div class="tx-amount" [class.positive]="isPositive(t.type)">
+          {{ isPositive(t.type) ? '+' : '-' }}{{ t.amount | appCurrency }}
+        </div>
+      </div>
+
+      <div class="empty-state" *ngIf="recentTransactions.length === 0">
+        <span class="empty-icon">📋</span>
+        <p>Nenhuma transação ainda</p>
+        <a routerLink="/wallet/deposit" class="empty-action">Fazer primeiro depósito</a>
+      </div>
+    </div>
+  </div>
+
+</div>
