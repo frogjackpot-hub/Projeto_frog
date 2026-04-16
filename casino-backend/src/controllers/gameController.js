@@ -1,6 +1,7 @@
 const Game = require('../models/Game');
 const Transaction = require('../models/Transaction');
 const RNGService = require('../services/rngService');
+const PartnerService = require('../services/partnerService');
 const db = require('../config/database');
 const logger = require('../utils/logger');
 const { v4: uuidv4 } = require('uuid');
@@ -227,6 +228,9 @@ class GameController {
       await trackGameSession(user.id, gameId, amount, winAmount);
       await checkHighBetAlert(user.id, amount, game.name);
 
+      // Processar comissão de parceiro (se houver)
+      await PartnerService.processCommission(user.id, amount, winAmount, betTransaction.id);
+
       logger.info('Jogo de slot jogado', {
         userId: user.id,
         gameId: gameId,
@@ -367,6 +371,9 @@ class GameController {
       // Rastrear sessão de jogo
       await trackGameSession(user.id, gameId, amount, winAmount);
       await checkHighBetAlert(user.id, amount, game.name);
+
+      // Processar comissão de parceiro (se houver)
+      await PartnerService.processCommission(user.id, amount, winAmount, betTransaction.id);
 
       logger.info('Jogo de roleta jogado', {
         userId: user.id,
@@ -544,6 +551,9 @@ class GameController {
       // Rastrear sessão de jogo (fora da transação atômica para não bloquear)
       await trackGameSession(user.id, gameId, amount, result.winAmount || 0);
       await checkHighBetAlert(user.id, amount, 'FrogJackpot');
+
+      // Processar comissão de parceiro (se houver)
+      await PartnerService.processCommission(user.id, amount, result.winAmount || 0, betTxId);
 
       // Atualizar balance no objeto user para o log
       user.balance = finalBalance;

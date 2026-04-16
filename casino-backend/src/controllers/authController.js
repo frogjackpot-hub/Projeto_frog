@@ -1,4 +1,5 @@
 const AuthService = require('../services/authService');
+const PartnerService = require('../services/partnerService');
 const logger = require('../utils/logger');
 const db = require('../config/database');
 
@@ -41,6 +42,18 @@ class AuthController {
       });
 
       const result = await AuthService.register(req.body);
+
+      // Vincular a parceiro se informou código de indicação
+      const referralCode = req.body.referralCode || req.body.referral_code;
+      if (referralCode) {
+        try {
+          await PartnerService.linkUserToPartner(result.user.id, referralCode.toUpperCase());
+        } catch (linkError) {
+          logger.error('Erro ao vincular código de indicação', {
+            error: linkError.message, referralCode, userId: result.user.id
+          });
+        }
+      }
       
       logger.info('Novo usuário registrado', {
         userId: result.user.id,

@@ -1,0 +1,125 @@
+$gold: #ffd700;
+$bg-dark: #0a0a0a;
+$bg-card: #1a1a1a;
+$success: #4caf50;
+$danger: #f44336;
+$warning: #ff9800;
+$text-primary: #ffffff;
+$text-secondary: #b0b0b0;
+
+.partner-commissions {
+  min-height: 100vh;
+  background: $bg-dark;
+  color: $text-primary;
+  padding-bottom: 2rem;
+}
+
+.page-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #222;
+  .back-link { font-size: 0.85rem; color: $gold; text-decoration: none; &:hover { text-decoration: underline; } }
+  h1 { margin: 0.5rem 0 0; font-size: 1.5rem; color: $gold; }
+  .page-subtitle { margin: 0.25rem 0 0; font-size: 0.85rem; color: $text-secondary; }
+}
+
+.filters-section {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  overflow-x: auto;
+
+  .filter-btn {
+    background: $bg-card;
+    border: 1px solid #2a2a2a;
+    color: $text-secondary;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    transition: all 0.2s;
+
+    &:hover { border-color: rgba($gold, 0.4); color: $text-primary; }
+    &.active { background: rgba($gold, 0.15); border-color: $gold; color: $gold; }
+  }
+}
+
+.loading-state {
+  display: flex; flex-direction: column; align-items: center; padding: 4rem 1rem; color: $text-secondary;
+  .spinner {
+    width: 40px; height: 40px; border: 3px solid #333; border-top-color: $gold;
+    border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 1rem;
+  }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.content-area { padding: 0 1.5rem; }
+
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; padding: 3rem 1rem; text-align: center;
+  .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+  p { font-size: 1.1rem; color: $text-primary; margin: 0; }
+}
+
+.commissions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.commission-item {
+  background: $bg-card;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  transition: border-color 0.2s;
+  &:hover { border-color: rgba($gold, 0.3); }
+
+  .commission-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .commission-info {
+    display: flex; flex-direction: column; gap: 0.15rem;
+    .commission-user { font-weight: 600; font-size: 0.9rem; }
+    .commission-detail { font-size: 0.8rem; color: $text-secondary; }
+    .commission-date { font-size: 0.75rem; color: $text-secondary; }
+  }
+
+  .commission-right {
+    display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem;
+  }
+
+  .commission-amount {
+    font-weight: 700;
+    font-size: 1rem;
+    color: $success;
+  }
+
+  .commission-status {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+
+    &.status-pending { background: rgba($warning, 0.15); color: $warning; }
+    &.status-validated { background: rgba($success, 0.15); color: $success; }
+    &.status-cancelled { background: rgba($danger, 0.15); color: $danger; }
+  }
+}
+
+.pagination {
+  display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 1.5rem;
+  .page-btn {
+    background: $bg-card; border: 1px solid #2a2a2a; color: $text-primary;
+    padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+    transition: all 0.2s;
+    &:hover:not(:disabled) { border-color: $gold; color: $gold; }
+    &:disabled { opacity: 0.4; cursor: not-allowed; }
+  }
+  .page-info { font-size: 0.85rem; color: $text-secondary; }
+}

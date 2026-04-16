@@ -6,6 +6,7 @@ import { AdminDashboardComponent } from './components/admin-dashboard/admin-dash
 import { AdminGamesComponent } from './components/admin-games/admin-games';
 import { AdminLayoutComponent } from './components/admin-layout/admin-layout';
 import { AdminLoginComponent } from './components/admin-login/admin-login';
+import { AdminPartnersComponent } from './components/admin-partners/admin-partners';
 import { AdminUserProfileComponent } from './components/admin-user-profile/admin-user-profile';
 import { AdminUsersComponent } from './components/admin-users/admin-users';
 
@@ -42,6 +43,10 @@ export const adminRoutes: Routes = [
       {
         path: 'audit',
         component: AdminAuditComponent
+      },
+      {
+        path: 'partners',
+        component: AdminPartnersComponent
       },
       {
         path: '',

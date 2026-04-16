@@ -8,6 +8,55 @@
 
 .register-container {
 
+  .referral-group {
+    .optional {
+      font-size: 0.8rem;
+      color: #777;
+      font-weight: 400;
+    }
+
+    .referral-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+
+      input {
+        width: 100%;
+        padding-right: 2.5rem;
+
+        &.valid {
+          border-color: #4caf50;
+        }
+      }
+
+      .referral-status {
+        position: absolute;
+        right: 12px;
+        font-size: 1rem;
+
+        &.valid { color: #4caf50; }
+        &.invalid { color: #f44336; }
+      }
+    }
+
+    .referral-feedback {
+      font-size: 0.8rem;
+      margin-top: 4px;
+
+      &.valid {
+        color: #4caf50;
+
+        strong {
+          color: #ffd700;
+        }
+      }
+
+      &.invalid {
+        color: #f44336;
+      }
+    }
+  }
+
   .checkbox-group {
     margin: 1.25rem 0;
 

@@ -7,6 +7,7 @@ const gameRoutes = require('./games');
 const walletRoutes = require('./wallet');
 const dashboardRoutes = require('./dashboard');
 const adminRoutes = require('./admin');
+const partnerRoutes = require('./partners');
 
 // Rota de health check
 router.get('/health', (req, res) => {
@@ -24,5 +25,6 @@ router.use('/games', gameRoutes);
 router.use('/wallet', walletRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/admin', adminRoutes);
+router.use('/partners', partnerRoutes);
 
 module.exports = router;

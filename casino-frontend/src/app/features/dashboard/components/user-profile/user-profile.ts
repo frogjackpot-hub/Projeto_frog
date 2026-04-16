@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { User } from '../../../../core/models/user.model';
 import { AuthService } from '../../../../core/services/auth.service';
+import { PartnerService } from '../../../../core/services/partner.service';
 import { CurrencyPipe } from '../../../../shared/pipes/currency.pipe';
 import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { DashboardService, DashboardStats, RecentActivity } from '../../services/dashboard.service';
@@ -26,12 +27,14 @@ export class UserProfile implements OnInit, OnDestroy {
   stats: DashboardStats | null = null;
   recentActivity: RecentActivity | null = null;
   activeTab: 'transactions' | 'games' = 'transactions';
+  isPartner = false;
 
   private subscription = new Subscription();
 
   constructor(
     private authService: AuthService,
     private dashboardService: DashboardService,
+    private partnerService: PartnerService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -59,6 +62,19 @@ export class UserProfile implements OnInit, OnDestroy {
 
     this.subscription.add(
       this.dashboardService.loadDashboardData().subscribe()
+    );
+
+    this.subscription.add(
+      this.partnerService.getMyProfile().subscribe({
+        next: (response) => {
+          this.isPartner = response.success && !!response.data?.partner;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.isPartner = false;
+          this.cdr.markForCheck();
+        }
+      })
     );
   }
 

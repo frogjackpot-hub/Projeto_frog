@@ -146,6 +146,34 @@
       </div>
     </div>
 
+    <div class="form-group referral-group">
+      <label for="referralCode">Código de indicação <span class="optional">(opcional)</span></label>
+      <div class="referral-input-wrapper">
+        <input
+          id="referralCode"
+          type="text"
+          formControlName="referralCode"
+          placeholder="Ex: barzeze_a1b2c3"
+          [class.error]="isFieldInvalid('referralCode')"
+          [class.valid]="referralCodeValid === true"
+          (blur)="validateReferralCode()"
+          maxlength="20"
+        >
+        <span class="referral-status" *ngIf="referralCodeChecking">⏳</span>
+        <span class="referral-status valid" *ngIf="referralCodeValid === true">✅</span>
+        <span class="referral-status invalid" *ngIf="referralCodeValid === false">❌</span>
+      </div>
+      <div class="referral-feedback valid" *ngIf="referralCodeValid === true">
+        Indicado por: <strong>{{ referralPartnerName }}</strong>
+      </div>
+      <div class="referral-feedback invalid" *ngIf="referralCodeValid === false">
+        Código de indicação inválido
+      </div>
+      <div class="error-message" *ngIf="isFieldInvalid('referralCode')">
+        {{ getFieldErrorMessage('referralCode') }}
+      </div>
+    </div>
+
     <div class="form-group checkbox-group">
       <label class="checkbox-label">
         <input type="checkbox" formControlName="acceptTerms" [class.error]="isFieldInvalid('acceptTerms')">

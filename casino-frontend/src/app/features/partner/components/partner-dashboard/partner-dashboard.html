@@ -1,0 +1,137 @@
+<div class="partner-dashboard">
+  <!-- HEADER -->
+  <div class="page-header">
+    <h1>🤝 Painel do Parceiro</h1>
+    <p class="page-subtitle">Gerencie suas indicações e comissões</p>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Carregando dados...</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading && partner">
+    <!-- CARTÃO DE CÓDIGO -->
+    <div class="referral-card">
+      <div class="referral-card-bg"></div>
+      <div class="referral-info">
+        <span class="referral-label">SEU CÓDIGO DE INDICAÇÃO</span>
+        <div class="referral-code-row">
+          <span class="referral-code">{{ partner.referralCode }}</span>
+          <button class="copy-btn" (click)="copyReferralCode()" [class.copied]="copied">
+            {{ copied ? '✅' : '📋' }}
+          </button>
+        </div>
+      </div>
+      <div class="referral-actions">
+        <button class="action-btn link-btn" (click)="copyReferralLink()">
+          <span class="btn-icon">🔗</span>
+          <span>Copiar Link</span>
+        </button>
+        <button class="action-btn qr-btn" (click)="toggleQrCode()">
+          <span class="btn-icon">📱</span>
+          <span>QR Code</span>
+        </button>
+      </div>
+
+      <!-- QR CODE -->
+      <div class="qr-code-section" *ngIf="showQrCode">
+        <img [src]="getQrCodeUrl()" alt="QR Code de indicação" class="qr-image" />
+        <p class="qr-hint">Escaneie para se cadastrar com seu código</p>
+      </div>
+    </div>
+
+    <!-- STATS CARDS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-icon">👥</span>
+        <span class="stat-value">{{ stats?.totalReferredUsers || 0 }}</span>
+        <span class="stat-label">Indicados</span>
+      </div>
+      <div class="stat-card highlight">
+        <span class="stat-icon">💰</span>
+        <span class="stat-value">{{ stats?.commissionBalance || 0 | appCurrency }}</span>
+        <span class="stat-label">Saldo Disponível</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">⏳</span>
+        <span class="stat-value">{{ stats?.pendingCommission || 0 | appCurrency }}</span>
+        <span class="stat-label">Pendente</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">📈</span>
+        <span class="stat-value">{{ stats?.totalCommissionsEarned || 0 | appCurrency }}</span>
+        <span class="stat-label">Total Ganho</span>
+      </div>
+    </div>
+
+    <!-- INFO DO COMISSÃO -->
+    <div class="commission-info-card">
+      <div class="commission-row">
+        <span class="commission-label">Tipo de comissão:</span>
+        <span class="commission-value">
+          {{ partner.commissionType === 'percentage' ? 'Porcentagem' : 'Valor Fixo' }}
+        </span>
+      </div>
+      <div class="commission-row">
+        <span class="commission-label">Valor:</span>
+        <span class="commission-value gold">{{ getCommissionDisplay() }}</span>
+      </div>
+      <div class="commission-row" *ngIf="partner.commissionType === 'fixed'">
+        <span class="commission-label">Perda mínima:</span>
+        <span class="commission-value">{{ partner.commissionThreshold | appCurrency }}</span>
+      </div>
+    </div>
+
+    <!-- ATALHOS -->
+    <div class="shortcuts-section">
+      <h2>Ações</h2>
+      <div class="shortcuts-grid">
+        <a routerLink="/partner/referred" class="shortcut-card">
+          <span class="shortcut-icon">👥</span>
+          <span class="shortcut-label">Indicados</span>
+          <span class="shortcut-desc">Ver todos</span>
+        </a>
+        <a routerLink="/partner/commissions" class="shortcut-card">
+          <span class="shortcut-icon">💎</span>
+          <span class="shortcut-label">Comissões</span>
+          <span class="shortcut-desc">Histórico</span>
+        </a>
+        <a routerLink="/partner/withdrawals" class="shortcut-card">
+          <span class="shortcut-icon">💸</span>
+          <span class="shortcut-label">Saques</span>
+          <span class="shortcut-desc">Solicitar</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- INDICADOS RECENTES -->
+    <div class="recent-section" *ngIf="recentReferred.length > 0">
+      <div class="section-header">
+        <h2>Indicados Recentes</h2>
+        <a routerLink="/partner/referred" class="see-all">Ver todos →</a>
+      </div>
+      <div class="referred-list">
+        <div class="referred-item" *ngFor="let user of recentReferred; trackBy: trackByUserId">
+          <div class="referred-info">
+            <span class="referred-name">{{ user.username }}</span>
+            <span class="referred-date">{{ user.created_at | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="referred-stats">
+            <span class="referred-loss" [class.positive]="+(user.net_loss) > 0">
+              {{ +(user.net_loss) > 0 ? '+' : '' }}{{ user.net_loss | appCurrency }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- SEM PARCEIRO -->
+  <div class="not-partner" *ngIf="!isLoading && !partner">
+    <span class="not-partner-icon">🚫</span>
+    <h2>Você não é um parceiro</h2>
+    <p>Entre em contato com o administrador para se tornar um parceiro.</p>
+  </div>
+</div>

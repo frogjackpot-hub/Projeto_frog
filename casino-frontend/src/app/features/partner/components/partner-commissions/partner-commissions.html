@@ -1,0 +1,56 @@
+<div class="partner-commissions">
+  <div class="page-header">
+    <a routerLink="/partner" class="back-link">← Voltar</a>
+    <h1>💎 Histórico de Comissões</h1>
+    <p class="page-subtitle">{{ total }} comiss{{ total !== 1 ? 'ões' : 'ão' }}</p>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filters-section">
+    <button class="filter-btn" [class.active]="statusFilter === ''" (click)="filterByStatus('')">Todas</button>
+    <button class="filter-btn" [class.active]="statusFilter === 'pending'" (click)="filterByStatus('pending')">⏳ Pendentes</button>
+    <button class="filter-btn" [class.active]="statusFilter === 'validated'" (click)="filterByStatus('validated')">✅ Validadas</button>
+    <button class="filter-btn" [class.active]="statusFilter === 'cancelled'" (click)="filterByStatus('cancelled')">❌ Canceladas</button>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Carregando...</p>
+  </div>
+
+  <!-- LISTA -->
+  <div class="content-area" *ngIf="!isLoading">
+    <div class="empty-state" *ngIf="commissions.length === 0">
+      <span class="empty-icon">💎</span>
+      <p>Nenhuma comissão encontrada</p>
+    </div>
+
+    <div class="commissions-list" *ngIf="commissions.length > 0">
+      <div class="commission-item" *ngFor="let c of commissions; trackBy: trackById">
+        <div class="commission-main">
+          <div class="commission-info">
+            <span class="commission-user">{{ c.referred_username || 'Usuário' }}</span>
+            <span class="commission-detail">
+              Aposta: {{ c.bet_amount | appCurrency }} · Perda: {{ c.loss_amount | appCurrency }}
+            </span>
+            <span class="commission-date">{{ c.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <div class="commission-right">
+            <span class="commission-amount">+{{ c.commission_amount | appCurrency }}</span>
+            <span class="commission-status" [ngClass]="getStatusClass(c.status)">
+              {{ getStatusLabel(c.status) }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGINAÇÃO -->
+    <div class="pagination" *ngIf="totalPages > 1">
+      <button class="page-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">← Anterior</button>
+      <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
+      <button class="page-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">Próxima →</button>
+    </div>
+  </div>
+</div>

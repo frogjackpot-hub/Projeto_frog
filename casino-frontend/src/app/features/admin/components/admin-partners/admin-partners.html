@@ -1,0 +1,580 @@
+<div class="admin-partners" (click)="closeActions()">
+  <!-- Header -->
+  <div class="page-header">
+    <h1>🤝 Gestão de Parceiros</h1>
+    <div class="header-actions">
+      <button class="btn-export" (click)="exportCSV()">📥 Exportar CSV</button>
+      <button class="btn-action" (click)="validatePendingCommissions()">✅ Validar Comissões</button>
+      <button class="btn-primary" (click)="openCreateModal()">➕ Criar Parceiro</button>
+    </div>
+  </div>
+
+  <!-- Métricas -->
+  <div class="metrics-grid" *ngIf="metrics">
+    <div class="metric-card">
+      <div class="metric-icon active">👥</div>
+      <div class="metric-data">
+        <span class="metric-value">{{ metrics.activePartners }}</span>
+        <span class="metric-label">Parceiros Ativos</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon referred">👤</div>
+      <div class="metric-data">
+        <span class="metric-value">{{ metrics.totalReferred }}</span>
+        <span class="metric-label">Indicados Totais</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon pending">⏳</div>
+      <div class="metric-data">
+        <span class="metric-value">{{ metrics.totalPendingCommission | appCurrency }}</span>
+        <span class="metric-label">Comissões Pendentes</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon paid">💰</div>
+      <div class="metric-data">
+        <span class="metric-value">{{ metrics.totalCommissionsPaid | appCurrency }}</span>
+        <span class="metric-label">Comissões Pagas</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon losses">📉</div>
+      <div class="metric-data">
+        <span class="metric-value">{{ metrics.totalLosses | appCurrency }}</span>
+        <span class="metric-label">Perdas Geradas</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon withdrawals">🏦</div>
+      <div class="metric-data">
+        <span class="metric-value">{{ metrics.pendingWithdrawals }}</span>
+        <span class="metric-label">Saques Pendentes</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab" [class.active]="activeTab === 'partners'" (click)="setTab('partners')">
+      👥 Parceiros ({{ partnersTotal }})
+    </button>
+    <button class="tab" [class.active]="activeTab === 'withdrawals'" (click)="setTab('withdrawals')">
+      💰 Saques ({{ withdrawalsTotal }})
+    </button>
+    <button class="tab" [class.active]="activeTab === 'commissions'" (click)="setTab('commissions')">
+      ⏳ Comissões Pendentes ({{ pendingCommissionsTotal }})
+    </button>
+    <button class="tab" [class.active]="activeTab === 'ranking'" (click)="setTab('ranking')">
+      🏆 Ranking
+    </button>
+  </div>
+
+  <!-- ======= TAB: PARCEIROS ======= -->
+  <div class="tab-content" *ngIf="activeTab === 'partners'">
+    <!-- Filtros -->
+    <div class="filters-bar">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="onSearchChange()"
+          placeholder="Buscar por nome, email, código ou ID..."
+          class="search-input"
+        />
+      </div>
+      <div class="filter-group">
+        <select [(ngModel)]="filterStatus" class="filter-select" (change)="applyFilters()">
+          <option value="">Status ▼</option>
+          <option value="active">Ativo</option>
+          <option value="blocked">Bloqueado</option>
+        </select>
+        <select [(ngModel)]="filterType" class="filter-select" (change)="applyFilters()">
+          <option value="">Tipo ▼</option>
+          <option value="percentage">RevShare</option>
+          <option value="fixed">CPA</option>
+        </select>
+        <select [(ngModel)]="filterDatePreset" class="filter-select" (change)="applyDatePreset(filterDatePreset); applyFilters()">
+          <option value="">Período ▼</option>
+          <option value="today">Hoje</option>
+          <option value="7days">7 dias</option>
+          <option value="30days">30 dias</option>
+          <option value="custom">Personalizado</option>
+        </select>
+        <div class="custom-dates" *ngIf="filterDatePreset === 'custom'">
+          <input type="date" [(ngModel)]="filterDateFrom" class="date-input" />
+          <span>até</span>
+          <input type="date" [(ngModel)]="filterDateTo" class="date-input" />
+          <button class="btn-apply-date" (click)="applyFilters()">OK</button>
+        </div>
+        <button class="btn-clear-filters" *ngIf="searchQuery || filterStatus || filterType || filterDatePreset" (click)="clearFilters()">✕ Limpar</button>
+      </div>
+    </div>
+
+    <div class="loading" *ngIf="isLoadingPartners">
+      <div class="spinner"></div>
+      <p>Carregando parceiros...</p>
+    </div>
+
+    <div class="empty" *ngIf="!isLoadingPartners && partners.length === 0">
+      <span class="empty-icon">👥</span>
+      <p>Nenhum parceiro encontrado</p>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!isLoadingPartners && partners.length > 0">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Parceiro</th>
+            <th>Código</th>
+            <th>Tipo</th>
+            <th>Comissão</th>
+            <th class="sortable" (click)="toggleSort('total_referred_users')">
+              Indicados <span class="sort-icon">{{ getSortIcon('total_referred_users') }}</span>
+            </th>
+            <th>Ativos</th>
+            <th class="sortable" (click)="toggleSort('total_commissions_earned')">
+              Comissão Total <span class="sort-icon">{{ getSortIcon('total_commissions_earned') }}</span>
+            </th>
+            <th class="sortable" (click)="toggleSort('commission_balance')">
+              Disponível <span class="sort-icon">{{ getSortIcon('commission_balance') }}</span>
+            </th>
+            <th class="sortable" (click)="toggleSort('pending_commission')">
+              Pendente <span class="sort-icon">{{ getSortIcon('pending_commission') }}</span>
+            </th>
+            <th>Última Atividade</th>
+            <th>Nível</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of partners; trackBy: trackById">
+            <td>
+              <div class="partner-info">
+                <strong>{{ p.username || 'N/A' }}</strong>
+                <small>{{ p.email }}</small>
+              </div>
+            </td>
+            <td>
+              <div class="code-cell">
+                <code class="code">{{ p.referralCode }}</code>
+                <button class="copy-btn" (click)="copyToClipboard(p.referralCode, 'Código'); $event.stopPropagation()" title="Copiar código">📋</button>
+              </div>
+            </td>
+            <td><span class="type-badge">{{ getTypeLabel(p.commissionType) }}</span></td>
+            <td>{{ getCommissionLabel(p) }}</td>
+            <td class="num-cell">{{ p.totalReferredUsers }}</td>
+            <td class="num-cell">{{ p.activeReferredUsers || 0 }}</td>
+            <td class="num-cell">{{ p.totalCommissionsEarned | appCurrency }}</td>
+            <td>
+              <span class="balance-available">{{ p.commissionBalance | appCurrency }}</span>
+            </td>
+            <td>
+              <span class="balance-pending" *ngIf="p.pendingCommission > 0">{{ p.pendingCommission | appCurrency }}</span>
+              <span class="balance-zero" *ngIf="p.pendingCommission === 0">-</span>
+            </td>
+            <td class="activity-cell">{{ getLastActivityLabel(p.lastActivity) }}</td>
+            <td>
+              <span class="level-badge" [ngClass]="getPartnerLevel(p).class">{{ getPartnerLevel(p).label }}</span>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="getPartnerStatusClass(p)">{{ getPartnerStatusLabel(p) }}</span>
+            </td>
+            <td>
+              <div class="actions-cell">
+                <button class="btn-details" (click)="viewPartnerDetails(p); $event.stopPropagation()">👁️ Ver</button>
+                <div class="dropdown-wrapper">
+                  <button class="icon-btn" (click)="toggleActions(p.id, $event)" title="Mais ações">⋯</button>
+                  <div class="actions-dropdown" *ngIf="activeActionsPartnerId === p.id" (click)="$event.stopPropagation()">
+                    <button (click)="openConfigModal(p)">⚙️ Editar comissão</button>
+                    <button (click)="copyToClipboard(p.referralCode, 'Código')">📋 Copiar código</button>
+                    <button (click)="copyToClipboard(getReferralLink(p.referralCode), 'Link')">🔗 Copiar link</button>
+                    <button (click)="regenerateCode(p)">🔄 Novo código</button>
+                    <div class="dropdown-divider"></div>
+                    <button (click)="togglePartnerActive(p)">
+                      {{ p.isActive ? '🔒 Bloquear' : '🔓 Ativar' }}
+                    </button>
+                    <button class="danger" (click)="deletePartner(p)">🗑️ Excluir</button>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginação Partners -->
+    <div class="pagination" *ngIf="partnersTotalPages > 1">
+      <button (click)="goToPartnersPage(1)" [disabled]="partnersPage === 1">«</button>
+      <button (click)="goToPartnersPage(partnersPage - 1)" [disabled]="partnersPage === 1">‹</button>
+      <button
+        *ngFor="let p of getPages(partnersPage, partnersTotalPages)"
+        [class.active]="p === partnersPage"
+        (click)="goToPartnersPage(p)"
+      >{{ p }}</button>
+      <button (click)="goToPartnersPage(partnersPage + 1)" [disabled]="partnersPage === partnersTotalPages">›</button>
+      <button (click)="goToPartnersPage(partnersTotalPages)" [disabled]="partnersPage === partnersTotalPages">»</button>
+      <span class="pagination-info">{{ partnersPage }} de {{ partnersTotalPages }} ({{ partnersTotal }} total)</span>
+    </div>
+  </div>
+
+  <!-- ======= TAB: SAQUES ======= -->
+  <div class="tab-content" *ngIf="activeTab === 'withdrawals'">
+    <div class="filters">
+      <button class="filter-btn" [class.active]="withdrawalFilter === ''" (click)="setWithdrawalFilter('')">Todos</button>
+      <button class="filter-btn" [class.active]="withdrawalFilter === 'pending'" (click)="setWithdrawalFilter('pending')">Pendentes</button>
+      <button class="filter-btn" [class.active]="withdrawalFilter === 'approved'" (click)="setWithdrawalFilter('approved')">Aprovados</button>
+      <button class="filter-btn" [class.active]="withdrawalFilter === 'rejected'" (click)="setWithdrawalFilter('rejected')">Rejeitados</button>
+    </div>
+
+    <div class="loading" *ngIf="isLoadingWithdrawals">
+      <div class="spinner"></div>
+      <p>Carregando saques...</p>
+    </div>
+
+    <div class="empty" *ngIf="!isLoadingWithdrawals && withdrawals.length === 0">
+      <span class="empty-icon">💰</span>
+      <p>Nenhum saque encontrado</p>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!isLoadingWithdrawals && withdrawals.length > 0">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Parceiro</th>
+            <th>Valor</th>
+            <th>Data</th>
+            <th>Status</th>
+            <th>Notas</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let w of withdrawals; trackBy: trackById">
+            <td>
+              <div class="partner-info">
+                <strong>{{ w.username || w.referral_code || 'N/A' }}</strong>
+                <small>{{ w.email }}</small>
+              </div>
+            </td>
+            <td class="amount">{{ w.amount | appCurrency }}</td>
+            <td>{{ w.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(w.status)">
+                {{ getStatusLabel(w.status) }}
+              </span>
+            </td>
+            <td class="notes-cell">{{ w.review_notes || '-' }}</td>
+            <td>
+              <button
+                class="btn-review"
+                *ngIf="w.status === 'pending'"
+                (click)="openReviewModal(w)"
+              >
+                📋 Revisar
+              </button>
+              <span *ngIf="w.status !== 'pending'" class="reviewed-label">
+                {{ w.reviewed_at | date:'dd/MM HH:mm' }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination" *ngIf="withdrawalsTotalPages > 1">
+      <button (click)="goToWithdrawalsPage(1)" [disabled]="withdrawalsPage === 1">«</button>
+      <button (click)="goToWithdrawalsPage(withdrawalsPage - 1)" [disabled]="withdrawalsPage === 1">‹</button>
+      <button
+        *ngFor="let p of getPages(withdrawalsPage, withdrawalsTotalPages)"
+        [class.active]="p === withdrawalsPage"
+        (click)="goToWithdrawalsPage(p)"
+      >{{ p }}</button>
+      <button (click)="goToWithdrawalsPage(withdrawalsPage + 1)" [disabled]="withdrawalsPage === withdrawalsTotalPages">›</button>
+      <button (click)="goToWithdrawalsPage(withdrawalsTotalPages)" [disabled]="withdrawalsPage === withdrawalsTotalPages">»</button>
+    </div>
+  </div>
+
+  <!-- ======= TAB: COMISSÕES PENDENTES ======= -->
+  <div class="tab-content" *ngIf="activeTab === 'commissions'">
+    <div class="loading" *ngIf="isLoadingPendingCommissions">
+      <div class="spinner"></div>
+      <p>Carregando comissões pendentes...</p>
+    </div>
+
+    <div class="empty" *ngIf="!isLoadingPendingCommissions && pendingCommissions.length === 0">
+      <span class="empty-icon">✅</span>
+      <p>Nenhuma comissão pendente</p>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!isLoadingPendingCommissions && pendingCommissions.length > 0">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Parceiro</th>
+            <th>Usuário</th>
+            <th>Perda</th>
+            <th>Comissão</th>
+            <th>Data</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of pendingCommissions; trackBy: trackById">
+            <td>
+              <div class="partner-info">
+                <strong>{{ c.partner_username || 'N/A' }}</strong>
+                <small>{{ c.referral_code }}</small>
+              </div>
+            </td>
+            <td>{{ c.referred_username }}</td>
+            <td class="amount loss">{{ c.loss_amount | appCurrency }}</td>
+            <td class="amount commission">{{ c.commission_amount | appCurrency }}</td>
+            <td>{{ c.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              <span class="status-badge status-pending">Pendente</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="commission-actions" *ngIf="!isLoadingPendingCommissions && pendingCommissions.length > 0">
+      <button class="btn-primary" (click)="validatePendingCommissions()">✅ Validar Todas as Comissões</button>
+    </div>
+
+    <div class="pagination" *ngIf="pendingCommissionsTotalPages > 1">
+      <button (click)="goToPendingCommissionsPage(pendingCommissionsPage - 1)" [disabled]="pendingCommissionsPage === 1">‹</button>
+      <span>{{ pendingCommissionsPage }} / {{ pendingCommissionsTotalPages }}</span>
+      <button (click)="goToPendingCommissionsPage(pendingCommissionsPage + 1)" [disabled]="pendingCommissionsPage === pendingCommissionsTotalPages">›</button>
+    </div>
+  </div>
+
+  <!-- ======= TAB: RANKING ======= -->
+  <div class="tab-content" *ngIf="activeTab === 'ranking'">
+    <div class="ranking-filters">
+      <button class="filter-btn" [class.active]="rankingSortBy === 'total_commissions_earned'" (click)="setRankingSortBy('total_commissions_earned')">💰 Por Comissão</button>
+      <button class="filter-btn" [class.active]="rankingSortBy === 'total_referred_users'" (click)="setRankingSortBy('total_referred_users')">👥 Por Indicados</button>
+      <button class="filter-btn" [class.active]="rankingSortBy === 'total_losses'" (click)="setRankingSortBy('total_losses')">📉 Por Perdas</button>
+    </div>
+
+    <div class="loading" *ngIf="isLoadingRanking">
+      <div class="spinner"></div>
+      <p>Carregando ranking...</p>
+    </div>
+
+    <div class="empty" *ngIf="!isLoadingRanking && ranking.length === 0">
+      <span class="empty-icon">🏆</span>
+      <p>Nenhum parceiro no ranking</p>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!isLoadingRanking && ranking.length > 0">
+      <table class="data-table ranking-table">
+        <thead>
+          <tr>
+            <th>Posição</th>
+            <th>Parceiro</th>
+            <th>Nível</th>
+            <th>Indicados</th>
+            <th>Ativos</th>
+            <th>Perdas Geradas</th>
+            <th>Comissão Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of ranking; trackBy: trackById" [class.top-3]="r.position <= 3">
+            <td class="rank-cell">
+              <span class="rank-medal">{{ getRankingMedal(r.position) }}</span>
+            </td>
+            <td>
+              <div class="partner-info">
+                <strong>{{ r.username || 'N/A' }}</strong>
+                <small>{{ r.referralCode }}</small>
+              </div>
+            </td>
+            <td>
+              <span class="level-badge" [ngClass]="getPartnerLevel(r).class">{{ getPartnerLevel(r).label }}</span>
+            </td>
+            <td class="num-cell">{{ r.totalReferredUsers }}</td>
+            <td class="num-cell">{{ r.activeReferredUsers }}</td>
+            <td class="amount loss">{{ r.totalLosses | appCurrency }}</td>
+            <td class="amount commission">{{ r.totalCommissionsEarned | appCurrency }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination" *ngIf="rankingTotalPages > 1">
+      <button (click)="goToRankingPage(rankingPage - 1)" [disabled]="rankingPage === 1">‹</button>
+      <span>{{ rankingPage }} / {{ rankingTotalPages }}</span>
+      <button (click)="goToRankingPage(rankingPage + 1)" [disabled]="rankingPage === rankingTotalPages">›</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= MODAL: CRIAR PARCEIRO ======= -->
+<div class="modal-overlay" *ngIf="showCreateModal" (click)="closeCreateModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>➕ Criar Parceiro</h2>
+      <button class="close-btn" (click)="closeCreateModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>ID do Usuário</label>
+        <input type="text" [(ngModel)]="newPartnerUserId" placeholder="UUID do usuário" class="form-input" />
+      </div>
+      <div class="form-group">
+        <label>Tipo de Comissão</label>
+        <select [(ngModel)]="newCommissionType" class="form-input">
+          <option value="percentage">RevShare (%)</option>
+          <option value="fixed">CPA (R$)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>{{ newCommissionType === 'percentage' ? 'Porcentagem (%)' : 'Valor (R$)' }}</label>
+        <input type="number" [(ngModel)]="newCommissionValue" min="0" [max]="newCommissionType === 'percentage' ? 100 : 99999" step="0.01" class="form-input" />
+      </div>
+      <div class="form-group">
+        <label>Limite mínimo de perda (R$)</label>
+        <input type="number" [(ngModel)]="newCommissionThreshold" min="0" step="0.01" class="form-input" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeCreateModal()">Cancelar</button>
+      <button class="btn-confirm" (click)="createPartner()" [disabled]="isCreating || !newPartnerUserId.trim()">
+        {{ isCreating ? 'Criando...' : 'Criar Parceiro' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= MODAL: CONFIGURAR PARCEIRO ======= -->
+<div class="modal-overlay" *ngIf="showConfigModal" (click)="closeConfigModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>⚙️ Configurar Parceiro</h2>
+      <button class="close-btn" (click)="closeConfigModal()">✕</button>
+    </div>
+    <div class="modal-body" *ngIf="editingPartner">
+      <div class="info-row">
+        <span>Parceiro:</span>
+        <strong>{{ editingPartner.username }} ({{ editingPartner.referralCode }})</strong>
+      </div>
+      <div class="form-group">
+        <label>Tipo de Comissão</label>
+        <select [(ngModel)]="editCommissionType" class="form-input">
+          <option value="percentage">RevShare (%)</option>
+          <option value="fixed">CPA (R$)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>{{ editCommissionType === 'percentage' ? 'Porcentagem (%)' : 'Valor (R$)' }}</label>
+        <input type="number" [(ngModel)]="editCommissionValue" min="0" [max]="editCommissionType === 'percentage' ? 100 : 99999" step="0.01" class="form-input" />
+      </div>
+      <div class="form-group">
+        <label>Limite mínimo de perda (R$)</label>
+        <input type="number" [(ngModel)]="editCommissionThreshold" min="0" step="0.01" class="form-input" />
+      </div>
+      <div class="form-group">
+        <label>Período de validação (horas)</label>
+        <input type="number" [(ngModel)]="editValidationPeriodHours" min="0" max="720" class="form-input" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeConfigModal()">Cancelar</button>
+      <button class="btn-confirm" (click)="saveConfig()" [disabled]="isSavingConfig">
+        {{ isSavingConfig ? 'Salvando...' : 'Salvar Configuração' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= MODAL: REVISAR SAQUE ======= -->
+<div class="modal-overlay" *ngIf="showReviewModal" (click)="closeReviewModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>📋 Revisar Saque</h2>
+      <button class="close-btn" (click)="closeReviewModal()">✕</button>
+    </div>
+    <div class="modal-body" *ngIf="reviewingWithdrawal">
+      <div class="review-info">
+        <div class="info-row">
+          <span>Parceiro:</span>
+          <strong>{{ reviewingWithdrawal.username || reviewingWithdrawal.referral_code }}</strong>
+        </div>
+        <div class="info-row">
+          <span>Valor:</span>
+          <strong class="amount-highlight">{{ reviewingWithdrawal.amount | appCurrency }}</strong>
+        </div>
+        <div class="info-row">
+          <span>Data:</span>
+          <strong>{{ reviewingWithdrawal.created_at | date:'dd/MM/yyyy HH:mm' }}</strong>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Decisão</label>
+        <div class="decision-btns">
+          <button
+            class="decision-btn approve"
+            [class.selected]="reviewStatus === 'approved'"
+            (click)="reviewStatus = 'approved'"
+          >
+            ✅ Aprovar
+          </button>
+          <button
+            class="decision-btn reject"
+            [class.selected]="reviewStatus === 'rejected'"
+            (click)="reviewStatus = 'rejected'"
+          >
+            ❌ Rejeitar
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Observação {{ reviewStatus === 'rejected' ? '(obrigatório)' : '(opcional)' }}</label>
+        <textarea
+          [(ngModel)]="reviewNotes"
+          placeholder="Motivo da decisão..."
+          class="form-input textarea"
+          rows="3"
+        ></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeReviewModal()">Cancelar</button>
+      <button
+        class="btn-confirm"
+        (click)="submitReview()"
+        [disabled]="isReviewing || (reviewStatus === 'rejected' && !reviewNotes.trim())"
+      >
+        {{ isReviewing ? 'Enviando...' : 'Confirmar' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= MODAL: CONFIRMAÇÃO ======= -->
+<div class="modal-overlay" *ngIf="showConfirmModal" (click)="closeConfirm()">
+  <div class="modal-content modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ confirmTitle }}</h2>
+      <button class="close-btn" (click)="closeConfirm()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="confirm-message">{{ confirmMessage }}</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeConfirm()">Cancelar</button>
+      <button class="btn-confirm btn-danger" (click)="executeConfirm()" [disabled]="isConfirming">
+        {{ isConfirming ? 'Processando...' : 'Confirmar' }}
+      </button>
+    </div>
+  </div>
+</div>

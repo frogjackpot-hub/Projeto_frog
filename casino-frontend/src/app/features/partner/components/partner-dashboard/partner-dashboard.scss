@@ -1,0 +1,383 @@
+$gold: #ffd700;
+$gold-dark: #b8960c;
+$bg-dark: #0a0a0a;
+$bg-card: #1a1a1a;
+$bg-item: #222;
+$success: #4caf50;
+$danger: #f44336;
+$text-primary: #ffffff;
+$text-secondary: #b0b0b0;
+
+.partner-dashboard {
+  min-height: 100vh;
+  background: $bg-dark;
+  color: $text-primary;
+  padding-bottom: 2rem;
+}
+
+// ===== HEADER =====
+.page-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #222;
+
+  h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: $gold;
+  }
+
+  .page-subtitle {
+    margin: 0.25rem 0 0;
+    font-size: 0.85rem;
+    color: $text-secondary;
+  }
+}
+
+// ===== LOADING =====
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1rem;
+  color: $text-secondary;
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #333;
+    border-top-color: $gold;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 1rem;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// ===== CARTÃO DE CÓDIGO =====
+.referral-card {
+  margin: 1.5rem;
+  background: linear-gradient(135deg, #1e2a1e, #2a3a2a);
+  border: 1px solid rgba($gold, 0.3);
+  border-radius: 16px;
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+
+  .referral-card-bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, rgba($gold, 0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .referral-info {
+    position: relative;
+    margin-bottom: 1rem;
+  }
+
+  .referral-label {
+    font-size: 0.75rem;
+    color: $text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  .referral-code-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .referral-code {
+    font-size: 2rem;
+    font-weight: 800;
+    color: $gold;
+    letter-spacing: 3px;
+  }
+
+  .copy-btn {
+    background: rgba($gold, 0.15);
+    border: 1px solid rgba($gold, 0.3);
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: rgba($gold, 0.25);
+    }
+
+    &.copied {
+      background: rgba($success, 0.2);
+      border-color: rgba($success, 0.4);
+    }
+  }
+
+  .referral-actions {
+    display: flex;
+    gap: 0.75rem;
+    position: relative;
+  }
+
+  .action-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    .btn-icon { font-size: 1.1rem; }
+
+    &.link-btn {
+      background: $gold;
+      color: #000;
+      &:hover { background: #ffe433; transform: translateY(-1px); }
+    }
+
+    &.qr-btn {
+      background: transparent;
+      color: $gold;
+      border: 2px solid rgba($gold, 0.4);
+      &:hover { border-color: $gold; background: rgba($gold, 0.08); transform: translateY(-1px); }
+    }
+  }
+
+  .qr-code-section {
+    margin-top: 1.25rem;
+    text-align: center;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba($gold, 0.15);
+    position: relative;
+
+    .qr-image {
+      width: 200px;
+      height: 200px;
+      border-radius: 12px;
+      border: 3px solid rgba($gold, 0.3);
+    }
+
+    .qr-hint {
+      margin: 0.5rem 0 0;
+      font-size: 0.8rem;
+      color: $text-secondary;
+    }
+  }
+}
+
+// ===== STATS GRID =====
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  padding: 0 1.5rem;
+  margin-bottom: 1.5rem;
+
+  @media (min-width: 600px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.stat-card {
+  background: $bg-card;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.25rem;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: rgba($gold, 0.3);
+    transform: translateY(-2px);
+  }
+
+  &.highlight {
+    border-color: rgba($gold, 0.4);
+    background: linear-gradient(135deg, #1a1a1a, #222);
+  }
+
+  .stat-icon { font-size: 1.5rem; }
+  .stat-value { font-size: 1.25rem; font-weight: 700; color: $gold; }
+  .stat-label { font-size: 0.75rem; color: $text-secondary; text-transform: uppercase; letter-spacing: 0.5px; }
+}
+
+// ===== INFO COMISSÃO =====
+.commission-info-card {
+  margin: 0 1.5rem 1.5rem;
+  background: $bg-card;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+
+  .commission-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+
+    &:not(:last-child) {
+      border-bottom: 1px solid #2a2a2a;
+    }
+  }
+
+  .commission-label {
+    font-size: 0.85rem;
+    color: $text-secondary;
+  }
+
+  .commission-value {
+    font-weight: 600;
+    font-size: 0.9rem;
+
+    &.gold { color: $gold; font-size: 1.1rem; }
+  }
+}
+
+// ===== ATALHOS =====
+.shortcuts-section {
+  padding: 0 1.5rem;
+  margin-bottom: 1.5rem;
+
+  h2 {
+    font-size: 1rem;
+    color: $text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.75rem;
+  }
+}
+
+.shortcuts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.shortcut-card {
+  background: $bg-card;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 1rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  text-decoration: none;
+  transition: all 0.2s;
+  text-align: center;
+
+  &:hover {
+    border-color: rgba($gold, 0.4);
+    background: #242424;
+    transform: translateY(-2px);
+  }
+
+  .shortcut-icon { font-size: 1.5rem; }
+  .shortcut-label { font-size: 0.85rem; font-weight: 600; color: $text-primary; }
+  .shortcut-desc { font-size: 0.7rem; color: $text-secondary; }
+}
+
+// ===== INDICADOS RECENTES =====
+.recent-section {
+  padding: 0 1.5rem;
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+
+    h2 {
+      font-size: 1rem;
+      color: $text-secondary;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 0;
+    }
+
+    .see-all {
+      font-size: 0.85rem;
+      color: $gold;
+      text-decoration: none;
+      &:hover { text-decoration: underline; }
+    }
+  }
+}
+
+.referred-list {
+  background: $bg-card;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.referred-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 1.25rem;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid #2a2a2a;
+  }
+
+  .referred-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .referred-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .referred-date {
+    font-size: 0.75rem;
+    color: $text-secondary;
+  }
+
+  .referred-loss {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: $danger;
+
+    &.positive {
+      color: $success;
+    }
+  }
+}
+
+// ===== NÃO É PARCEIRO =====
+.not-partner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1.5rem;
+  text-align: center;
+
+  .not-partner-icon { font-size: 3rem; margin-bottom: 1rem; }
+  h2 { color: $text-primary; margin: 0 0 0.5rem; font-size: 1.3rem; }
+  p { color: $text-secondary; margin: 0; }
+}

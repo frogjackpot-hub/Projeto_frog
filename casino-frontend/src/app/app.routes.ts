@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/auth.guard';
 import { NoAuthGuard } from './core/guards/no-auth.guard';
+import { PartnerGuard } from './core/guards/partner.guard';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
 
@@ -48,6 +49,11 @@ export const routes: Routes = [
       {
         path: 'wallet',
         loadChildren: () => import('./features/wallet/wallet.module').then(m => m.WalletModule)
+      },
+      {
+        path: 'partner',
+        canActivate: [PartnerGuard],
+        loadChildren: () => import('./features/partner/partner.module').then(m => m.PartnerModule)
       }
     ]
   },

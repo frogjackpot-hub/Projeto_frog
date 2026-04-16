@@ -1,0 +1,500 @@
+:host {
+  display: block;
+}
+
+$gold: #ffd700;
+$bg-dark: #0a0a0a;
+$bg-card: #1a1a1a;
+$bg-card-hover: #222;
+$border-color: #333;
+$text-primary: #fff;
+$text-secondary: #aaa;
+$text-muted: #777;
+$success: #4caf50;
+$warning: #ff9800;
+$danger: #f44336;
+
+.partner-withdrawals {
+  padding: 1.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+
+  .header-left {
+    .back-link {
+      color: $gold;
+      text-decoration: none;
+      font-size: 0.85rem;
+      display: inline-block;
+      margin-bottom: 0.5rem;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      color: $text-primary;
+      margin: 0 0 0.25rem;
+    }
+
+    .subtitle {
+      color: $text-secondary;
+      font-size: 0.9rem;
+      margin: 0;
+    }
+  }
+
+  .btn-withdraw {
+    background: linear-gradient(135deg, $gold, #ffaa00);
+    color: #000;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba($gold, 0.3);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.balance-card {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  background: $bg-card;
+  border: 1px solid $border-color;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+
+  .balance-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    text-align: center;
+
+    .balance-label {
+      font-size: 0.85rem;
+      color: $text-secondary;
+    }
+
+    .balance-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: $text-primary;
+
+      &.highlight {
+        color: $gold;
+        font-size: 1.5rem;
+      }
+    }
+  }
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem;
+  color: $text-secondary;
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid $border-color;
+    border-top-color: $gold;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.withdrawals-section {
+  h2 {
+    font-size: 1.15rem;
+    color: $text-primary;
+    margin: 0 0 1rem;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  background: $bg-card;
+  border: 1px solid $border-color;
+  border-radius: 12px;
+
+  .empty-icon {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 0.75rem;
+  }
+
+  p {
+    color: $text-primary;
+    margin: 0 0 0.25rem;
+    font-size: 1rem;
+  }
+
+  small {
+    color: $text-muted;
+    font-size: 0.85rem;
+  }
+}
+
+.withdrawals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.withdrawal-card {
+  background: $bg-card;
+  border: 1px solid $border-color;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  transition: border-color 0.2s;
+
+  &:hover {
+    border-color: #444;
+  }
+
+  .withdrawal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+
+    .withdrawal-amount {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: $gold;
+    }
+  }
+
+  .withdrawal-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+
+      .detail-label {
+        color: $text-secondary;
+      }
+
+      .detail-value {
+        color: $text-primary;
+      }
+
+      &.rejection {
+        margin-top: 0.25rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid $border-color;
+
+        .detail-value {
+          color: $danger;
+        }
+      }
+    }
+  }
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &.status-pending {
+    background: rgba($warning, 0.15);
+    color: $warning;
+  }
+
+  &.status-approved {
+    background: rgba($success, 0.15);
+    color: $success;
+  }
+
+  &.status-rejected {
+    background: rgba($danger, 0.15);
+    color: $danger;
+  }
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+
+  .page-btn {
+    background: $bg-card;
+    color: $gold;
+    border: 1px solid $border-color;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+      background: $bg-card-hover;
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+
+  .page-info {
+    color: $text-secondary;
+    font-size: 0.9rem;
+  }
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-content {
+  background: $bg-card;
+  border: 1px solid $border-color;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 440px;
+  animation: modalIn 0.2s ease-out;
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid $border-color;
+
+  h2 {
+    font-size: 1.15rem;
+    margin: 0;
+    color: $text-primary;
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    color: $text-secondary;
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0.25rem;
+
+    &:hover {
+      color: $text-primary;
+    }
+  }
+}
+
+.modal-body {
+  padding: 1.5rem;
+
+  .available-balance {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba($gold, 0.08);
+    border: 1px solid rgba($gold, 0.2);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.25rem;
+    font-size: 0.95rem;
+
+    span {
+      color: $text-secondary;
+    }
+
+    strong {
+      color: $gold;
+      font-size: 1.1rem;
+    }
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+
+    label {
+      display: block;
+      color: $text-secondary;
+      font-size: 0.85rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-input {
+      width: 100%;
+      background: $bg-dark;
+      border: 1px solid $border-color;
+      color: $text-primary;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      outline: none;
+      box-sizing: border-box;
+
+      &:focus {
+        border-color: $gold;
+      }
+
+      &::placeholder {
+        color: $text-muted;
+      }
+    }
+  }
+
+  .quick-amounts {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+
+    .quick-btn {
+      background: rgba($gold, 0.1);
+      color: $gold;
+      border: 1px solid rgba($gold, 0.2);
+      padding: 0.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s;
+
+      &:hover {
+        background: rgba($gold, 0.2);
+      }
+    }
+  }
+
+  .modal-info {
+    p {
+      color: $text-secondary;
+      font-size: 0.8rem;
+      margin: 0;
+      line-height: 1.4;
+    }
+  }
+}
+
+.modal-footer {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem 1.25rem;
+  border-top: 1px solid $border-color;
+
+  .btn-cancel {
+    flex: 1;
+    background: transparent;
+    color: $text-secondary;
+    border: 1px solid $border-color;
+    padding: 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+
+    &:hover {
+      background: $bg-card-hover;
+      color: $text-primary;
+    }
+  }
+
+  .btn-confirm {
+    flex: 1.5;
+    background: linear-gradient(135deg, $gold, #ffaa00);
+    color: #000;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+      box-shadow: 0 4px 15px rgba($gold, 0.3);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  .partner-withdrawals {
+    padding: 1rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+
+    .btn-withdraw {
+      width: 100%;
+    }
+  }
+
+  .balance-card {
+    grid-template-columns: 1fr;
+  }
+}

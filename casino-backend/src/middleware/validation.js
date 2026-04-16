@@ -71,6 +71,11 @@ const schemas = {
         'string.pattern.base': 'Sobrenome deve conter apenas letras',
         'any.required': 'Sobrenome é obrigatório',
       }),
+    referralCode: Joi.string().alphanum().min(3).max(20).optional().messages({
+      'string.alphanum': 'Código de indicação deve conter apenas letras e números',
+      'string.min': 'Código de indicação deve ter pelo menos 3 caracteres',
+      'string.max': 'Código de indicação deve ter no máximo 20 caracteres',
+    }),
   }),
 
   login: Joi.object({

@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { PartnerService } from '../../../../core/services/partner.service';
 
 // Validador customizado para nomes - apenas letras
 export function nameValidator(): ValidatorFn {
@@ -53,18 +54,28 @@ export class RegisterComponent implements OnInit {
   registerForm: FormGroup;
   isSubmitting = false;
   showPassword = false;
+  referralPartnerName = '';
+  referralCodeValid: boolean | null = null;
+  referralCodeChecking = false;
 
   constructor(
     private formBuilder: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private notificationService: NotificationService
+    private route: ActivatedRoute,
+    private notificationService: NotificationService,
+    private partnerService: PartnerService
   ) {
     this.registerForm = this.createRegisterForm();
   }
 
   ngOnInit(): void {
-    // Componente inicializado
+    // Ler código de indicação da URL (?ref=CODIGO)
+    const refCode = this.route.snapshot.queryParamMap.get('ref');
+    if (refCode) {
+      this.registerForm.patchValue({ referralCode: refCode });
+      this.validateReferralCode(refCode);
+    }
   }
 
   private createRegisterForm(): FormGroup {
@@ -94,6 +105,11 @@ export class RegisterComponent implements OnInit {
         Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
       ]],
       confirmPassword: ['', [Validators.required]],
+      referralCode: ['', [
+        Validators.minLength(3),
+        Validators.maxLength(20),
+        Validators.pattern(/^[a-zA-Z0-9]*$/)
+      ]],
       acceptTerms: [false, [Validators.requiredTrue]]
     }, {
       validators: this.passwordMatchValidator
@@ -177,6 +193,12 @@ export class RegisterComponent implements OnInit {
     
     if (fieldName === 'acceptTerms') {
       if (errors['required']) return 'Você deve aceitar os termos e condições';
+    }
+
+    if (fieldName === 'referralCode') {
+      if (errors['minlength']) return 'Código deve ter pelo menos 3 caracteres';
+      if (errors['maxlength']) return 'Código deve ter no máximo 20 caracteres';
+      if (errors['pattern']) return 'Código deve conter apenas letras e números';
     }
     
     return 'Campo inválido';
@@ -275,17 +297,50 @@ export class RegisterComponent implements OnInit {
     }
   }
 
+  validateReferralCode(code?: string): void {
+    const referralCode = code || this.registerForm.get('referralCode')?.value;
+    if (!referralCode || referralCode.length < 3) {
+      this.referralCodeValid = null;
+      this.referralPartnerName = '';
+      return;
+    }
+
+    this.referralCodeChecking = true;
+    this.partnerService.validateCode(referralCode).subscribe({
+      next: (response) => {
+        this.referralCodeChecking = false;
+        if (response.success && response.data?.valid) {
+          this.referralCodeValid = true;
+          this.referralPartnerName = response.data.partnerName;
+        } else {
+          this.referralCodeValid = false;
+          this.referralPartnerName = '';
+        }
+      },
+      error: () => {
+        this.referralCodeChecking = false;
+        this.referralCodeValid = false;
+        this.referralPartnerName = '';
+      }
+    });
+  }
+
   onSubmit(): void {
     if (this.registerForm.valid && !this.isSubmitting) {
       this.isSubmitting = true;
       
-      const registerData = {
+      const registerData: any = {
         firstName: this.registerForm.value.firstName,
         lastName: this.registerForm.value.lastName,
         username: this.registerForm.value.username,
         email: this.registerForm.value.email,
         password: this.registerForm.value.password
       };
+
+      const referralCode = this.registerForm.value.referralCode;
+      if (referralCode) {
+        registerData.referralCode = referralCode;
+      }
       
       this.authService.register(registerData).subscribe({
         next: (response) => {

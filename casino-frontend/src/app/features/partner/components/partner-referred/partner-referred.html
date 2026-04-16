@@ -1,0 +1,62 @@
+<div class="partner-referred">
+  <div class="page-header">
+    <a routerLink="/partner" class="back-link">← Voltar</a>
+    <h1>👥 Usuários Indicados</h1>
+    <p class="page-subtitle">{{ total }} indicado{{ total !== 1 ? 's' : '' }} no total</p>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Carregando...</p>
+  </div>
+
+  <!-- LISTA -->
+  <div class="content-area" *ngIf="!isLoading">
+    <div class="empty-state" *ngIf="users.length === 0">
+      <span class="empty-icon">📭</span>
+      <p>Nenhum indicado ainda</p>
+      <span class="empty-hint">Compartilhe seu código para começar a indicar!</span>
+    </div>
+
+    <div class="users-list" *ngIf="users.length > 0">
+      <div class="user-item" *ngFor="let user of users; trackBy: trackByUserId">
+        <div class="user-main">
+          <div class="user-avatar">{{ user.username.charAt(0).toUpperCase() }}</div>
+          <div class="user-info">
+            <span class="user-name">{{ user.username }}</span>
+            <span class="user-email">{{ user.email }}</span>
+            <span class="user-date">Cadastro: {{ user.created_at | date:'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+        <div class="user-stats">
+          <div class="stat-mini">
+            <span class="stat-mini-label">Apostas</span>
+            <span class="stat-mini-value">{{ user.total_bets | appCurrency }}</span>
+          </div>
+          <div class="stat-mini">
+            <span class="stat-mini-label">Ganhos</span>
+            <span class="stat-mini-value win">{{ user.total_wins | appCurrency }}</span>
+          </div>
+          <div class="stat-mini">
+            <span class="stat-mini-label">Perda Líq.</span>
+            <span class="stat-mini-value" [class.loss]="+(user.net_loss) > 0" [class.win]="+(user.net_loss) < 0">
+              {{ user.net_loss | appCurrency }}
+            </span>
+          </div>
+          <div class="stat-mini">
+            <span class="stat-mini-label">Comissão</span>
+            <span class="stat-mini-value gold">{{ user.commissions_generated | appCurrency }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGINAÇÃO -->
+    <div class="pagination" *ngIf="totalPages > 1">
+      <button class="page-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">← Anterior</button>
+      <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
+      <button class="page-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">Próxima →</button>
+    </div>
+  </div>
+</div>
