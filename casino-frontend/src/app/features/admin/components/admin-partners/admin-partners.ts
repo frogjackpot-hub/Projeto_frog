@@ -94,8 +94,13 @@ export class AdminPartnersComponent implements OnInit, OnDestroy {
   reviewNotes = '';
   isReviewing = false;
 
+  // Partner Detail Modal
+  showPartnerDetailModal = false;
+  selectedPartnerDetail: Partner | null = null;
+
   // Actions dropdown
   activeActionsPartnerId: string | null = null;
+  dropdownPos = { top: '0px', left: '0px' };
 
   // Confirm Modal
   showConfirmModal = false;
@@ -282,7 +287,23 @@ export class AdminPartnersComponent implements OnInit, OnDestroy {
   // Actions dropdown
   toggleActions(partnerId: string, event: Event): void {
     event.stopPropagation();
-    this.activeActionsPartnerId = this.activeActionsPartnerId === partnerId ? null : partnerId;
+    if (this.activeActionsPartnerId === partnerId) {
+      this.activeActionsPartnerId = null;
+    } else {
+      this.activeActionsPartnerId = partnerId;
+      const btn = event.currentTarget as HTMLElement;
+      const rect = btn.getBoundingClientRect();
+      const dropdownWidth = 192;
+      const dropdownHeight = 200;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const top = spaceBelow < dropdownHeight + 10
+        ? rect.top - dropdownHeight - 4
+        : rect.bottom + 4;
+      this.dropdownPos = {
+        top: `${top}px`,
+        left: `${Math.max(4, rect.right - dropdownWidth)}px`
+      };
+    }
     this.cdr.markForCheck();
   }
 
@@ -297,7 +318,15 @@ export class AdminPartnersComponent implements OnInit, OnDestroy {
 
   viewPartnerDetails(partner: Partner): void {
     this.closeActions();
-    this.router.navigate(['/admin/partners', partner.id]);
+    this.selectedPartnerDetail = partner;
+    this.showPartnerDetailModal = true;
+    this.cdr.markForCheck();
+  }
+
+  closePartnerDetailModal(): void {
+    this.showPartnerDetailModal = false;
+    this.selectedPartnerDetail = null;
+    this.cdr.markForCheck();
   }
 
   togglePartnerActive(partner: Partner): void {

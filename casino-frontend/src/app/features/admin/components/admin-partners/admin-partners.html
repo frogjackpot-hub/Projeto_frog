@@ -185,10 +185,13 @@
             </td>
             <td>
               <div class="actions-cell">
-                <button class="btn-details" (click)="viewPartnerDetails(p); $event.stopPropagation()">👁️ Ver</button>
+                <button class="btn-details" (click)="viewPartnerDetails(p); $event.stopPropagation()">👁️ Detalhes</button>
                 <div class="dropdown-wrapper">
                   <button class="icon-btn" (click)="toggleActions(p.id, $event)" title="Mais ações">⋯</button>
-                  <div class="actions-dropdown" *ngIf="activeActionsPartnerId === p.id" (click)="$event.stopPropagation()">
+                  <div class="actions-dropdown"
+                    *ngIf="activeActionsPartnerId === p.id"
+                    [ngStyle]="{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, 'z-index': '9999' }"
+                    (click)="$event.stopPropagation()">
                     <button (click)="openConfigModal(p)">⚙️ Editar comissão</button>
                     <button (click)="copyToClipboard(p.referralCode, 'Código')">📋 Copiar código</button>
                     <button (click)="copyToClipboard(getReferralLink(p.referralCode), 'Link')">🔗 Copiar link</button>
@@ -556,6 +559,116 @@
       >
         {{ isReviewing ? 'Enviando...' : 'Confirmar' }}
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= MODAL: DETALHES DO PARCEIRO ======= -->
+<div class="modal-overlay" *ngIf="showPartnerDetailModal && selectedPartnerDetail" (click)="closePartnerDetailModal()">
+  <div class="modal-content modal-detail" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>👤 Detalhes do Parceiro</h2>
+      <button class="close-btn" (click)="closePartnerDetailModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Avatar + Nome -->
+      <div class="detail-profile">
+        <div class="detail-avatar">
+          {{ (selectedPartnerDetail.username || 'P')[0].toUpperCase() }}
+        </div>
+        <div class="detail-info">
+          <h3>{{ selectedPartnerDetail.username || 'N/A' }}</h3>
+          <p>{{ selectedPartnerDetail.email }}</p>
+          <div class="detail-badges">
+            <span class="level-badge" [ngClass]="getPartnerLevel(selectedPartnerDetail).class">
+              {{ getPartnerLevel(selectedPartnerDetail).label }}
+            </span>
+            <span class="badge" [ngClass]="getPartnerStatusClass(selectedPartnerDetail)">
+              {{ getPartnerStatusLabel(selectedPartnerDetail) }}
+            </span>
+            <span class="type-badge">{{ getTypeLabel(selectedPartnerDetail.commissionType) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Código de Indicação -->
+      <div class="detail-section">
+        <div class="detail-section-title">Código de Indicação</div>
+        <div class="detail-code-row">
+          <code class="code code-lg">{{ selectedPartnerDetail.referralCode }}</code>
+          <button class="copy-btn-lg" (click)="copyToClipboard(selectedPartnerDetail.referralCode, 'Código')">📋 Copiar código</button>
+          <button class="copy-btn-lg" (click)="copyToClipboard(getReferralLink(selectedPartnerDetail.referralCode), 'Link')">🔗 Copiar link</button>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="detail-section">
+        <div class="detail-section-title">Estatísticas</div>
+        <div class="detail-stats">
+          <div class="detail-stat">
+            <span class="detail-stat-value">{{ selectedPartnerDetail.totalReferredUsers }}</span>
+            <span class="detail-stat-label">Indicados</span>
+          </div>
+          <div class="detail-stat">
+            <span class="detail-stat-value">{{ selectedPartnerDetail.activeReferredUsers || 0 }}</span>
+            <span class="detail-stat-label">Ativos</span>
+          </div>
+          <div class="detail-stat">
+            <span class="detail-stat-value green">{{ selectedPartnerDetail.commissionBalance | appCurrency }}</span>
+            <span class="detail-stat-label">Disponível</span>
+          </div>
+          <div class="detail-stat">
+            <span class="detail-stat-value gold" *ngIf="selectedPartnerDetail.pendingCommission > 0">
+              {{ selectedPartnerDetail.pendingCommission | appCurrency }}
+            </span>
+            <span class="detail-stat-value muted" *ngIf="selectedPartnerDetail.pendingCommission === 0">R$ 0,00</span>
+            <span class="detail-stat-label">Pendente</span>
+          </div>
+          <div class="detail-stat">
+            <span class="detail-stat-value">{{ selectedPartnerDetail.totalCommissionsEarned | appCurrency }}</span>
+            <span class="detail-stat-label">Total Ganho</span>
+          </div>
+          <div class="detail-stat" *ngIf="selectedPartnerDetail.totalLosses">
+            <span class="detail-stat-value red">{{ selectedPartnerDetail.totalLosses | appCurrency }}</span>
+            <span class="detail-stat-label">Perdas Geradas</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Config Info -->
+      <div class="detail-section">
+        <div class="detail-section-title">Configuração</div>
+        <div class="detail-config-grid">
+          <div class="info-row">
+            <span>Comissão</span>
+            <strong>{{ getCommissionLabel(selectedPartnerDetail) }}</strong>
+          </div>
+          <div class="info-row">
+            <span>Mínimo de perda</span>
+            <strong>{{ selectedPartnerDetail.commissionThreshold | appCurrency }}</strong>
+          </div>
+          <div class="info-row">
+            <span>Período validação</span>
+            <strong>{{ selectedPartnerDetail.validationPeriodHours }}h</strong>
+          </div>
+          <div class="info-row">
+            <span>Última atividade</span>
+            <strong>{{ getLastActivityLabel(selectedPartnerDetail.lastActivity) }}</strong>
+          </div>
+          <div class="info-row">
+            <span>Membro desde</span>
+            <strong>{{ selectedPartnerDetail.createdAt | date:'dd/MM/yyyy' }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer modal-footer-detail">
+      <button class="btn-action-sm edit" (click)="openConfigModal(selectedPartnerDetail!); closePartnerDetailModal()">⚙️ Editar comissão</button>
+      <button class="btn-action-sm" [ngClass]="selectedPartnerDetail.isActive ? 'block' : 'activate'"
+        (click)="togglePartnerActive(selectedPartnerDetail!); closePartnerDetailModal()">
+        {{ selectedPartnerDetail.isActive ? '🔒 Bloquear' : '🔓 Ativar' }}
+      </button>
+      <button class="btn-cancel" (click)="closePartnerDetailModal()">Fechar</button>
     </div>
   </div>
 </div>
