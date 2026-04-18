@@ -145,6 +145,7 @@ $text-secondary: #b0b0b0;
       background: $gold;
       color: #000;
       &:hover { background: #ffe433; transform: translateY(-1px); }
+      &.copied { background: $success; color: #fff; }
     }
 
     &.qr-btn {
@@ -156,21 +157,22 @@ $text-secondary: #b0b0b0;
   }
 
   .qr-code-section {
-    margin-top: 1.25rem;
+    margin: 1.25rem 0;
     text-align: center;
-    padding-top: 1.25rem;
+    padding: 1.25rem 0;
     border-top: 1px solid rgba($gold, 0.15);
+    border-bottom: 1px solid rgba($gold, 0.15);
     position: relative;
 
-    .qr-image {
-      width: 200px;
-      height: 200px;
+    ::ng-deep .qr-canvas canvas {
       border-radius: 12px;
-      border: 3px solid rgba($gold, 0.3);
+      border: 3px solid rgba($gold, 0.4);
+      display: block;
+      margin: 0 auto;
     }
 
     .qr-hint {
-      margin: 0.5rem 0 0;
+      margin: 0.75rem 0 0;
       font-size: 0.8rem;
       color: $text-secondary;
     }

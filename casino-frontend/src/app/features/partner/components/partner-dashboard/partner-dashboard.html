@@ -24,21 +24,25 @@
           </button>
         </div>
       </div>
-      <div class="referral-actions">
-        <button class="action-btn link-btn" (click)="copyReferralLink()">
-          <span class="btn-icon">🔗</span>
-          <span>Copiar Link</span>
-        </button>
-        <button class="action-btn qr-btn" (click)="toggleQrCode()">
-          <span class="btn-icon">📱</span>
-          <span>QR Code</span>
-        </button>
+
+      <!-- QR CODE SEMPRE VISÍVEL -->
+      <div class="qr-code-section">
+        <qrcode
+          [qrdata]="referralLink"
+          [width]="200"
+          [errorCorrectionLevel]="'M'"
+          [colorDark]="'#ffd700'"
+          [colorLight]="'#1e2a1e'"
+          [cssClass]="'qr-canvas'"
+        ></qrcode>
+        <p class="qr-hint">📱 Escaneie para se cadastrar com seu código</p>
       </div>
 
-      <!-- QR CODE -->
-      <div class="qr-code-section" *ngIf="showQrCode">
-        <img [src]="getQrCodeUrl()" alt="QR Code de indicação" class="qr-image" />
-        <p class="qr-hint">Escaneie para se cadastrar com seu código</p>
+      <div class="referral-actions">
+        <button class="action-btn link-btn" (click)="copyReferralLink()" [class.copied]="copiedLink">
+          <span class="btn-icon">{{ copiedLink ? '✅' : '🔗' }}</span>
+          <span>{{ copiedLink ? 'Copiado!' : 'Copiar Link' }}</span>
+        </button>
       </div>
     </div>
 

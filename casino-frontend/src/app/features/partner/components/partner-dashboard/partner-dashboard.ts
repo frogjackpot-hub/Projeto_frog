@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { QRCodeComponent } from 'angularx-qrcode';
 import { Subject, takeUntil } from 'rxjs';
 import { Partner, PartnerStats, ReferredUser } from '../../../../core/models/partner.model';
 import { NotificationService } from '../../../../core/services/notification.service';
@@ -12,7 +13,7 @@ import { CurrencyPipe } from '../../../../shared/pipes/currency.pipe';
   templateUrl: './partner-dashboard.html',
   styleUrls: ['./partner-dashboard.scss'],
   standalone: true,
-  imports: [CommonModule, RouterModule, CurrencyPipe],
+  imports: [CommonModule, RouterModule, CurrencyPipe, QRCodeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PartnerDashboardComponent implements OnInit, OnDestroy {
@@ -20,9 +21,9 @@ export class PartnerDashboardComponent implements OnInit, OnDestroy {
   stats: PartnerStats | null = null;
   recentReferred: ReferredUser[] = [];
   isLoading = true;
-  showQrCode = false;
   referralLink = '';
   copied = false;
+  copiedLink = false;
 
   private destroy$ = new Subject<void>();
 
@@ -76,17 +77,11 @@ export class PartnerDashboardComponent implements OnInit, OnDestroy {
 
   copyReferralLink(): void {
     navigator.clipboard.writeText(this.referralLink).then(() => {
+      this.copiedLink = true;
       this.notificationService.success('Copiado!', 'Link copiado para a área de transferência');
+      setTimeout(() => { this.copiedLink = false; this.cdr.markForCheck(); }, 2000);
+      this.cdr.markForCheck();
     });
-  }
-
-  toggleQrCode(): void {
-    this.showQrCode = !this.showQrCode;
-    this.cdr.markForCheck();
-  }
-
-  getQrCodeUrl(): string {
-    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(this.referralLink)}`;
   }
 
   getCommissionDisplay(): string {
