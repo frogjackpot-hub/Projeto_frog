@@ -61,7 +61,7 @@ INSERT INTO users (id, email, username, password, first_name, last_name, balance
     'admin',
     true
 )
-ON CONFLICT (email) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- Admin Azul
 -- Email: pontadeflexaAzul@casino.com
@@ -78,7 +78,7 @@ INSERT INTO users (id, email, username, password, first_name, last_name, balance
     'admin',
     true
 )
-ON CONFLICT (email) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- Admin Branco
 -- Email: pontadeflexaBranco@casino.com
@@ -95,7 +95,7 @@ INSERT INTO users (id, email, username, password, first_name, last_name, balance
     'admin',
     true
 )
-ON CONFLICT (email) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- Parceiro Padrão (criado automaticamente pelo sistema)
 -- Email: bardoze@casino.com
@@ -112,7 +112,7 @@ INSERT INTO users (id, email, username, password, first_name, last_name, balance
     'partner',
     true
 )
-ON CONFLICT (email) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- Registro do parceiro padrão na tabela de parceiros
 INSERT INTO partners (id, user_id, referral_code, commission_type, commission_value, is_active)
