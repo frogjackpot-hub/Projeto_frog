@@ -85,6 +85,8 @@ export class AdminPartnersComponent implements OnInit, OnDestroy {
   editCommissionValue = 10;
   editCommissionThreshold = 0;
   editValidationPeriodHours = 24;
+  editPartnerLevel: 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond' = 'bronze';
+  editLevelMode: 'auto' | 'manual' = 'auto';
   isSavingConfig = false;
 
   // Review Modal
@@ -423,21 +425,56 @@ export class AdminPartnersComponent implements OnInit, OnDestroy {
   }
 
   validatePendingCommissions(): void {
-    this.partnerService.validatePendingCommissions()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (res) => {
-          if (res.success) {
-            this.notificationService.success('Sucesso', `${res.data?.validatedCount || 0} comissões validadas`);
-            this.loadPartners();
-            this.loadMetrics();
-            if (this.activeTab === 'commissions') this.loadPendingCommissions();
-          }
-        },
-        error: () => {
-          this.notificationService.error('Erro', 'Falha ao validar comissões');
-        }
-      });
+    this.showConfirm(
+      'Validar Todas as Comissões',
+      'Esta ação valida imediatamente as comissões pendentes de TODOS os parceiros. Deseja continuar?',
+      () => {
+        this.partnerService.validatePendingCommissions()
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: (res) => {
+              if (res.success) {
+                this.notificationService.success('Sucesso', `${res.data?.validatedCount || 0} comissões validadas`);
+                this.loadPartners();
+                this.loadMetrics();
+                if (this.activeTab === 'commissions') this.loadPendingCommissions();
+              }
+              this.closeConfirm();
+            },
+            error: () => {
+              this.notificationService.error('Erro', 'Falha ao validar comissões');
+              this.closeConfirm();
+            }
+          });
+      }
+    );
+  }
+
+  validatePartnerPendingCommissions(partner: Partner): void {
+    this.showConfirm(
+      'Validar Comissões do Parceiro',
+      `Validar apenas as comissões pendentes do parceiro ${partner.username || partner.referralCode}?`,
+      () => {
+        this.partnerService.validatePartnerPendingCommissions(partner.id)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: (res) => {
+              if (res.success) {
+                this.notificationService.success('Sucesso', `${res.data?.validatedCount || 0} comissões validadas para este parceiro`);
+                this.loadPartners();
+                this.loadMetrics();
+                if (this.activeTab === 'commissions') this.loadPendingCommissions();
+              }
+              this.closeConfirm();
+            },
+            error: () => {
+              this.notificationService.error('Erro', 'Falha ao validar comissões do parceiro');
+              this.closeConfirm();
+            }
+          });
+      }
+    );
+    this.closeActions();
   }
 
   // ==================
@@ -499,6 +536,8 @@ export class AdminPartnersComponent implements OnInit, OnDestroy {
     this.editCommissionValue = partner.commissionValue;
     this.editCommissionThreshold = partner.commissionThreshold;
     this.editValidationPeriodHours = partner.validationPeriodHours;
+    this.editPartnerLevel = partner.partnerLevel || 'bronze';
+    this.editLevelMode = partner.levelMode || 'auto';
     this.showConfigModal = true;
     this.closeActions();
     this.cdr.markForCheck();
@@ -518,7 +557,9 @@ export class AdminPartnersComponent implements OnInit, OnDestroy {
       commissionType: this.editCommissionType,
       commissionValue: this.editCommissionValue,
       commissionThreshold: this.editCommissionThreshold,
-      validationPeriodHours: this.editValidationPeriodHours
+      validationPeriodHours: this.editValidationPeriodHours,
+      partnerLevel: this.editPartnerLevel,
+      levelMode: this.editLevelMode,
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -809,10 +850,11 @@ export class AdminPartnersComponent implements OnInit, OnDestroy {
   }
 
   getPartnerLevel(partner: Partner | PartnerRanking): { label: string; class: string } {
-    const earned = partner.totalCommissionsEarned || 0;
-    if (earned >= 10000) return { label: 'VIP', class: 'level-vip' };
-    if (earned >= 5000) return { label: 'Ouro', class: 'level-gold' };
-    if (earned >= 1000) return { label: 'Prata', class: 'level-silver' };
+    const level = (partner.partnerLevel || 'bronze').toLowerCase();
+    if (level === 'diamond') return { label: 'Diamond', class: 'level-vip' };
+    if (level === 'platinum') return { label: 'Platinum', class: 'level-gold' };
+    if (level === 'gold') return { label: 'Gold', class: 'level-gold' };
+    if (level === 'silver') return { label: 'Silver', class: 'level-silver' };
     return { label: 'Bronze', class: 'level-bronze' };
   }
 

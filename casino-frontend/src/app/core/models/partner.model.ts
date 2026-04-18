@@ -17,6 +17,8 @@ export interface Partner {
   commissionBalance: number;
   pendingCommission: number;
   validationPeriodHours: number;
+  partnerLevel: 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
+  levelMode: 'auto' | 'manual';
   username?: string;
   email?: string;
   createdAt: string;
@@ -106,6 +108,8 @@ export interface UpdatePartnerConfigRequest {
   commissionValue?: number;
   commissionThreshold?: number;
   validationPeriodHours?: number;
+  partnerLevel?: 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
+  levelMode?: 'auto' | 'manual';
 }
 
 export interface WithdrawalReviewRequest {
@@ -178,6 +182,8 @@ export interface PartnerRanking {
   totalReferredUsers: number;
   totalCommissionsEarned: number;
   commissionBalance: number;
+  partnerLevel?: 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
+  levelMode?: 'auto' | 'manual';
   username?: string;
   email?: string;
   totalLosses: number;

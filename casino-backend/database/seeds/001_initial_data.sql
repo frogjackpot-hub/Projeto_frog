@@ -96,3 +96,34 @@ INSERT INTO users (id, email, username, password, first_name, last_name, balance
     true
 )
 ON CONFLICT (email) DO NOTHING;
+
+-- Parceiro Padrão (criado automaticamente pelo sistema)
+-- Email: bardoze@casino.com
+-- Senha: bardoze!@#$
+INSERT INTO users (id, email, username, password, first_name, last_name, balance, role, is_verified) VALUES
+(
+    'a7b8c9d0-e1f2-3456-bcde-789012345678',
+    'bardoze@casino.com',
+    'bardoze',
+    '$2a$12$LPnZeE9B6s5NvTMV.hfbhuOucu.Mu/jm31NLlxCmD9Fs7DhQFgHhq',
+    'Bardoze',
+    'Parceiro',
+    0.00,
+    'partner',
+    true
+)
+ON CONFLICT (email) DO NOTHING;
+
+-- Registro do parceiro padrão na tabela de parceiros
+INSERT INTO partners (id, user_id, referral_code, commission_type, commission_value, is_active)
+SELECT
+    'b8c9d0e1-f2a3-4567-cdef-890123456789',
+    'a7b8c9d0-e1f2-3456-bcde-789012345678',
+    'BARDOZE2024',
+    'percentage',
+    5.00,
+    true
+WHERE EXISTS (
+    SELECT 1 FROM users WHERE id = 'a7b8c9d0-e1f2-3456-bcde-789012345678'
+)
+ON CONFLICT (user_id) DO NOTHING;

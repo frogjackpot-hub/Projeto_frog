@@ -4,7 +4,27 @@ const logger = require('../utils/logger');
 const { v4: uuidv4 } = require('uuid');
 const crypto = require('crypto');
 
+const LEVEL_PERCENTAGES = {
+  bronze: 1,
+  silver: 2,
+  gold: 3,
+  platinum: 5,
+  diamond: 7,
+};
+
 class PartnerService {
+  static resolveAutoLevel(totalReferredUsers = 0, totalLosses = 0) {
+    if (totalReferredUsers >= 80 || totalLosses >= 50000) return 'diamond';
+    if (totalReferredUsers >= 40 || totalLosses >= 20000) return 'platinum';
+    if (totalReferredUsers >= 15 || totalLosses >= 10000) return 'gold';
+    if (totalReferredUsers >= 5 || totalLosses >= 3000) return 'silver';
+    return 'bronze';
+  }
+
+  static getLevelPercentage(level) {
+    return LEVEL_PERCENTAGES[level] || LEVEL_PERCENTAGES.bronze;
+  }
+
   /**
    * Gera um código de indicação único (ex: BARZÉ2024, FROGx9K3)
    */
@@ -52,11 +72,12 @@ class PartnerService {
       referralCode = `P${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
     }
 
+    const isPercentage = (commissionType || 'percentage') === 'percentage';
     const partner = await Partner.create({
       userId,
       referralCode,
       commissionType: commissionType || 'percentage',
-      commissionValue: commissionValue || 5.00,
+      commissionValue: commissionValue || (isPercentage ? this.getLevelPercentage('bronze') : 5.00),
       commissionThreshold: commissionThreshold || 0,
     });
 
@@ -131,11 +152,35 @@ class PartnerService {
 
       const partner = partnerResult.rows[0];
 
+      let effectiveLevel = partner.partner_level || 'bronze';
+      if (partner.level_mode !== 'manual') {
+        const lossesResult = await db.query(
+          `SELECT COALESCE(SUM(loss_amount), 0) AS total_losses FROM partner_commissions WHERE partner_id = $1`,
+          [partnerId]
+        );
+        const totalLosses = parseFloat(lossesResult.rows[0]?.total_losses || 0);
+        const autoLevel = this.resolveAutoLevel(parseInt(partner.total_referred_users || 0), totalLosses);
+        effectiveLevel = autoLevel;
+
+        if (autoLevel !== partner.partner_level) {
+          await db.query(
+            `UPDATE partners
+             SET partner_level = $1,
+                 commission_value = CASE WHEN commission_type = 'percentage' THEN $2 ELSE commission_value END
+             WHERE id = $3`,
+            [autoLevel, this.getLevelPercentage(autoLevel), partnerId]
+          );
+        }
+      }
+
       // Calcular comissão
       let commissionAmount = 0;
 
       if (partner.commission_type === 'percentage') {
-        commissionAmount = lossAmount * (parseFloat(partner.commission_value) / 100);
+        const levelPercent = this.getLevelPercentage(effectiveLevel);
+        const configuredPercent = parseFloat(partner.commission_value || 0);
+        const effectivePercent = Math.max(levelPercent, configuredPercent);
+        commissionAmount = lossAmount * (effectivePercent / 100);
       } else if (partner.commission_type === 'fixed') {
         // Valor fixo: só gera quando a perda atinge o threshold
         if (lossAmount >= parseFloat(partner.commission_threshold)) {

@@ -353,6 +353,18 @@
   word-break: break-all;
 }
 
+.id-value {
+  font-family: monospace;
+  font-size: 0.78rem;
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  user-select: all;
+}
+
 /* ===== GRID DE ESTATÍSTICAS ===== */
 .stats-grid {
   display: grid;

@@ -1,6 +1,14 @@
 const db = require('../config/database');
 const { v4: uuidv4 } = require('uuid');
 
+const LEVEL_PERCENTAGES = {
+  bronze: 1,
+  silver: 2,
+  gold: 3,
+  platinum: 5,
+  diamond: 7,
+};
+
 class Partner {
   constructor(data) {
     this.id = data.id;
@@ -15,6 +23,8 @@ class Partner {
     this.commissionBalance = parseFloat(data.commission_balance || 0);
     this.pendingCommission = parseFloat(data.pending_commission || 0);
     this.validationPeriodHours = data.validation_period_hours || 24;
+    this.partnerLevel = data.partner_level || 'bronze';
+    this.levelMode = data.level_mode || 'auto';
     this.createdAt = data.created_at;
     this.updatedAt = data.updated_at;
     // Campos join (opcionais)
@@ -25,13 +35,25 @@ class Partner {
   static async create({ userId, referralCode, commissionType, commissionValue, commissionThreshold }) {
     const id = uuidv4();
     const query = `
-      INSERT INTO partners (id, user_id, referral_code, commission_type, commission_value, commission_threshold)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO partners (id, user_id, referral_code, commission_type, commission_value, commission_threshold, partner_level, level_mode)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
     `;
-    const values = [id, userId, referralCode, commissionType || 'percentage', commissionValue || 5.00, commissionThreshold || 0];
+    const values = [id, userId, referralCode, commissionType || 'percentage', commissionValue || 5.00, commissionThreshold || 0, 'bronze', 'auto'];
     const result = await db.query(query, values);
     return new Partner(result.rows[0]);
+  }
+
+  static getLevelPercentage(level) {
+    return LEVEL_PERCENTAGES[level] || LEVEL_PERCENTAGES.bronze;
+  }
+
+  static resolveAutoLevel(totalReferredUsers = 0, totalLosses = 0) {
+    if (totalReferredUsers >= 80 || totalLosses >= 50000) return 'diamond';
+    if (totalReferredUsers >= 40 || totalLosses >= 20000) return 'platinum';
+    if (totalReferredUsers >= 15 || totalLosses >= 10000) return 'gold';
+    if (totalReferredUsers >= 5 || totalLosses >= 3000) return 'silver';
+    return 'bronze';
   }
 
   static async findById(id) {
@@ -100,7 +122,7 @@ class Partner {
     };
   }
 
-  static async updateConfig(id, { commissionType, commissionValue, commissionThreshold, validationPeriodHours }) {
+  static async updateConfig(id, { commissionType, commissionValue, commissionThreshold, validationPeriodHours, partnerLevel, levelMode }) {
     const fields = [];
     const values = [];
     let idx = 1;
@@ -109,6 +131,8 @@ class Partner {
     if (commissionValue !== undefined) { fields.push(`commission_value = $${idx++}`); values.push(commissionValue); }
     if (commissionThreshold !== undefined) { fields.push(`commission_threshold = $${idx++}`); values.push(commissionThreshold); }
     if (validationPeriodHours !== undefined) { fields.push(`validation_period_hours = $${idx++}`); values.push(validationPeriodHours); }
+    if (partnerLevel !== undefined) { fields.push(`partner_level = $${idx++}`); values.push(partnerLevel); }
+    if (levelMode !== undefined) { fields.push(`level_mode = $${idx++}`); values.push(levelMode); }
 
     if (fields.length === 0) return null;
 
@@ -142,19 +166,35 @@ class Partner {
     await db.query(query, [amount, id]);
   }
 
-  static async validatePendingCommissions() {
-    // Move comissões pendentes que passaram o período de validação para o saldo
+  static async validatePendingCommissions(partnerId, forceImmediate = false) {
+    // Move comissões pendentes para o saldo.
+    // Quando forceImmediate = true, ignora a janela de validação por horas.
+    const params = [];
+    let partnerFilter = '';
+    let validationWindowFilter = '';
+    if (partnerId) {
+      params.push(partnerId);
+      partnerFilter = ` AND partner_id = $${params.length}`;
+    }
+
+    if (!forceImmediate) {
+      validationWindowFilter = `
+        AND created_at < NOW() - (
+          SELECT INTERVAL '1 hour' * p.validation_period_hours
+          FROM partners p WHERE p.id = partner_commissions.partner_id
+        )
+      `;
+    }
+
     const query = `
       UPDATE partner_commissions 
       SET status = 'validated', validated_at = NOW()
       WHERE status = 'pending' 
-        AND created_at < NOW() - (
-          SELECT INTERVAL '1 hour' * p.validation_period_hours 
-          FROM partners p WHERE p.id = partner_commissions.partner_id
-        )
+        ${partnerFilter}
+        ${validationWindowFilter}
       RETURNING partner_id, commission_amount
     `;
-    const result = await db.query(query);
+    const result = await db.query(query, params);
 
     // Agrupar por parceiro e atualizar saldos
     const partnerTotals = {};
@@ -516,6 +556,8 @@ class Partner {
       commissionBalance: this.commissionBalance,
       pendingCommission: this.pendingCommission,
       validationPeriodHours: this.validationPeriodHours,
+      partnerLevel: this.partnerLevel,
+      levelMode: this.levelMode,
       username: this.username,
       email: this.email,
       createdAt: this.createdAt,

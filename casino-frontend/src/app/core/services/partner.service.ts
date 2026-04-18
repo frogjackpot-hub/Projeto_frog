@@ -122,6 +122,11 @@ export class PartnerService {
     return this.apiService.post<{ validatedCount: number }>('partners/admin/validate-commissions', {});
   }
 
+  /** Validar comissões pendentes de um parceiro específico */
+  validatePartnerPendingCommissions(partnerId: string): Observable<ApiResponse<{ validatedCount: number }>> {
+    return this.apiService.post<{ validatedCount: number }>(`partners/admin/${partnerId}/validate-commissions`, {});
+  }
+
   /** Métricas gerais do sistema de parceiros */
   getAdminMetrics(): Observable<ApiResponse<PartnerAdminMetrics>> {
     return this.apiService.get<PartnerAdminMetrics>('partners/admin/metrics');

@@ -128,10 +128,19 @@ class PartnerController {
         return res.status(400).json({ success: false, error: 'ID inválido', code: 'INVALID_ID' });
       }
 
-      const { commissionType, commissionValue, commissionThreshold, validationPeriodHours } = req.body;
+      const { commissionType, commissionValue, commissionThreshold, validationPeriodHours, partnerLevel, levelMode } = req.body;
+
+      const allowedLevels = ['bronze', 'silver', 'gold', 'platinum', 'diamond'];
+      const allowedLevelModes = ['auto', 'manual'];
+      if (partnerLevel !== undefined && !allowedLevels.includes(partnerLevel)) {
+        return res.status(400).json({ success: false, error: 'Nível inválido', code: 'INVALID_PARTNER_LEVEL' });
+      }
+      if (levelMode !== undefined && !allowedLevelModes.includes(levelMode)) {
+        return res.status(400).json({ success: false, error: 'Modo de nível inválido', code: 'INVALID_LEVEL_MODE' });
+      }
 
       const updated = await Partner.updateConfig(partnerId, {
-        commissionType, commissionValue, commissionThreshold, validationPeriodHours,
+        commissionType, commissionValue, commissionThreshold, validationPeriodHours, partnerLevel, levelMode,
       });
 
       if (!updated) {
@@ -250,10 +259,32 @@ class PartnerController {
    */
   static async validateCommissions(req, res, next) {
     try {
-      const validated = await Partner.validatePendingCommissions();
+      const validated = await Partner.validatePendingCommissions(undefined, true);
       res.json({
         success: true,
         message: `${validated} comissões validadas`,
+        data: { validatedCount: validated },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * POST /api/partners/admin/:partnerId/validate-commissions
+   * Validar comissões pendentes de um parceiro específico
+   */
+  static async validatePartnerCommissions(req, res, next) {
+    try {
+      const { partnerId } = req.params;
+      if (!UUID_REGEX.test(partnerId)) {
+        return res.status(400).json({ success: false, error: 'ID inválido', code: 'INVALID_ID' });
+      }
+
+      const validated = await Partner.validatePendingCommissions(partnerId, true);
+      res.json({
+        success: true,
+        message: `${validated} comissões validadas para o parceiro`,
         data: { validatedCount: validated },
       });
     } catch (error) {

@@ -4,7 +4,7 @@
     <h1>🤝 Gestão de Parceiros</h1>
     <div class="header-actions">
       <button class="btn-export" (click)="exportCSV()">📥 Exportar CSV</button>
-      <button class="btn-action" (click)="validatePendingCommissions()">✅ Validar Comissões</button>
+      <button class="btn-action" (click)="validatePendingCommissions()">✅ Validar Comissões (Todos)</button>
       <button class="btn-primary" (click)="openCreateModal()">➕ Criar Parceiro</button>
     </div>
   </div>
@@ -193,6 +193,7 @@
                     [ngStyle]="{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, 'z-index': '9999' }"
                     (click)="$event.stopPropagation()">
                     <button (click)="openConfigModal(p)">⚙️ Editar comissão</button>
+                    <button (click)="validatePartnerPendingCommissions(p)">✅ Validar comissões deste parceiro</button>
                     <button (click)="copyToClipboard(p.referralCode, 'Código')">📋 Copiar código</button>
                     <button (click)="copyToClipboard(getReferralLink(p.referralCode), 'Link')">🔗 Copiar link</button>
                     <button (click)="regenerateCode(p)">🔄 Novo código</button>
@@ -347,7 +348,7 @@
     </div>
 
     <div class="commission-actions" *ngIf="!isLoadingPendingCommissions && pendingCommissions.length > 0">
-      <button class="btn-primary" (click)="validatePendingCommissions()">✅ Validar Todas as Comissões</button>
+      <button class="btn-primary" (click)="validatePendingCommissions()">✅ Validar Todas as Comissões (Todos os Parceiros)</button>
     </div>
 
     <div class="pagination" *ngIf="pendingCommissionsTotalPages > 1">
@@ -486,6 +487,23 @@
       <div class="form-group">
         <label>Período de validação (horas)</label>
         <input type="number" [(ngModel)]="editValidationPeriodHours" min="0" max="720" class="form-input" />
+      </div>
+      <div class="form-group">
+        <label>Modo do Nível</label>
+        <select [(ngModel)]="editLevelMode" class="form-input">
+          <option value="auto">Automático (sobe por desempenho)</option>
+          <option value="manual">Manual (definido pelo admin)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Nível do Parceiro</label>
+        <select [(ngModel)]="editPartnerLevel" class="form-input" [disabled]="editLevelMode === 'auto'">
+          <option value="bronze">Bronze (1%)</option>
+          <option value="silver">Silver (2%)</option>
+          <option value="gold">Gold (3%)</option>
+          <option value="platinum">Platinum (5%)</option>
+          <option value="diamond">Diamond (7%)</option>
+        </select>
       </div>
     </div>
     <div class="modal-footer">

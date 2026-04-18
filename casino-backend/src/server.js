@@ -1,6 +1,7 @@
 const app = require('./app');
 const config = require('./config');
 const logger = require('./utils/logger');
+const Partner = require('./models/Partner');
 const fs = require('fs');
 const path = require('path');
 
@@ -18,9 +19,22 @@ const server = app.listen(config.port, '0.0.0.0', () => {
   });
 });
 
+// Job simples para validar comissoes pendentes periodicamente
+const commissionValidationJob = setInterval(async () => {
+  try {
+    const validated = await Partner.validatePendingCommissions();
+    if (validated > 0) {
+      logger.info('Comissoes validadas automaticamente', { validated });
+    }
+  } catch (error) {
+    logger.error('Falha na validacao automatica de comissoes', { error: error.message });
+  }
+}, 5 * 60 * 1000);
+
 // Graceful shutdown
 process.on('SIGTERM', () => {
   logger.info('SIGTERM recebido, encerrando servidor graciosamente');
+  clearInterval(commissionValidationJob);
   server.close(() => {
     logger.info('Servidor encerrado');
     process.exit(0);
@@ -29,6 +43,7 @@ process.on('SIGTERM', () => {
 
 process.on('SIGINT', () => {
   logger.info('SIGINT recebido, encerrando servidor graciosamente');
+  clearInterval(commissionValidationJob);
   server.close(() => {
     logger.info('Servidor encerrado');
     process.exit(0);

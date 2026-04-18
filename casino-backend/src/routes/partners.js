@@ -114,6 +114,13 @@ router.get('/admin/withdrawals', authenticateToken, requireAdmin, PartnerControl
 router.post('/admin/validate-commissions', authenticateToken, requireAdmin, PartnerController.validateCommissions);
 
 /**
+ * @route   POST /api/partners/admin/:partnerId/validate-commissions
+ * @desc    Validar comissões pendentes de um parceiro específico
+ * @access  Private (Admin only)
+ */
+router.post('/admin/:partnerId/validate-commissions', authenticateToken, requireAdmin, PartnerController.validatePartnerCommissions);
+
+/**
  * @route   GET /api/partners/admin/:partnerId
  * @desc    Detalhes de um parceiro
  * @access  Private (Admin only)
