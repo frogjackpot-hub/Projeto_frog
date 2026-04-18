@@ -32,6 +32,7 @@
           },
           "configurations": {
             "production": {
+              "allowedCommonJsDependencies": ["qrcode"],
               "optimization": true,
               "outputHashing": "all",
               "sourceMap": false,
