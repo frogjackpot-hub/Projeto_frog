@@ -2,6 +2,7 @@ const Game = require('../models/Game');
 const Transaction = require('../models/Transaction');
 const RNGService = require('../services/rngService');
 const PartnerService = require('../services/partnerService');
+const HouseBalanceService = require('../services/houseBalanceService');
 const db = require('../config/database');
 const logger = require('../utils/logger');
 const { v4: uuidv4 } = require('uuid');
@@ -203,6 +204,9 @@ class GameController {
       // Debitar valor da aposta
       await user.updateBalance(amount, 'subtract');
 
+      // A aposta líquida entra no caixa operacional da casa.
+      await HouseBalanceService.adjustOperationalBalance(parseFloat(amount));
+
       // Jogar slot
       const result = RNGService.slotMachine();
       const winAmount = result.isWin ? amount * result.multiplier : 0;
@@ -219,6 +223,9 @@ class GameController {
 
         await user.updateBalance(winAmount, 'add');
         await winTransaction.updateStatus('completed');
+
+        // Pagamento de prêmio sai do caixa operacional da casa.
+        await HouseBalanceService.adjustOperationalBalance(-parseFloat(winAmount));
       }
 
       // Completar transação de aposta
@@ -320,6 +327,9 @@ class GameController {
       // Debitar valor da aposta
       await user.updateBalance(amount, 'subtract');
 
+      // A aposta líquida entra no caixa operacional da casa.
+      await HouseBalanceService.adjustOperationalBalance(parseFloat(amount));
+
       // Jogar roleta
       const result = RNGService.roulette();
       let isWin = false;
@@ -363,6 +373,9 @@ class GameController {
 
         await user.updateBalance(winAmount, 'add');
         await winTransaction.updateStatus('completed');
+
+        // Pagamento de prêmio sai do caixa operacional da casa.
+        await HouseBalanceService.adjustOperationalBalance(-parseFloat(winAmount));
       }
 
       // Completar transação de aposta
@@ -521,6 +534,9 @@ class GameController {
         [betTxId, user.id, amount, `Aposta FrogJackpot`, gameId]
       );
 
+      // Aposta confirmada entra no caixa operacional da casa.
+      await HouseBalanceService.adjustOperationalBalance(parseFloat(amount), client);
+
       // ===== SORTEIO E CÁLCULO (server-side) =====
       const systemColors = RNGService.frogjackpot(12, 6);
       const result = RNGService.frogjackpotResult(selectedColors, systemColors, amount);
@@ -543,6 +559,9 @@ class GameController {
            VALUES ($1, $2, 'win', $3, 'completed', $4, $5, NOW(), NOW())`,
           [winTxId, user.id, result.winAmount, `Vitória FrogJackpot (${result.matchCount} acertos, x${result.multiplier})`, gameId]
         );
+
+        // Prêmio pago reduz o caixa operacional da casa.
+        await HouseBalanceService.adjustOperationalBalance(-parseFloat(result.winAmount), client);
       }
 
       // Commit da transação

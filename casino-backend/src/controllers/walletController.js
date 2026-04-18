@@ -1,4 +1,5 @@
 const Transaction = require('../models/Transaction');
+const HouseBalanceService = require('../services/houseBalanceService');
 const logger = require('../utils/logger');
 
 class WalletController {
@@ -118,6 +119,9 @@ class WalletController {
       // Debitar valor da carteira
       await user.updateBalance(amount, 'subtract');
       await transaction.updateStatus('completed');
+
+      // Saque efetivado reduz o caixa operacional da casa.
+      await HouseBalanceService.adjustOperationalBalance(-parseFloat(amount));
 
       logger.info('Saque realizado', {
         userId: user.id,

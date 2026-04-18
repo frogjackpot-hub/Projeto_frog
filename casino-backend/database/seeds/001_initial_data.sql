@@ -127,3 +127,12 @@ WHERE EXISTS (
     SELECT 1 FROM users WHERE id = 'a7b8c9d0-e1f2-3456-bcde-789012345678'
 )
 ON CONFLICT (user_id) DO NOTHING;
+
+-- Configuração inicial de caixa operacional da casa
+INSERT INTO casino_config (key, value, description) VALUES
+(
+    'house_operational_balance',
+    '10000.00',
+    'Caixa operacional real da casa para cobertura de operações (não inclui passivo de saldo dos usuários)'
+)
+ON CONFLICT (key) DO NOTHING;

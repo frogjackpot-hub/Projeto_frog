@@ -48,6 +48,13 @@ router.get('/users', authenticateToken, requireAdmin, AdminController.getAllUser
  */
 router.get('/stats', authenticateToken, requireAdmin, AdminController.getStats);
 
+/**
+ * @route   GET /api/admin/financial
+ * @desc    Obter estatísticas financeiras do cassino
+ * @access  Private (Admin only)
+ */
+router.get('/financial', authenticateToken, requireAdmin, AdminController.getFinancialStats);
+
 // ========== ROTAS DE GESTÃO DE USUÁRIOS ==========
 
 /**

@@ -1,0 +1,343 @@
+<div class="admin-financial">
+  <div class="page-header">
+    <div class="header-copy">
+      <h1>Painel Financeiro</h1>
+      <p>Dashboard de dinheiro da casa: caixa, apostas, saídas, parceiros e alertas operacionais.</p>
+    </div>
+
+    <div class="actions-group">
+      <button class="action-btn" (click)="exportReport()">Exportar relatório</button>
+      <button class="action-btn" (click)="exportCsv()">Exportar CSV</button>
+      <button class="action-btn" (click)="exportExcel()">Exportar Excel</button>
+      <button class="action-btn" [disabled]="isRefreshing" (click)="refreshData()">
+        {{ isRefreshing ? 'Atualizando...' : 'Atualizar dados' }}
+      </button>
+      <button class="action-btn secondary" (click)="viewFullHistory()">Ver histórico completo</button>
+    </div>
+  </div>
+
+  <section class="period-toolbar">
+    <div class="period-selector">
+      <button [class.active]="period === 'today'" (click)="changePeriod('today')">Hoje</button>
+      <button [class.active]="period === 'yesterday'" (click)="changePeriod('yesterday')">Ontem</button>
+      <button [class.active]="period === '7d'" (click)="changePeriod('7d')">7 dias</button>
+      <button [class.active]="period === '30d'" (click)="changePeriod('30d')">30 dias</button>
+      <button [class.active]="period === 'month'" (click)="changePeriod('month')">Mês</button>
+      <button [class.active]="period === 'year'" (click)="changePeriod('year')">Ano</button>
+      <button [class.active]="period === 'all'" (click)="changePeriod('all')">Tudo</button>
+      <button [class.active]="period === 'custom'" (click)="changePeriod('custom')">Personalizado</button>
+    </div>
+
+    <div class="custom-range" *ngIf="period === 'custom'">
+      <label>
+        Início
+        <input type="date" [(ngModel)]="customStartDate" />
+      </label>
+      <label>
+        Fim
+        <input type="date" [(ngModel)]="customEndDate" />
+      </label>
+      <button class="apply-custom-btn" (click)="applyCustomPeriod()">Aplicar</button>
+    </div>
+  </section>
+
+  <div *ngIf="isLoading" class="loading-container">
+    <p>Carregando dados financeiros...</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading && stats">
+    <section class="stats-grid cards-primary">
+      <article class="stat-card">
+        <h3>Caixa operacional da casa</h3>
+        <p class="value">{{ stats.cards.casinoBalance | appCurrency }}</p>
+      </article>
+
+      <article class="stat-card">
+        <h3>Lucro hoje</h3>
+        <p class="value" [class.positive]="stats.cards.casinoProfitToday >= 0" [class.negative]="stats.cards.casinoProfitToday < 0">
+          {{ stats.cards.casinoProfitToday | appCurrency }}
+        </p>
+      </article>
+
+      <article class="stat-card">
+        <h3>Depósitos hoje</h3>
+        <p class="value positive">{{ stats.cards.depositsToday | appCurrency }}</p>
+      </article>
+
+      <article class="stat-card">
+        <h3>Saques hoje</h3>
+        <p class="value negative">{{ stats.cards.withdrawalsToday | appCurrency }}</p>
+      </article>
+
+      <article class="stat-card">
+        <h3>Comissões pendentes</h3>
+        <p class="value warning">{{ stats.cards.pendingCommissions | appCurrency }}</p>
+      </article>
+
+      <article class="stat-card">
+        <h3>Saques pendentes</h3>
+        <p class="value warning">{{ stats.cards.pendingWithdrawals | appCurrency }}</p>
+      </article>
+
+      <article class="stat-card">
+        <h3>Usuários ativos hoje</h3>
+        <p class="value">{{ stats.cards.activeUsersToday }}</p>
+      </article>
+    </section>
+
+    <section class="stats-grid house-metrics">
+      <article class="stat-card highlighted">
+        <h3>Total apostado</h3>
+        <p class="value">{{ stats.houseMetrics.totalBetAmount | appCurrency }}</p>
+      </article>
+
+      <article class="stat-card highlighted">
+        <h3>Total pago em prêmios</h3>
+        <p class="value">{{ stats.houseMetrics.totalWinAmount | appCurrency }}</p>
+      </article>
+
+      <article class="stat-card highlighted">
+        <h3>Lucro da casa</h3>
+        <p class="value" [class.positive]="stats.houseMetrics.houseProfit >= 0" [class.negative]="stats.houseMetrics.houseProfit < 0">
+          {{ stats.houseMetrics.houseProfit | appCurrency }}
+        </p>
+      </article>
+    </section>
+
+    <section class="panel-grid charts-grid">
+      <article class="panel-card">
+        <h2>Gráfico 1: Lucro por dia</h2>
+        <p class="panel-subtitle">Últimos dias conforme período selecionado</p>
+
+        <div *ngIf="!stats.charts.profitByDay.length" class="empty-state">
+          Sem dados de lucro diário para este período.
+        </div>
+
+        <div *ngIf="stats.charts.profitByDay.length" class="chart-list">
+          <div class="chart-row" *ngFor="let item of stats.charts.profitByDay">
+            <div class="chart-label">{{ item.day | date: 'dd/MM' }}</div>
+            <div class="chart-track">
+              <div
+                class="chart-bar"
+                [class.positive]="item.profit >= 0"
+                [class.negative]="item.profit < 0"
+                [style.width.%]="getChartBarWidth(absoluteValue(item.profit), maxAbsoluteProfitValue)">
+              </div>
+            </div>
+            <div class="chart-value" [class.negative]="item.profit < 0">{{ item.profit | appCurrency }}</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel-card">
+        <h2>Gráfico 2: Depósitos vs Saques</h2>
+        <p class="panel-subtitle">Entradas x saídas por dia</p>
+
+        <div *ngIf="!stats.charts.depositsVsWithdrawals.length" class="empty-state">
+          Sem dados de depósitos e saques para o período.
+        </div>
+
+        <div *ngIf="stats.charts.depositsVsWithdrawals.length" class="chart-list dual">
+          <div class="chart-row dual" *ngFor="let item of stats.charts.depositsVsWithdrawals">
+            <div class="chart-label">{{ item.day | date: 'dd/MM' }}</div>
+            <div class="dual-bars">
+              <div class="dual-line">
+                <span>D</span>
+                <div class="chart-track"><div class="chart-bar deposit" [style.width.%]="getChartBarWidth(item.deposits, maxDepositsVsWithdrawalsValue)"></div></div>
+                <strong>{{ item.deposits | appCurrency }}</strong>
+              </div>
+              <div class="dual-line">
+                <span>S</span>
+                <div class="chart-track"><div class="chart-bar withdrawal" [style.width.%]="getChartBarWidth(item.withdrawals, maxDepositsVsWithdrawalsValue)"></div></div>
+                <strong>{{ item.withdrawals | appCurrency }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel-card">
+        <h2>Gráfico 3: Apostas vs Ganhos</h2>
+        <p class="panel-subtitle">Volume de jogo vs pagamentos a jogadores</p>
+
+        <div *ngIf="!stats.charts.betsVsWins.length" class="empty-state">
+          Sem dados de apostas e ganhos para o período.
+        </div>
+
+        <div *ngIf="stats.charts.betsVsWins.length" class="chart-list dual">
+          <div class="chart-row dual" *ngFor="let item of stats.charts.betsVsWins">
+            <div class="chart-label">{{ item.day | date: 'dd/MM' }}</div>
+            <div class="dual-bars">
+              <div class="dual-line">
+                <span>A</span>
+                <div class="chart-track"><div class="chart-bar bet" [style.width.%]="getChartBarWidth(item.bets, maxBetsVsWinsValue)"></div></div>
+                <strong>{{ item.bets | appCurrency }}</strong>
+              </div>
+              <div class="dual-line">
+                <span>G</span>
+                <div class="chart-track"><div class="chart-bar win" [style.width.%]="getChartBarWidth(item.wins, maxBetsVsWinsValue)"></div></div>
+                <strong>{{ item.wins | appCurrency }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel-grid">
+      <article class="panel-card">
+        <h2>Resumo por período</h2>
+
+        <div class="summary-grid">
+          <div><span>Depósitos</span><strong>{{ stats.summary.totalDeposits | appCurrency }}</strong></div>
+          <div><span>Saques</span><strong>{{ stats.summary.totalWithdrawals | appCurrency }}</strong></div>
+          <div><span>Apostas</span><strong>{{ stats.summary.totalBets | appCurrency }}</strong></div>
+          <div><span>Ganhos</span><strong>{{ stats.summary.totalWins | appCurrency }}</strong></div>
+          <div><span>Lucro</span><strong [class.negative]="stats.summary.grossGamingRevenue < 0">{{ stats.summary.grossGamingRevenue | appCurrency }}</strong></div>
+          <div><span>Comissões geradas</span><strong>{{ stats.summary.commissionsGenerated | appCurrency }}</strong></div>
+          <div><span>Usuários ativos</span><strong>{{ stats.summary.activeFinancialUsers }}</strong></div>
+          <div><span>Payout</span><strong>{{ stats.summary.payoutRate | number: '1.2-2' }}%</strong></div>
+        </div>
+      </article>
+
+      <article class="panel-card">
+        <h2>Saldo real do cassino</h2>
+        <div class="summary-grid">
+          <div><span>Caixa operacional da casa</span><strong>{{ stats.balance.totalBalance | appCurrency }}</strong></div>
+          <div><span>Passivo de saldos dos usuários</span><strong>{{ stats.balance.usersBalanceLiability | appCurrency }}</strong></div>
+          <div><span>Saques pendentes</span><strong>{{ stats.balance.pendingWithdrawals | appCurrency }}</strong></div>
+          <div><span>Comissões pendentes</span><strong>{{ stats.balance.pendingCommissions | appCurrency }}</strong></div>
+          <div><span>Cobertura operacional</span><strong>{{ stats.balance.solvencyCoverage | number: '1.2-2' }}%</strong></div>
+          <div><span>Saldo disponível real</span><strong [class.negative]="stats.balance.availableRealBalance < 0">{{ stats.balance.availableRealBalance | appCurrency }}</strong></div>
+        </div>
+        <p class="panel-subtitle" *ngIf="!stats.balance.hasOperationalBalanceConfigured">
+          Caixa operacional ainda não configurado. Defina a chave house_operational_balance em Configurações.
+        </p>
+      </article>
+    </section>
+
+    <section class="panel-card full-width">
+      <h2>Tabela de transações (ledger)</h2>
+      <div *ngIf="!ledgerItems.length" class="empty-state">Nenhuma transação para o período selecionado.</div>
+
+      <div class="table-wrapper" *ngIf="ledgerItems.length">
+        <table class="distribution-table ledger-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Tipo</th>
+              <th>Usuário</th>
+              <th>Valor</th>
+              <th>Status</th>
+              <th>Origem</th>
+              <th>Saldo após</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of ledgerItems; trackBy: trackByLedgerId">
+              <td>{{ row.date | date: 'dd/MM HH:mm' }}</td>
+              <td>{{ translateTransactionType(row.type) }}</td>
+              <td>{{ row.user }}</td>
+              <td>{{ row.value | appCurrency }}</td>
+              <td>{{ translateStatus(row.status) }}</td>
+              <td>{{ row.origin }}</td>
+              <td>{{ row.balanceAfter !== null ? (row.balanceAfter | appCurrency) : '-' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-pagination">
+        <button (click)="goToPreviousPage()" [disabled]="!canGoPrevPage">Anterior</button>
+        <span>Página {{ ledgerCurrentPage }} de {{ ledgerTotalPages }}</span>
+        <button (click)="goToNextPage()" [disabled]="!canGoNextPage">Próxima</button>
+      </div>
+    </section>
+
+    <section class="panel-grid">
+      <article class="panel-card">
+        <h2>Saques pendentes</h2>
+
+        <div *ngIf="!pendingWithdrawals.length" class="empty-state">
+          Não há saques pendentes neste momento.
+        </div>
+
+        <div class="table-wrapper" *ngIf="pendingWithdrawals.length">
+          <table class="distribution-table">
+            <thead>
+              <tr>
+                <th>Usuário</th>
+                <th>Valor</th>
+                <th>Data</th>
+                <th>Método</th>
+                <th>Status</th>
+                <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of pendingWithdrawals; trackBy: trackByWithdrawalId">
+                <td>{{ row.username || row.email }}</td>
+                <td>{{ row.amount | appCurrency }}</td>
+                <td>{{ row.createdAt | date: 'dd/MM HH:mm' }}</td>
+                <td>{{ row.method }}</td>
+                <td>{{ translateStatus(row.status) }}</td>
+                <td class="table-actions">
+                  <button [disabled]="isReviewingWithdrawal" class="approve" (click)="approvePendingWithdrawal(row.id)">Aprovar</button>
+                  <button [disabled]="isReviewingWithdrawal" class="reject" (click)="rejectPendingWithdrawal(row.id)">Rejeitar</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="panel-card">
+        <h2>Comissões de parceiros</h2>
+
+        <div *ngIf="!partnerCommissions.length" class="empty-state">
+          Não há parceiros com comissão para exibir.
+        </div>
+
+        <div class="table-wrapper" *ngIf="partnerCommissions.length">
+          <table class="distribution-table">
+            <thead>
+              <tr>
+                <th>Parceiro</th>
+                <th>Pendente</th>
+                <th>Disponível</th>
+                <th>Pago</th>
+                <th>Último pagamento</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of partnerCommissions">
+                <td>{{ item.partner }}</td>
+                <td>{{ item.pendingCommission | appCurrency }}</td>
+                <td>{{ item.availableCommission | appCurrency }}</td>
+                <td>{{ item.paidCommission | appCurrency }}</td>
+                <td>{{ item.lastPayment ? (item.lastPayment | date: 'dd/MM/yyyy HH:mm') : 'Sem pagamento' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel-card full-width">
+      <h2>Alertas financeiros</h2>
+
+      <div *ngIf="!alerts.length" class="empty-state">
+        Nenhum alerta crítico no momento.
+      </div>
+
+      <div class="alerts-grid" *ngIf="alerts.length">
+        <div class="alert-item" [class.high]="alert.severity === 'high'" [class.medium]="alert.severity === 'medium'" *ngFor="let alert of alerts">
+          <h3>{{ alert.title }}</h3>
+          <p>{{ alert.message }}</p>
+          <strong>{{ alert.value | appCurrency }}</strong>
+          <span class="severity">{{ alert.severity === 'high' ? 'Alta' : alert.severity === 'medium' ? 'Média' : 'Baixa' }}</span>
+        </div>
+      </div>
+    </section>
+  </ng-container>
+</div>

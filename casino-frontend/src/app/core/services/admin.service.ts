@@ -87,6 +87,124 @@ export interface AuditLog {
   createdAt: string;
 }
 
+export interface AdminFinancialSummary {
+  totalDeposits: number;
+  totalWithdrawals: number;
+  pendingWithdrawals: number;
+  totalBets: number;
+  totalWins: number;
+  grossGamingRevenue: number;
+  netCashflow: number;
+  payoutRate: number;
+  averageTicket: number;
+  transactionCount: number;
+  activeFinancialUsers: number;
+  commissionsGenerated: number;
+  activeUsersLast24h: number;
+}
+
+export interface AdminFinancialDailyFlow {
+  day: string;
+  deposits: number;
+  withdrawals: number;
+  bets: number;
+  wins: number;
+  netCashflow: number;
+  ggr: number;
+}
+
+export interface AdminFinancialDistribution {
+  type: string;
+  quantity: number;
+  totalAmount: number;
+}
+
+export interface AdminFinancialStats {
+  period: string;
+  customRange: {
+    startDate: string;
+    endDate: string;
+  } | null;
+  cards: {
+    casinoBalance: number;
+    casinoProfitToday: number;
+    depositsToday: number;
+    withdrawalsToday: number;
+    pendingCommissions: number;
+    pendingWithdrawals: number;
+    activeUsersToday: number;
+  };
+  houseMetrics: {
+    totalBetAmount: number;
+    totalWinAmount: number;
+    houseProfit: number;
+  };
+  summary: AdminFinancialSummary;
+  dailyFlow: AdminFinancialDailyFlow[];
+  charts: {
+    profitByDay: Array<{ day: string; profit: number }>;
+    depositsVsWithdrawals: Array<{ day: string; deposits: number; withdrawals: number }>;
+    betsVsWins: Array<{ day: string; bets: number; wins: number }>;
+  };
+  transactionDistribution: AdminFinancialDistribution[];
+  ledger: {
+    items: Array<{
+      id: string;
+      date: string;
+      type: string;
+      rawType: string;
+      userId: string;
+      user: string;
+      value: number;
+      status: string;
+      origin: string;
+      balanceAfter: number | null;
+      description: string;
+    }>;
+    pagination: {
+      total: number;
+      limit: number;
+      offset: number;
+    };
+  };
+  pendingWithdrawals: Array<{
+    id: string;
+    userId: string;
+    username: string;
+    email: string;
+    amount: number;
+    status: string;
+    method: string;
+    createdAt: string;
+  }>;
+  partnerCommissions: Array<{
+    partnerId: string;
+    partner: string;
+    pendingCommission: number;
+    availableCommission: number;
+    paidCommission: number;
+    lastPayment: string | null;
+  }>;
+  balance: {
+    totalBalance: number;
+    pendingWithdrawals: number;
+    pendingCommissions: number;
+    availableRealBalance: number;
+    usersBalanceLiability: number;
+    solvencyCoverage: number;
+    hasOperationalBalanceConfigured: boolean;
+    availableCommissions: number;
+    paidCommissions: number;
+  };
+  alerts: Array<{
+    type: string;
+    severity: 'high' | 'medium' | 'low';
+    title: string;
+    message: string;
+    value: number;
+  }>;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -256,6 +374,29 @@ export class AdminService {
    */
   getStats(period: string = 'today'): Observable<ApiResponse<AdminStats>> {
     return this.apiService.get<AdminStats>(`/admin/stats?period=${period}`);
+  }
+
+  /**
+   * Obter estatísticas financeiras do cassino (admin only)
+   */
+  getFinancialStats(
+    period: string = '30d',
+    options?: {
+      startDate?: string;
+      endDate?: string;
+      limit?: number;
+      offset?: number;
+    }
+  ): Observable<ApiResponse<AdminFinancialStats>> {
+    const params = new URLSearchParams();
+    params.append('period', period);
+
+    if (options?.startDate) params.append('startDate', options.startDate);
+    if (options?.endDate) params.append('endDate', options.endDate);
+    if (options?.limit !== undefined) params.append('limit', String(options.limit));
+    if (options?.offset !== undefined) params.append('offset', String(options.offset));
+
+    return this.apiService.get<AdminFinancialStats>(`/admin/financial?${params.toString()}`);
   }
 
   // ========== GESTÃO DE USUÁRIOS ==========

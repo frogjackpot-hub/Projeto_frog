@@ -6,6 +6,7 @@ const AuditLog = require('../models/AuditLog');
 const CasinoConfig = require('../models/CasinoConfig');
 const Bonus = require('../models/Bonus');
 const StatsService = require('../services/statsService');
+const HouseBalanceService = require('../services/houseBalanceService');
 const telegramService = require('../services/telegramService');
 const logger = require('../utils/logger');
 const bcrypt = require('bcryptjs');
@@ -840,16 +841,49 @@ class AdminController {
       }
 
       const db = require('../config/database');
-      const result = await db.query(
-        'UPDATE transactions SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
-        [status, id]
-      );
+      const client = await db.pool.connect();
+      let updatedTransaction;
 
-      if (result.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'Transação não encontrada'
-        });
+      try {
+        await client.query('BEGIN');
+
+        const existingResult = await client.query(
+          'SELECT * FROM transactions WHERE id = $1 FOR UPDATE',
+          [id]
+        );
+
+        if (existingResult.rows.length === 0) {
+          await client.query('ROLLBACK');
+          return res.status(404).json({
+            success: false,
+            message: 'Transação não encontrada'
+          });
+        }
+
+        const existingTransaction = existingResult.rows[0];
+
+        const updateResult = await client.query(
+          'UPDATE transactions SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+          [status, id]
+        );
+
+        updatedTransaction = updateResult.rows[0];
+
+        // Saque pendente aprovado representa saída efetiva de caixa operacional.
+        if (
+          existingTransaction.type === 'withdrawal'
+          && existingTransaction.status !== 'approved'
+          && status === 'approved'
+        ) {
+          await HouseBalanceService.adjustOperationalBalance(-parseFloat(existingTransaction.amount), client);
+        }
+
+        await client.query('COMMIT');
+      } catch (transactionError) {
+        await client.query('ROLLBACK');
+        throw transactionError;
+      } finally {
+        client.release();
       }
 
       // Registrar auditoria
@@ -868,10 +902,511 @@ class AdminController {
       res.json({
         success: true,
         message: 'Transação atualizada com sucesso',
-        data: result.rows[0]
+        data: updatedTransaction
       });
     } catch (error) {
       logger.error('Erro ao atualizar transação:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * Obter estatísticas financeiras do cassino
+   */
+  static async getFinancialStats(req, res, next) {
+    try {
+      const {
+        period = '30d',
+        startDate: customStartDate,
+        endDate: customEndDate,
+        limit = 20,
+        offset = 0
+      } = req.query;
+      const db = require('../config/database');
+
+      const now = new Date();
+      const todayStart = new Date(now);
+      todayStart.setHours(0, 0, 0, 0);
+      const tomorrowStart = new Date(todayStart);
+      tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+
+      let startDate = null;
+      let endDate = null;
+
+      switch (period) {
+        case 'today':
+          startDate = todayStart;
+          endDate = tomorrowStart;
+          break;
+        case 'yesterday': {
+          const yesterdayStart = new Date(todayStart);
+          yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+          startDate = yesterdayStart;
+          endDate = todayStart;
+          break;
+        }
+        case '7d':
+          startDate = new Date(now);
+          startDate.setDate(startDate.getDate() - 7);
+          break;
+        case '30d':
+          startDate = new Date(now);
+          startDate.setDate(startDate.getDate() - 30);
+          break;
+        case 'custom':
+          if (!customStartDate || !customEndDate) {
+            return res.status(400).json({
+              success: false,
+              message: 'Para período custom, informe startDate e endDate'
+            });
+          }
+
+          startDate = new Date(customStartDate);
+          endDate = new Date(customEndDate);
+          endDate.setHours(23, 59, 59, 999);
+
+          if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+            return res.status(400).json({
+              success: false,
+              message: 'Datas inválidas para período custom'
+            });
+          }
+          break;
+        case 'month':
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          break;
+        case 'year':
+          startDate = new Date(now.getFullYear(), 0, 1);
+          break;
+        case 'all':
+          startDate = null;
+          endDate = null;
+          break;
+        default:
+          return res.status(400).json({
+            success: false,
+            message: 'Período inválido. Use: today, yesterday, 7d, 30d, month, year, custom ou all'
+          });
+      }
+
+      const toNumber = (value) => parseFloat(value || 0);
+
+        const buildDateFilter = (prefix = '') => {
+          const values = [];
+          const conditions = [];
+          const column = `${prefix}created_at`;
+
+          if (startDate) {
+            values.push(startDate.toISOString());
+            conditions.push(`${column} >= $${values.length}`);
+          }
+
+          if (endDate) {
+            values.push(endDate.toISOString());
+            conditions.push(`${column} < $${values.length}`);
+          }
+
+          return {
+            values,
+            whereClause: conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''
+          };
+        };
+
+        const periodFilter = buildDateFilter();
+        const periodFilterWithAlias = buildDateFilter('t.');
+
+        const todayCardsQuery = `
+          SELECT
+            COALESCE(SUM(CASE WHEN type = 'deposit' AND status IN ('completed', 'approved') THEN amount ELSE 0 END), 0) AS deposits_today,
+            COALESCE(SUM(CASE WHEN type = 'withdrawal' AND status IN ('completed', 'approved') THEN amount ELSE 0 END), 0) AS withdrawals_today,
+            COALESCE(SUM(CASE WHEN type = 'bet' AND status IN ('completed', 'approved') THEN amount ELSE 0 END), 0) AS bets_today,
+            COALESCE(SUM(CASE WHEN type = 'win' AND status IN ('completed', 'approved') THEN amount ELSE 0 END), 0) AS wins_today,
+            COUNT(DISTINCT user_id) AS active_users_today
+          FROM transactions
+          WHERE created_at >= $1 AND created_at < $2
+        `;
+
+        const todayCardsResult = await db.query(todayCardsQuery, [todayStart.toISOString(), tomorrowStart.toISOString()]);
+        const todayCards = todayCardsResult.rows[0] || {};
+
+        const balanceQuery = `
+          SELECT
+            COALESCE(SUM(CASE WHEN role = 'player' THEN balance ELSE 0 END), 0) AS users_balance_liability,
+            COUNT(*) FILTER (WHERE role = 'player' AND last_activity_at >= $1) AS active_users_last_24h
+          FROM users
+        `;
+
+        const balanceResult = await db.query(balanceQuery, [new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()]);
+        const balanceRow = balanceResult.rows[0] || {};
+
+        const partnerBalanceQuery = `
+          SELECT
+            COALESCE(SUM(pending_commission), 0) AS pending_commissions,
+            COALESCE(SUM(commission_balance), 0) AS available_commissions,
+            COALESCE(SUM(total_commissions_earned), 0) AS paid_commissions
+          FROM partners
+        `;
+
+        const partnerBalanceResult = await db.query(partnerBalanceQuery);
+        const partnerBalanceRow = partnerBalanceResult.rows[0] || {};
+
+        const houseOperationalBalance = await HouseBalanceService.getOperationalBalance();
+        const hasOperationalBalanceConfigured = true;
+
+        const summaryQuery = `
+          SELECT
+            COALESCE(SUM(CASE WHEN type = 'deposit' AND status IN ('completed', 'approved') THEN amount ELSE 0 END), 0) AS total_deposits,
+            COALESCE(SUM(CASE WHEN type = 'withdrawal' AND status IN ('completed', 'approved') THEN amount ELSE 0 END), 0) AS total_withdrawals,
+            COALESCE(SUM(CASE WHEN type = 'withdrawal' AND status = 'pending' THEN amount ELSE 0 END), 0) AS pending_withdrawals,
+            COALESCE(SUM(CASE WHEN type = 'bet' AND status IN ('completed', 'approved') THEN amount ELSE 0 END), 0) AS total_bets,
+            COALESCE(SUM(CASE WHEN type = 'win' AND status IN ('completed', 'approved') THEN amount ELSE 0 END), 0) AS total_wins,
+            COUNT(*) AS transaction_count,
+            COUNT(DISTINCT user_id) AS active_financial_users
+          FROM transactions
+          ${periodFilter.whereClause}
+        `;
+
+        const summaryResult = await db.query(summaryQuery, periodFilter.values);
+        const summaryRow = summaryResult.rows[0] || {};
+
+        const totalDeposits = toNumber(summaryRow.total_deposits);
+        const totalWithdrawals = toNumber(summaryRow.total_withdrawals);
+        const pendingWithdrawals = toNumber(summaryRow.pending_withdrawals);
+        const totalBets = toNumber(summaryRow.total_bets);
+        const totalWins = toNumber(summaryRow.total_wins);
+        const grossGamingRevenue = totalBets - totalWins;
+        const netCashflow = totalDeposits - totalWithdrawals;
+        const payoutRate = totalBets > 0 ? (totalWins / totalBets) * 100 : 0;
+        const transactionCount = parseInt(summaryRow.transaction_count || 0, 10);
+        const averageTicket = transactionCount > 0
+          ? (totalDeposits + totalWithdrawals) / transactionCount
+          : 0;
+
+        const commissionsPeriodQuery = `
+          SELECT
+            COALESCE(SUM(commission_amount), 0) AS commissions_generated
+          FROM partner_commissions
+          ${periodFilter.whereClause}
+        `;
+        const commissionsPeriodResult = await db.query(commissionsPeriodQuery, periodFilter.values);
+        const commissionsGenerated = toNumber(commissionsPeriodResult.rows[0]?.commissions_generated);
+
+        const dailyFlowQuery = `
+          SELECT
+            DATE(created_at) AS day,
+            COALESCE(SUM(CASE WHEN type = 'deposit' AND status IN ('completed', 'approved') THEN amount ELSE 0 END), 0) AS deposits,
+            COALESCE(SUM(CASE WHEN type = 'withdrawal' AND status IN ('completed', 'approved') THEN amount ELSE 0 END), 0) AS withdrawals,
+            COALESCE(SUM(CASE WHEN type = 'bet' AND status IN ('completed', 'approved') THEN amount ELSE 0 END), 0) AS bets,
+            COALESCE(SUM(CASE WHEN type = 'win' AND status IN ('completed', 'approved') THEN amount ELSE 0 END), 0) AS wins
+          FROM transactions
+          ${periodFilter.whereClause}
+          GROUP BY DATE(created_at)
+          ORDER BY DATE(created_at) ASC
+        `;
+
+        const dailyFlowResult = await db.query(dailyFlowQuery, periodFilter.values);
+        const dailyFlow = dailyFlowResult.rows.map((row) => {
+          const deposits = toNumber(row.deposits);
+          const withdrawals = toNumber(row.withdrawals);
+          const bets = toNumber(row.bets);
+          const wins = toNumber(row.wins);
+
+          return {
+            day: row.day,
+            deposits,
+            withdrawals,
+            bets,
+            wins,
+            netCashflow: deposits - withdrawals,
+            ggr: bets - wins,
+            profit: bets - wins
+          };
+        });
+
+        const distributionQuery = `
+          SELECT
+            type,
+            COUNT(*) AS quantity,
+            COALESCE(SUM(amount), 0) AS total_amount
+          FROM transactions
+          ${periodFilter.whereClause}
+          GROUP BY type
+          ORDER BY total_amount DESC
+        `;
+
+        const distributionResult = await db.query(distributionQuery, periodFilter.values);
+        const transactionDistribution = distributionResult.rows.map((row) => ({
+          type: row.type,
+          quantity: parseInt(row.quantity || 0, 10),
+          totalAmount: toNumber(row.total_amount)
+        }));
+
+        const pendingWithdrawalsListQuery = `
+          SELECT
+            t.id,
+            t.user_id,
+            u.username,
+            u.email,
+            t.amount,
+            t.status,
+            t.description,
+            t.created_at
+          FROM transactions t
+          LEFT JOIN users u ON u.id = t.user_id
+          WHERE t.type = 'withdrawal' AND t.status = 'pending'
+          ORDER BY t.created_at ASC
+          LIMIT 50
+        `;
+        const pendingWithdrawalsListResult = await db.query(pendingWithdrawalsListQuery);
+        const pendingWithdrawalsList = pendingWithdrawalsListResult.rows.map((row) => ({
+          id: row.id,
+          userId: row.user_id,
+          username: row.username,
+          email: row.email,
+          amount: toNumber(row.amount),
+          status: row.status,
+          method: 'Carteira',
+          createdAt: row.created_at
+        }));
+
+        const partnerCommissionsQuery = `
+          SELECT
+            p.id,
+            u.username,
+            p.pending_commission,
+            p.commission_balance,
+            p.total_commissions_earned,
+            (
+              SELECT MAX(pw.reviewed_at)
+              FROM partner_withdrawals pw
+              WHERE pw.partner_id = p.id AND pw.status = 'approved'
+            ) AS last_payment
+          FROM partners p
+          LEFT JOIN users u ON u.id = p.user_id
+          ORDER BY p.pending_commission DESC
+          LIMIT 20
+        `;
+
+        const partnerCommissionsResult = await db.query(partnerCommissionsQuery);
+        const partnerCommissions = partnerCommissionsResult.rows.map((row) => ({
+          partnerId: row.id,
+          partner: row.username,
+          pendingCommission: toNumber(row.pending_commission),
+          availableCommission: toNumber(row.commission_balance),
+          paidCommission: toNumber(row.total_commissions_earned),
+          lastPayment: row.last_payment
+        }));
+
+        const ledgerLimit = Math.max(1, parseInt(limit, 10) || 20);
+        const ledgerOffset = Math.max(0, parseInt(offset, 10) || 0);
+
+        const ledgerCountQuery = `
+          SELECT COUNT(*) AS total
+          FROM transactions t
+          ${periodFilterWithAlias.whereClause}
+        `;
+        const ledgerCountResult = await db.query(ledgerCountQuery, periodFilterWithAlias.values);
+        const ledgerTotal = parseInt(ledgerCountResult.rows[0]?.total || 0, 10);
+
+        const ledgerValues = [...periodFilterWithAlias.values];
+        ledgerValues.push(ledgerLimit);
+        ledgerValues.push(ledgerOffset);
+
+        const ledgerQuery = `
+          SELECT
+            t.id,
+            t.created_at,
+            t.type,
+            t.amount,
+            t.status,
+            t.description,
+            t.user_id,
+            u.username,
+            u.email,
+            g.name AS game_name,
+            u.balance AS user_current_balance
+          FROM transactions t
+          LEFT JOIN users u ON u.id = t.user_id
+          LEFT JOIN games g ON g.id = t.game_id
+          ${periodFilterWithAlias.whereClause}
+          ORDER BY t.created_at DESC
+          LIMIT $${ledgerValues.length - 1} OFFSET $${ledgerValues.length}
+        `;
+
+        const ledgerResult = await db.query(ledgerQuery, ledgerValues);
+        const ledger = ledgerResult.rows.map((row) => {
+          const isAdminAdjustment = (row.description || '').toLowerCase().includes('administrador');
+          let transactionType = row.type;
+
+          if (isAdminAdjustment) {
+            transactionType = 'admin_adjustment';
+          }
+
+          return {
+            id: row.id,
+            date: row.created_at,
+            type: transactionType,
+            rawType: row.type,
+            userId: row.user_id,
+            user: row.username || row.email || 'Sistema',
+            value: toNumber(row.amount),
+            status: row.status,
+            origin: row.game_name || (isAdminAdjustment ? 'Painel Admin' : 'Carteira'),
+            balanceAfter: row.user_current_balance !== null ? toNumber(row.user_current_balance) : null,
+            description: row.description
+          };
+        });
+
+        const usersBalanceLiability = toNumber(balanceRow.users_balance_liability);
+        const pendingCommissions = toNumber(partnerBalanceRow.pending_commissions);
+        const realAvailableBalance = houseOperationalBalance - pendingWithdrawals - pendingCommissions;
+        const solvencyCoverage = usersBalanceLiability > 0
+          ? (houseOperationalBalance / usersBalanceLiability) * 100
+          : 0;
+
+        const depositsToday = toNumber(todayCards.deposits_today);
+        const withdrawalsToday = toNumber(todayCards.withdrawals_today);
+        const betsToday = toNumber(todayCards.bets_today);
+        const winsToday = toNumber(todayCards.wins_today);
+        const casinoProfitToday = betsToday - winsToday;
+        const activeUsersToday = parseInt(todayCards.active_users_today || 0, 10);
+
+        const alerts = [];
+
+        if (realAvailableBalance < 1000) {
+          alerts.push({
+            type: 'low_balance',
+            severity: 'high',
+            title: 'Saldo disponível baixo',
+            message: 'O saldo disponível real está abaixo de R$ 1.000',
+            value: realAvailableBalance
+          });
+        }
+
+        if (withdrawalsToday > depositsToday * 1.5 && withdrawalsToday > 0) {
+          alerts.push({
+            type: 'high_withdrawals',
+            severity: 'medium',
+            title: 'Saques altos hoje',
+            message: 'Saques do dia estão acima de 150% dos depósitos do dia',
+            value: withdrawalsToday
+          });
+        }
+
+        if (casinoProfitToday < 0) {
+          alerts.push({
+            type: 'high_losses',
+            severity: 'high',
+            title: 'Perda da casa no dia',
+            message: 'Lucro diário da casa está negativo',
+            value: casinoProfitToday
+          });
+        }
+
+        if (pendingCommissions > houseOperationalBalance * 0.2 && houseOperationalBalance > 0) {
+          alerts.push({
+            type: 'high_commissions',
+            severity: 'medium',
+            title: 'Comissões pendentes altas',
+            message: 'Comissões pendentes representam mais de 20% do saldo total',
+            value: pendingCommissions
+          });
+        }
+
+        if (!hasOperationalBalanceConfigured) {
+          alerts.push({
+            type: 'operational_balance_missing',
+            severity: 'high',
+            title: 'Caixa operacional não configurado',
+            message: 'Defina a configuração house_operational_balance para refletir o caixa real da casa',
+            value: 0
+          });
+        }
+
+        if (payoutRate > 100) {
+          alerts.push({
+            type: 'financial_error',
+            severity: 'high',
+            title: 'Anomalia no payout',
+            message: 'Taxa de payout acima de 100% no período',
+            value: payoutRate
+          });
+        }
+
+      logger.info(`Admin ${req.user.email} consultou painel financeiro (período: ${period})`);
+
+      res.json({
+        success: true,
+        data: {
+          period,
+          customRange: startDate && endDate
+            ? {
+                startDate: startDate.toISOString(),
+                endDate: endDate.toISOString()
+              }
+            : null,
+          cards: {
+            casinoBalance: houseOperationalBalance,
+            casinoProfitToday,
+            depositsToday,
+            withdrawalsToday,
+            pendingCommissions,
+            pendingWithdrawals,
+            activeUsersToday
+          },
+          houseMetrics: {
+            totalBetAmount: totalBets,
+            totalWinAmount: totalWins,
+            houseProfit: grossGamingRevenue
+          },
+          summary: {
+            totalDeposits,
+            totalWithdrawals,
+            pendingWithdrawals,
+            totalBets,
+            totalWins,
+            grossGamingRevenue,
+            netCashflow,
+            payoutRate,
+            averageTicket,
+            commissionsGenerated,
+            transactionCount,
+            activeFinancialUsers: parseInt(summaryRow.active_financial_users || 0, 10),
+            activeUsersLast24h: parseInt(balanceRow.active_users_last_24h || 0, 10)
+          },
+          dailyFlow,
+          charts: {
+            profitByDay: dailyFlow.map((d) => ({ day: d.day, profit: d.profit })),
+            depositsVsWithdrawals: dailyFlow.map((d) => ({ day: d.day, deposits: d.deposits, withdrawals: d.withdrawals })),
+            betsVsWins: dailyFlow.map((d) => ({ day: d.day, bets: d.bets, wins: d.wins }))
+          },
+          transactionDistribution,
+          ledger: {
+            items: ledger,
+            pagination: {
+              total: ledgerTotal,
+              limit: ledgerLimit,
+              offset: ledgerOffset
+            }
+          },
+          pendingWithdrawals: pendingWithdrawalsList,
+          partnerCommissions,
+          balance: {
+            totalBalance: houseOperationalBalance,
+            pendingWithdrawals,
+            pendingCommissions,
+            availableRealBalance: realAvailableBalance,
+            usersBalanceLiability,
+            solvencyCoverage,
+            hasOperationalBalanceConfigured,
+            availableCommissions: toNumber(partnerBalanceRow.available_commissions),
+            paidCommissions: toNumber(partnerBalanceRow.paid_commissions)
+          },
+          alerts
+        }
+      });
+    } catch (error) {
+      logger.error('Erro ao obter estatísticas financeiras:', error);
       next(error);
     }
   }
