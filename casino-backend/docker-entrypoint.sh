@@ -1,19 +1,15 @@
 #!/bin/sh
 
-echo "🚀 Iniciando aplicação..."
+echo "Starting application..."
 
-# Aguardar o banco de dados estar pronto
-echo "⏳ Aguardando banco de dados..."
+echo "Waiting for database..."
 sleep 5
 
-# Executar migrações
-echo "📦 Executando migrações..."
+echo "Running migrations..."
 npm run migrate
 
-# Executar seeds
-echo "🌱 Executando seeds..."
+echo "Running seeds..."
 npm run seed
 
-# Iniciar aplicação
-echo "✅ Iniciando servidor..."
+echo "Starting server..."
 npm start

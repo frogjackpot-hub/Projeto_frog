@@ -1,11 +1,10 @@
 <div class="deposit-page">
-  <!-- Sucesso -->
   <div class="success-overlay" *ngIf="showSuccess">
     <div class="success-card">
       <div class="success-icon">✅</div>
-      <h2>Depósito Realizado!</h2>
+      <h2>Pagamento Confirmado!</h2>
       <p class="success-amount">{{ lastDepositAmount | appCurrency }}</p>
-      <p class="success-text">O valor foi adicionado à sua conta com sucesso.</p>
+      <p class="success-text">O valor foi creditado no seu saldo para jogar.</p>
       <div class="success-actions">
         <button class="btn-primary" (click)="newDeposit()">Novo Depósito</button>
         <a class="btn-secondary" routerLink="/dashboard/home">Voltar ao Início</a>
@@ -13,43 +12,16 @@
     </div>
   </div>
 
-  <!-- Header -->
   <div class="page-header">
     <a routerLink="/dashboard/home" class="back-link">← Voltar</a>
-    <h1>Depositar</h1>
+    <h1>Depositar com PIX</h1>
     <div class="current-balance" *ngIf="currentUser">
       <span class="balance-label">Saldo atual</span>
       <span class="balance-value">{{ currentUser.balance | appCurrency }}</span>
     </div>
   </div>
 
-  <div class="deposit-content">
-    <!-- Métodos de Pagamento -->
-    <div class="section payment-methods">
-      <h2>Método de Pagamento</h2>
-      <div class="methods-grid">
-        <div
-          *ngFor="let method of paymentMethods"
-          class="method-card"
-          [class.selected]="selectedMethod?.id === method.id"
-          (click)="selectMethod(method)"
-        >
-          <div class="method-icon">{{ method.icon }}</div>
-          <div class="method-info">
-            <span class="method-name">{{ method.name }}</span>
-            <span class="method-desc">{{ method.description }}</span>
-          </div>
-          <div class="method-meta">
-            <span class="method-time">{{ method.processingTime }}</span>
-            <span class="method-fee" *ngIf="method.fee > 0">Taxa: {{ method.fee }}%</span>
-            <span class="method-fee free" *ngIf="method.fee === 0">Sem taxa</span>
-          </div>
-          <div class="method-check" *ngIf="selectedMethod?.id === method.id">✓</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Valor -->
+  <div class="deposit-content" *ngIf="!paymentCreated">
     <div class="section amount-section">
       <h2>Valor do Depósito</h2>
 
@@ -58,16 +30,17 @@
         <input
           type="number"
           [(ngModel)]="amount"
-          [placeholder]="selectedMethod ? 'Mín ' + selectedMethod.minDeposit : '0,00'"
+          placeholder="Digite o valor"
           class="amount-input"
-          [min]="selectedMethod?.minDeposit || 5"
-          [max]="selectedMethod?.maxDeposit || 10000"
+          [min]="minAmount"
+          [max]="maxAmount"
         />
       </div>
 
-      <div class="amount-limits" *ngIf="selectedMethod">
-        <span>Mín: {{ selectedMethod.minDeposit | appCurrency }}</span>
-        <span>Máx: {{ selectedMethod.maxDeposit | appCurrency }}</span>
+      <div class="amount-limits">
+        <span>Mín: {{ minAmount | appCurrency }}</span>
+        <span>Máx: {{ maxAmount | appCurrency }}</span>
+        <span>Taxa: Sem taxa</span>
       </div>
 
       <div class="quick-amounts">
@@ -82,7 +55,6 @@
       </div>
     </div>
 
-    <!-- Resumo -->
     <div class="section summary-section" *ngIf="amount && isValidAmount">
       <h2>Resumo</h2>
       <div class="summary-card">
@@ -90,22 +62,18 @@
           <span>Valor do depósito</span>
           <span>{{ amount | appCurrency }}</span>
         </div>
-        <div class="summary-row" *ngIf="feeAmount > 0">
-          <span>Taxa ({{ selectedMethod?.fee }}%)</span>
-          <span class="fee-value">{{ feeAmount | appCurrency }}</span>
-        </div>
         <div class="summary-divider"></div>
         <div class="summary-row total">
           <span>Total</span>
-          <span>{{ totalAmount | appCurrency }}</span>
+          <span>{{ amount | appCurrency }}</span>
         </div>
         <div class="summary-row method">
           <span>Método</span>
-          <span>{{ selectedMethod?.icon }} {{ selectedMethod?.name }}</span>
+          <span>⚡ PIX via Mercado Pago</span>
         </div>
         <div class="summary-row">
           <span>Processamento</span>
-          <span>{{ selectedMethod?.processingTime }}</span>
+          <span>Instantâneo</span>
         </div>
       </div>
 
@@ -122,14 +90,79 @@
       </button>
     </div>
 
-    <!-- Erro de valor -->
-    <div class="amount-error" *ngIf="amount && !isValidAmount && selectedMethod">
-      <span *ngIf="amount < selectedMethod.minDeposit">
-        O valor mínimo é {{ selectedMethod.minDeposit | appCurrency }}
+    <div class="amount-error" *ngIf="amount && !isValidAmount">
+      <span *ngIf="amount < minAmount">
+        O valor mínimo é {{ minAmount | appCurrency }}
       </span>
-      <span *ngIf="amount > selectedMethod.maxDeposit">
-        O valor máximo é {{ selectedMethod.maxDeposit | appCurrency }}
+      <span *ngIf="amount > maxAmount">
+        O valor máximo é {{ maxAmount | appCurrency }}
       </span>
+    </div>
+  </div>
+
+  <div class="deposit-content" *ngIf="paymentCreated && !showSuccess">
+    <div class="section summary-section">
+      <h2>PIX Gerado</h2>
+      <div class="summary-card">
+        <div class="summary-row">
+          <span>Valor</span>
+          <span>{{ lastDepositAmount | appCurrency }}</span>
+        </div>
+        <div class="summary-row">
+          <span>Status</span>
+          <span>{{ pixStatus }}</span>
+        </div>
+        <div class="summary-row" *ngIf="pixTransactionId">
+          <span>ID interno</span>
+          <span>{{ pixTransactionId }}</span>
+        </div>
+        <div class="summary-row" *ngIf="pixProviderPaymentId">
+          <span>ID Mercado Pago</span>
+          <span>{{ pixProviderPaymentId }}</span>
+        </div>
+        <div class="summary-row" *ngIf="pixExpiresAt">
+          <span>Expira em</span>
+          <span>{{ pixExpiresAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section payment-methods" *ngIf="pixQrCode">
+      <h2>Escaneie o QR Code</h2>
+      <div class="methods-grid" style="display:block; text-align:center;">
+        <qrcode
+          [qrdata]="pixQrCode"
+          [width]="230"
+          [errorCorrectionLevel]="'M'"
+        ></qrcode>
+      </div>
+    </div>
+
+    <div class="section amount-section" *ngIf="pixQrCode">
+      <h2>Código PIX Copia e Cola</h2>
+      <div class="summary-card">
+        <div class="summary-row" style="display:block;">
+          <span style="display:block; word-break:break-all; line-height:1.4;">{{ pixQrCode }}</span>
+        </div>
+      </div>
+      <div class="success-actions">
+        <button class="btn-primary" (click)="copyPixCode()">{{ copyCodeFeedback ? 'Copiado!' : 'Copiar código PIX' }}</button>
+        <button class="btn-secondary" *ngIf="pixTicketUrl" (click)="openTicket()">Abrir no Mercado Pago</button>
+      </div>
+    </div>
+
+    <div class="section summary-section">
+      <button class="confirm-btn" [disabled]="isCheckingStatus" (click)="checkDepositStatus()">
+        <span *ngIf="!isCheckingStatus">Já paguei, verificar status</span>
+        <span *ngIf="isCheckingStatus" class="loading-text">
+          <span class="spinner"></span>
+          Verificando...
+        </span>
+      </button>
+
+      <div class="success-actions" style="margin-top: 1rem;">
+        <button class="btn-secondary" (click)="newDeposit()">Cancelar e gerar novo PIX</button>
+      </div>
     </div>
   </div>
 </div>

@@ -160,6 +160,11 @@ export interface AdminFinancialStats {
       origin: string;
       balanceAfter: number | null;
       description: string;
+      paymentProvider?: string | null;
+      paymentMethod?: string | null;
+      providerPaymentId?: string | null;
+      providerStatus?: string | null;
+      webhookPayload?: any;
     }>;
     pagination: {
       total: number;

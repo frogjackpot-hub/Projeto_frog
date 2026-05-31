@@ -98,6 +98,26 @@ class TelegramService {
   }
 
   /**
+   * Notifica pagamento aprovado no Mercado Pago
+   * @param {object} params
+   */
+  async notifyPaymentApproved({ username, email, amount, transactionId, providerPaymentId, method = 'PIX' }) {
+    const message = `💰 PAGAMENTO APROVADO
+
+👤 Usuario: ${username || email || 'N/A'}
+📧 Email: ${email || 'N/A'}
+💵 Valor: R$ ${Number(amount || 0).toFixed(2)}
+🏷️ Metodo: ${method}
+🧾 Transacao interna: ${transactionId || 'N/A'}
+🔗 Pagamento MP: ${providerPaymentId || 'N/A'}
+🕐 Data/Hora: ${this.formatDate(new Date().toISOString())}
+
+✅ Saldo creditado automaticamente`;
+
+    return this.sendMessage(message);
+  }
+
+  /**
    * Traduz o código de motivo para texto legível
    */
   getReasonText(reason) {

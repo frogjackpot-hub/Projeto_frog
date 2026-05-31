@@ -211,7 +211,7 @@ export class AdminFinancialComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const header = 'Data,Tipo,Usuario,Valor,Status,Origem,SaldoApos,Descricao';
+    const header = 'Data,Tipo,Usuario,Valor,Status,Origem,SaldoApos,Metodo,ID_Pagamento_MP,Status_MP,Descricao';
     const body = rows
       .map((row) => {
         const safeDescription = (row.description || '').replace(/"/g, '""');
@@ -225,6 +225,9 @@ export class AdminFinancialComponent implements OnInit, OnDestroy {
           this.translateStatus(row.status),
           `"${safeOrigin}"`,
           row.balanceAfter !== null ? row.balanceAfter.toFixed(2) : '',
+          this.formatPaymentMethod(row.paymentProvider, row.paymentMethod),
+          `"${(row.providerPaymentId || '').replace(/"/g, '""')}"`,
+          `"${(row.providerStatus || '').replace(/"/g, '""')}"`,
           `"${safeDescription}"`
         ].join(',');
       })
@@ -244,7 +247,7 @@ export class AdminFinancialComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const header = 'Data\tTipo\tUsuario\tValor\tStatus\tOrigem\tSaldoApos\tDescricao';
+    const header = 'Data\tTipo\tUsuario\tValor\tStatus\tOrigem\tSaldoApos\tMetodo\tID_Pagamento_MP\tStatus_MP\tDescricao';
     const body = rows
       .map((row) => [
         row.date,
@@ -254,6 +257,9 @@ export class AdminFinancialComponent implements OnInit, OnDestroy {
         this.translateStatus(row.status),
         row.origin,
         row.balanceAfter !== null ? row.balanceAfter.toFixed(2) : '',
+        this.formatPaymentMethod(row.paymentProvider, row.paymentMethod),
+        row.providerPaymentId || '',
+        row.providerStatus || '',
         row.description || ''
       ].join('\t'))
       .join('\n');
@@ -382,6 +388,29 @@ export class AdminFinancialComponent implements OnInit, OnDestroy {
         return 'Cancelado';
       default:
         return status;
+    }
+  }
+
+  formatPaymentMethod(provider?: string | null, method?: string | null): string {
+    if (!provider && !method) {
+      return '-';
+    }
+
+    const providerLabel = provider === 'mercado_pago' ? 'Mercado Pago' : (provider || 'Gateway');
+    const methodLabel = method ? method.toUpperCase() : 'N/A';
+    return `${providerLabel} / ${methodLabel}`;
+  }
+
+  formatWebhookPayload(payload: any): string {
+    if (!payload) {
+      return '-';
+    }
+
+    try {
+      const text = typeof payload === 'string' ? payload : JSON.stringify(payload);
+      return text.length > 80 ? `${text.slice(0, 80)}...` : text;
+    } catch {
+      return '[payload invalido]';
     }
   }
 

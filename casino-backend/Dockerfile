@@ -10,6 +10,7 @@ COPY . .
 
 # Dar permissão de execução ao script
 RUN chmod +x docker-entrypoint.sh
+RUN sed -i 's/\r$//' docker-entrypoint.sh
 
 EXPOSE 3000
 

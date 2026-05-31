@@ -1220,6 +1220,11 @@ class AdminController {
             t.amount,
             t.status,
             t.description,
+            t.payment_provider,
+            t.payment_method,
+            t.provider_payment_id,
+            t.provider_status,
+            t.webhook_payload,
             t.user_id,
             u.username,
             u.email,
@@ -1251,9 +1256,14 @@ class AdminController {
             user: row.username || row.email || 'Sistema',
             value: toNumber(row.amount),
             status: row.status,
-            origin: row.game_name || (isAdminAdjustment ? 'Painel Admin' : 'Carteira'),
+            origin: row.game_name || (row.payment_provider ? 'Mercado Pago' : (isAdminAdjustment ? 'Painel Admin' : 'Carteira')),
             balanceAfter: row.user_current_balance !== null ? toNumber(row.user_current_balance) : null,
-            description: row.description
+            description: row.description,
+            paymentProvider: row.payment_provider,
+            paymentMethod: row.payment_method,
+            providerPaymentId: row.provider_payment_id,
+            providerStatus: row.provider_status,
+            webhookPayload: row.webhook_payload,
           };
         });
 

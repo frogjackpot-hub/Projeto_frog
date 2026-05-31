@@ -230,6 +230,10 @@
               <th>Valor</th>
               <th>Status</th>
               <th>Origem</th>
+              <th>Metodo</th>
+              <th>ID MP</th>
+              <th>Status MP</th>
+              <th>Payload</th>
               <th>Saldo após</th>
             </tr>
           </thead>
@@ -241,6 +245,10 @@
               <td>{{ row.value | appCurrency }}</td>
               <td>{{ translateStatus(row.status) }}</td>
               <td>{{ row.origin }}</td>
+              <td>{{ formatPaymentMethod(row.paymentProvider, row.paymentMethod) }}</td>
+              <td>{{ row.providerPaymentId || '-' }}</td>
+              <td>{{ row.providerStatus || '-' }}</td>
+              <td>{{ formatWebhookPayload(row.webhookPayload) }}</td>
               <td>{{ row.balanceAfter !== null ? (row.balanceAfter | appCurrency) : '-' }}</td>
             </tr>
           </tbody>
