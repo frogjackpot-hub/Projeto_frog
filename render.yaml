@@ -24,6 +24,25 @@ services:
         value: https://casino-frontend-6g0m.onrender.com,https://projeto-frog.onrender.com
       - key: FRONTEND_URL
         value: https://casino-frontend-6g0m.onrender.com
+      - key: BACKEND_URL
+        fromService:
+          type: web
+          name: casino-backend
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: MERCADO_PAGO_ACCESS_TOKEN
+        sync: false
+      - key: MERCADO_PAGO_WEBHOOK_SECRET
+        sync: false
+      - key: MERCADO_PAGO_STATEMENT_DESCRIPTOR
+        value: FROGJACKPOT
+      - key: TELEGRAM_SECURITY_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_SECURITY_CHAT_ID
+        sync: false
+      - key: TELEGRAM_PAYMENT_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_PAYMENT_CHAT_ID
+        sync: false
     autoDeploy: true
     rootDir: .
 

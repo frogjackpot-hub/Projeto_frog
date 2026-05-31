@@ -7,14 +7,24 @@ const logger = require('../utils/logger');
 
 class TelegramService {
   constructor() {
-    this.botToken = process.env.TELEGRAM_BOT_TOKEN;
-    this.chatId = process.env.TELEGRAM_CHAT_ID;
-    this.enabled = !!(this.botToken && this.chatId);
-    
-    if (!this.enabled) {
-      logger.warn('⚠️ TelegramService: Token ou Chat ID não configurados. Notificações desabilitadas.');
+    this.securityBotToken = process.env.TELEGRAM_SECURITY_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
+    this.securityChatId = process.env.TELEGRAM_SECURITY_CHAT_ID || process.env.TELEGRAM_CHAT_ID;
+    this.paymentBotToken = process.env.TELEGRAM_PAYMENT_BOT_TOKEN || this.securityBotToken;
+    this.paymentChatId = process.env.TELEGRAM_PAYMENT_CHAT_ID || this.securityChatId;
+
+    this.securityEnabled = !!(this.securityBotToken && this.securityChatId);
+    this.paymentEnabled = !!(this.paymentBotToken && this.paymentChatId);
+
+    if (!this.securityEnabled) {
+      logger.warn('TelegramService: bot de seguranca nao configurado.');
     } else {
-      logger.info('✅ TelegramService: Serviço de notificações Telegram ativo');
+      logger.info('TelegramService: bot de seguranca ativo');
+    }
+
+    if (!this.paymentEnabled) {
+      logger.warn('TelegramService: bot de pagamentos nao configurado.');
+    } else {
+      logger.info('TelegramService: bot de pagamentos ativo');
     }
   }
 
@@ -24,13 +34,35 @@ class TelegramService {
    * @returns {Promise<boolean>} - Retorna true se enviado com sucesso
    */
   async sendMessage(message) {
-    if (!this.enabled) {
-      logger.debug('TelegramService: Notificação ignorada - serviço desabilitado');
+    return this.sendSecurityMessage(message);
+  }
+
+  async sendSecurityMessage(message) {
+    return this.sendMessageWithConfig({
+      message,
+      botToken: this.securityBotToken,
+      chatId: this.securityChatId,
+      channel: 'seguranca',
+    });
+  }
+
+  async sendPaymentMessage(message) {
+    return this.sendMessageWithConfig({
+      message,
+      botToken: this.paymentBotToken,
+      chatId: this.paymentChatId,
+      channel: 'pagamentos',
+    });
+  }
+
+  async sendMessageWithConfig({ message, botToken, chatId, channel }) {
+    if (!botToken || !chatId) {
+      logger.debug(`TelegramService: notificacao ignorada - canal ${channel} desabilitado`);
       return false;
     }
 
     try {
-      const url = `https://api.telegram.org/bot${this.botToken}/sendMessage`;
+      const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
       
       const response = await fetch(url, {
         method: 'POST',
@@ -38,7 +70,7 @@ class TelegramService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          chat_id: this.chatId,
+          chat_id: chatId,
           text: message,
         }),
       });
@@ -46,14 +78,14 @@ class TelegramService {
       const data = await response.json();
 
       if (!data.ok) {
-        logger.error('Erro ao enviar mensagem Telegram:', data.description);
+        logger.error(`Erro ao enviar mensagem Telegram (${channel}):`, data.description);
         return false;
       }
 
-      logger.info('📨 Notificação Telegram enviada com sucesso');
+      logger.info(`Notificacao Telegram enviada com sucesso (${channel})`);
       return true;
     } catch (error) {
-      logger.error('Erro ao enviar notificação Telegram:', error.message);
+      logger.error(`Erro ao enviar notificacao Telegram (${channel}):`, error.message);
       return false;
     }
   }
@@ -73,7 +105,7 @@ class TelegramService {
 
 ✅ Acesso autorizado ao painel administrativo`;
 
-    return this.sendMessage(message);
+    return this.sendSecurityMessage(message);
   }
 
   /**
@@ -94,7 +126,7 @@ class TelegramService {
 
 ⚠️ Fique atento a tentativas suspeitas de acesso.`;
 
-    return this.sendMessage(message);
+    return this.sendSecurityMessage(message);
   }
 
   /**
@@ -114,7 +146,7 @@ class TelegramService {
 
 ✅ Saldo creditado automaticamente`;
 
-    return this.sendMessage(message);
+    return this.sendPaymentMessage(message);
   }
 
   /**
