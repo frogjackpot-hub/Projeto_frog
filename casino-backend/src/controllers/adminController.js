@@ -13,6 +13,38 @@ const bcrypt = require('bcryptjs');
 const { getClientIP, getClientInfo } = require('../utils/clientInfo');
 
 class AdminController {
+  static mapWithdrawalRequest(row) {
+    const toNumber = (value) => parseFloat(value || 0);
+    let providerMetadata = row.provider_metadata || {};
+
+    if (typeof providerMetadata === 'string') {
+      try {
+        providerMetadata = JSON.parse(providerMetadata);
+      } catch (_error) {
+        providerMetadata = {};
+      }
+    }
+
+    return {
+      id: row.id,
+      userId: row.user_id,
+      username: row.username,
+      email: row.email,
+      amount: toNumber(row.amount),
+      status: row.status,
+      method: String(row.payment_method || 'pix').toUpperCase(),
+      pixKeyMasked: providerMetadata.pixKeyMasked || null,
+      pixKey: providerMetadata.pixKey || null,
+      pixKeyType: providerMetadata.pixKeyType || null,
+      feeAmount: toNumber(providerMetadata.feeAmount || 0),
+      netAmount: toNumber(providerMetadata.netAmount || row.amount),
+      reason: providerMetadata.reviewReason || null,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      description: row.description,
+    };
+  }
+
   /**
    * Login de administrador
    */
@@ -1541,6 +1573,94 @@ class AdminController {
       });
     } catch (error) {
       logger.error('Erro ao obter estatísticas financeiras:', error);
+      next(error);
+    }
+  }
+
+  static async getWithdrawalRequests(req, res, next) {
+    try {
+      const db = require('../config/database');
+
+      const pendingQuery = `
+        SELECT
+          t.id,
+          t.user_id,
+          u.username,
+          u.email,
+          t.amount,
+          t.status,
+          t.description,
+          t.payment_method,
+          t.provider_metadata,
+          t.created_at,
+          t.updated_at
+        FROM transactions t
+        LEFT JOIN users u ON u.id = t.user_id
+        WHERE t.type = 'withdrawal' AND t.status IN ('pending', 'under_review')
+        ORDER BY t.created_at ASC
+      `;
+
+      const queueQuery = `
+        SELECT
+          t.id,
+          t.user_id,
+          u.username,
+          u.email,
+          t.amount,
+          t.status,
+          t.description,
+          t.payment_method,
+          t.provider_metadata,
+          t.created_at,
+          t.updated_at
+        FROM transactions t
+        LEFT JOIN users u ON u.id = t.user_id
+        WHERE t.type = 'withdrawal' AND t.status IN ('approved', 'processing')
+        ORDER BY t.updated_at ASC
+      `;
+
+      const historyQuery = `
+        SELECT
+          t.id,
+          t.user_id,
+          u.username,
+          u.email,
+          t.amount,
+          t.status,
+          t.description,
+          t.payment_method,
+          t.provider_metadata,
+          t.created_at,
+          t.updated_at
+        FROM transactions t
+        LEFT JOIN users u ON u.id = t.user_id
+        WHERE t.type = 'withdrawal' AND t.status IN ('completed', 'rejected', 'failed', 'cancelled')
+        ORDER BY t.updated_at DESC
+        LIMIT 100
+      `;
+
+      const [pendingResult, queueResult, historyResult] = await Promise.all([
+        db.query(pendingQuery),
+        db.query(queueQuery),
+        db.query(historyQuery),
+      ]);
+
+      const pending = pendingResult.rows.map(AdminController.mapWithdrawalRequest);
+      const queue = queueResult.rows.map(AdminController.mapWithdrawalRequest);
+      const history = historyResult.rows.map(AdminController.mapWithdrawalRequest);
+
+      logger.info(`Admin ${req.user.email} consultou central de saques`);
+
+      res.json({
+        success: true,
+        data: {
+          pending,
+          queue,
+          history,
+        },
+      });
+    } catch (error) {
+      logger.error('Erro ao listar pedidos de saque:', error);
       next(error);
     }
   }

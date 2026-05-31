@@ -1,0 +1,108 @@
+.admin-withdrawals {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+
+  h1 {
+    margin: 0 0 0.35rem;
+    color: #fff;
+  }
+
+  p {
+    margin: 0;
+    color: #a8b0bd;
+  }
+}
+
+.refresh-btn,
+.toggle-btn,
+.approve,
+.reject {
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.refresh-btn {
+  padding: 0.8rem 1rem;
+  background: #172033;
+  color: #fff;
+}
+
+.panel-card {
+  background: rgba(14, 20, 31, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 1.2rem;
+
+  h2 {
+    margin: 0 0 1rem;
+    color: #fff;
+  }
+}
+
+.loading-state,
+.empty-state {
+  color: #a8b0bd;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.withdrawals-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 0.85rem 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    text-align: left;
+    color: #eef2f8;
+    vertical-align: middle;
+  }
+
+  th {
+    color: #9fb0c7;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+  }
+}
+
+.pix-key-cell {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.toggle-btn {
+  padding: 0.35rem 0.6rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 0.78rem;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.approve {
+  padding: 0.45rem 0.75rem;
+  background: #1d7c54;
+  color: #fff;
+}
+
+.reject {
+  padding: 0.45rem 0.75rem;
+  background: #a93d4f;
+  color: #fff;
+}

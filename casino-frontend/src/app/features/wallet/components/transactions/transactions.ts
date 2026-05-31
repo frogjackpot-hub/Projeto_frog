@@ -159,11 +159,27 @@ export class TransactionsComponent implements OnInit, OnDestroy {
   }
 
   getAmountClass(type: string): string {
-    return type === 'deposit' || type === 'win' ? 'positive' : 'negative';
+    if (type === 'deposit' || type === 'win') {
+      return 'positive';
+    }
+
+    if (type === 'withdrawal') {
+      return 'neutral';
+    }
+
+    return 'negative';
   }
 
   getAmountPrefix(type: string): string {
-    return type === 'deposit' || type === 'win' ? '+' : '-';
+    if (type === 'deposit' || type === 'win') {
+      return '+';
+    }
+
+    if (type === 'withdrawal') {
+      return '';
+    }
+
+    return '-';
   }
 
   trackById(_: number, t: Transaction): string {

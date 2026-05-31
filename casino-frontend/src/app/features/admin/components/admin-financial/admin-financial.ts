@@ -312,6 +312,10 @@ export class AdminFinancialComponent implements OnInit, OnDestroy {
     this.router.navigate(['/admin/audit']);
   }
 
+  goToWithdrawals(): void {
+    this.router.navigate(['/admin/withdrawals']);
+  }
+
   private downloadFile(content: string, filename: string, mimeType: string): void {
     const blob = new Blob([content], { type: mimeType });
     const url = window.URL.createObjectURL(blob);

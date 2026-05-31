@@ -55,6 +55,13 @@ router.get('/stats', authenticateToken, requireAdmin, AdminController.getStats);
  */
 router.get('/financial', authenticateToken, requireAdmin, AdminController.getFinancialStats);
 
+/**
+ * @route   GET /api/admin/withdrawals
+ * @desc    Listar pedidos de saque para operacao manual
+ * @access  Private (Admin only)
+ */
+router.get('/withdrawals', authenticateToken, requireAdmin, AdminController.getWithdrawalRequests);
+
 // ========== ROTAS DE GESTÃO DE USUÁRIOS ==========
 
 /**

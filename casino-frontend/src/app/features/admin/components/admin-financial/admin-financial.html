@@ -12,6 +12,7 @@
       <button class="action-btn" [disabled]="isRefreshing" (click)="refreshData()">
         {{ isRefreshing ? 'Atualizando...' : 'Atualizar dados' }}
       </button>
+      <button class="action-btn" (click)="goToWithdrawals()">Central de saques</button>
       <button class="action-btn secondary" (click)="viewFullHistory()">Ver histórico completo</button>
     </div>
   </div>
@@ -264,44 +265,6 @@
 
     <section class="panel-grid">
       <article class="panel-card">
-        <h2>Saques pendentes</h2>
-
-        <div *ngIf="!pendingWithdrawals.length" class="empty-state">
-          Não há saques pendentes neste momento.
-        </div>
-
-        <div class="table-wrapper" *ngIf="pendingWithdrawals.length">
-          <table class="distribution-table">
-            <thead>
-              <tr>
-                <th>Usuário</th>
-                <th>Valor</th>
-                <th>Data</th>
-                <th>Método</th>
-                <th>Chave PIX</th>
-                <th>Status</th>
-                <th>Ação</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let row of pendingWithdrawals; trackBy: trackByWithdrawalId">
-                <td>{{ row.username || row.email }}</td>
-                <td>{{ row.amount | appCurrency }}</td>
-                <td>{{ row.createdAt | date: 'dd/MM HH:mm' }}</td>
-                <td>{{ row.method }}</td>
-                <td>{{ row.pixKeyMasked || '-' }}</td>
-                <td>{{ translateStatus(row.status) }}</td>
-                <td class="table-actions">
-                  <button [disabled]="isReviewingWithdrawal" class="approve" (click)="approvePendingWithdrawal(row.id)">Aprovar</button>
-                  <button [disabled]="isReviewingWithdrawal" class="reject" (click)="rejectPendingWithdrawal(row.id)">Rejeitar</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </article>
-
-      <article class="panel-card">
         <h2>Comissões de parceiros</h2>
 
         <div *ngIf="!partnerCommissions.length" class="empty-state">
@@ -326,45 +289,6 @@
                 <td>{{ item.availableCommission | appCurrency }}</td>
                 <td>{{ item.paidCommission | appCurrency }}</td>
                 <td>{{ item.lastPayment ? (item.lastPayment | date: 'dd/MM/yyyy HH:mm') : 'Sem pagamento' }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </article>
-
-      <article class="panel-card">
-        <h2>Saques aprovados aguardando pagamento</h2>
-
-        <div *ngIf="!approvedWithdrawals.length" class="empty-state">
-          Nao ha saques aprovados aguardando pagamento.
-        </div>
-
-        <div class="table-wrapper" *ngIf="approvedWithdrawals.length">
-          <table class="distribution-table">
-            <thead>
-              <tr>
-                <th>Usuario</th>
-                <th>Valor</th>
-                <th>Metodo</th>
-                <th>Chave PIX</th>
-                <th>Status</th>
-                <th>Atualizado em</th>
-                <th>Acao</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let row of approvedWithdrawals; trackBy: trackByWithdrawalId">
-                <td>{{ row.username || row.email }}</td>
-                <td>{{ row.amount | appCurrency }}</td>
-                <td>{{ row.method }}</td>
-                <td>{{ row.pixKeyMasked || '-' }}</td>
-                <td>{{ translateStatus(row.status) }}</td>
-                <td>{{ row.updatedAt | date: 'dd/MM HH:mm' }}</td>
-                <td class="table-actions">
-                  <button [disabled]="isReviewingWithdrawal" class="approve" (click)="markWithdrawalProcessing(row.id)">Processando</button>
-                  <button [disabled]="isReviewingWithdrawal" class="approve" (click)="markWithdrawalCompleted(row.id)">Marcar pago</button>
-                  <button [disabled]="isReviewingWithdrawal" class="reject" (click)="failApprovedWithdrawal(row.id)">Falhou</button>
-                </td>
               </tr>
             </tbody>
           </table>

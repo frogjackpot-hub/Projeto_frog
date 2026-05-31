@@ -1,0 +1,132 @@
+<div class="admin-withdrawals">
+  <div class="page-header">
+    <div>
+      <h1>Pedidos de Saque</h1>
+      <p>Central operacional para revisar, pagar e acompanhar saques PIX.</p>
+    </div>
+    <button class="refresh-btn" (click)="loadWithdrawals()" [disabled]="isLoading || isReviewing">
+      {{ isLoading ? 'Atualizando...' : 'Atualizar' }}
+    </button>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <p>Carregando pedidos de saque...</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+    <section class="panel-card">
+      <h2>Novos pedidos</h2>
+      <div *ngIf="!pending.length" class="empty-state">Nao ha novos pedidos de saque.</div>
+
+      <div class="table-wrapper" *ngIf="pending.length">
+        <table class="withdrawals-table">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Valor</th>
+              <th>Liquido</th>
+              <th>Chave PIX</th>
+              <th>Tipo</th>
+              <th>Data</th>
+              <th>Status</th>
+              <th>Acao</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of pending; trackBy: trackByWithdrawalId">
+              <td>{{ item.username || item.email }}</td>
+              <td>{{ item.amount | appCurrency }}</td>
+              <td>{{ (item.netAmount ?? item.amount) | appCurrency }}</td>
+              <td>
+                <div class="pix-key-cell">
+                  <span>{{ getDisplayedPixKey(item) }}</span>
+                  <button class="toggle-btn" (click)="togglePixKey(item.id)">
+                    {{ isPixKeyVisible(item.id) ? 'Ocultar' : 'Mostrar' }}
+                  </button>
+                </div>
+              </td>
+              <td>{{ item.pixKeyType || '-' }}</td>
+              <td>{{ item.createdAt | date: 'dd/MM HH:mm' }}</td>
+              <td>{{ translateStatus(item.status) }}</td>
+              <td class="actions-cell">
+                <button class="approve" [disabled]="isReviewing" (click)="approve(item.id)">Aprovar</button>
+                <button class="reject" [disabled]="isReviewing" (click)="reject(item.id)">Rejeitar</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel-card">
+      <h2>Aprovados aguardando pagamento</h2>
+      <div *ngIf="!queue.length" class="empty-state">Nao ha saques aguardando pagamento manual.</div>
+
+      <div class="table-wrapper" *ngIf="queue.length">
+        <table class="withdrawals-table">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Valor</th>
+              <th>Chave PIX</th>
+              <th>Tipo</th>
+              <th>Status</th>
+              <th>Atualizado em</th>
+              <th>Acao</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of queue; trackBy: trackByWithdrawalId">
+              <td>{{ item.username || item.email }}</td>
+              <td>{{ item.amount | appCurrency }}</td>
+              <td>
+                <div class="pix-key-cell">
+                  <span>{{ getDisplayedPixKey(item) }}</span>
+                  <button class="toggle-btn" (click)="togglePixKey(item.id)">
+                    {{ isPixKeyVisible(item.id) ? 'Ocultar' : 'Mostrar' }}
+                  </button>
+                </div>
+              </td>
+              <td>{{ item.pixKeyType || '-' }}</td>
+              <td>{{ translateStatus(item.status) }}</td>
+              <td>{{ item.updatedAt | date: 'dd/MM HH:mm' }}</td>
+              <td class="actions-cell">
+                <button class="approve" [disabled]="isReviewing" (click)="markProcessing(item.id)">Processando</button>
+                <button class="approve" [disabled]="isReviewing" (click)="markCompleted(item.id)">Marcar pago</button>
+                <button class="reject" [disabled]="isReviewing" (click)="markFailed(item.id)">Falhou</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel-card">
+      <h2>Historico recente de saques</h2>
+      <div *ngIf="!history.length" class="empty-state">Sem historico recente de saques.</div>
+
+      <div class="table-wrapper" *ngIf="history.length">
+        <table class="withdrawals-table">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Valor</th>
+              <th>Status</th>
+              <th>Motivo</th>
+              <th>Atualizado em</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of history; trackBy: trackByWithdrawalId">
+              <td>{{ item.username || item.email }}</td>
+              <td>{{ item.amount | appCurrency }}</td>
+              <td>{{ translateStatus(item.status) }}</td>
+              <td>{{ item.reason || '-' }}</td>
+              <td>{{ item.updatedAt | date: 'dd/MM HH:mm' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </ng-container>
+</div>

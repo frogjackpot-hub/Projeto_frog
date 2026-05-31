@@ -10,6 +10,7 @@ import { AdminLoginComponent } from './components/admin-login/admin-login';
 import { AdminPartnersComponent } from './components/admin-partners/admin-partners';
 import { AdminUserProfileComponent } from './components/admin-user-profile/admin-user-profile';
 import { AdminUsersComponent } from './components/admin-users/admin-users';
+import { AdminWithdrawalsComponent } from './components/admin-withdrawals/admin-withdrawals';
 
 export const adminRoutes: Routes = [
   {
@@ -40,6 +41,10 @@ export const adminRoutes: Routes = [
       {
         path: 'financial',
         component: AdminFinancialComponent
+      },
+      {
+        path: 'withdrawals',
+        component: AdminWithdrawalsComponent
       },
       {
         path: 'config',

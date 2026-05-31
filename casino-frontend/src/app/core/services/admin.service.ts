@@ -225,6 +225,31 @@ export interface AdminFinancialStats {
   }>;
 }
 
+export interface AdminWithdrawalRequest {
+  id: string;
+  userId: string;
+  username: string;
+  email: string;
+  amount: number;
+  status: string;
+  method: string;
+  pixKeyMasked?: string | null;
+  pixKey?: string | null;
+  pixKeyType?: string | null;
+  feeAmount?: number;
+  netAmount?: number;
+  reason?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  description?: string;
+}
+
+export interface AdminWithdrawalsResponse {
+  pending: AdminWithdrawalRequest[];
+  queue: AdminWithdrawalRequest[];
+  history: AdminWithdrawalRequest[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -417,6 +442,10 @@ export class AdminService {
     if (options?.offset !== undefined) params.append('offset', String(options.offset));
 
     return this.apiService.get<AdminFinancialStats>(`/admin/financial?${params.toString()}`);
+  }
+
+  getWithdrawalRequests(): Observable<ApiResponse<AdminWithdrawalsResponse>> {
+    return this.apiService.get<AdminWithdrawalsResponse>('/admin/withdrawals');
   }
 
   // ========== GESTÃO DE USUÁRIOS ==========
