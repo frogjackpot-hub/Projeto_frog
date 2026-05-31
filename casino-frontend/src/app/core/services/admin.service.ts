@@ -180,7 +180,22 @@ export interface AdminFinancialStats {
     amount: number;
     status: string;
     method: string;
+    pixKeyMasked?: string | null;
+    reason?: string | null;
     createdAt: string;
+  }>;
+  approvedWithdrawals: Array<{
+    id: string;
+    userId: string;
+    username: string;
+    email: string;
+    amount: number;
+    status: string;
+    method: string;
+    pixKeyMasked?: string | null;
+    reason?: string | null;
+    createdAt: string;
+    updatedAt: string;
   }>;
   partnerCommissions: Array<{
     partnerId: string;
@@ -618,8 +633,12 @@ export class AdminService {
   /**
    * Aprovar/Rejeitar transação
    */
-  updateTransactionStatus(id: string, status: 'approved' | 'rejected'): Observable<ApiResponse<any>> {
-    return this.apiService.patch(`/admin/transactions/${id}/status`, { status });
+  updateTransactionStatus(
+    id: string,
+    status: 'approved' | 'rejected' | 'under_review' | 'processing' | 'completed' | 'failed' | 'cancelled',
+    reason?: string
+  ): Observable<ApiResponse<any>> {
+    return this.apiService.patch(`/admin/transactions/${id}/status`, { status, reason: reason || null });
   }
 
   // ========== CONFIGURAÇÕES ==========

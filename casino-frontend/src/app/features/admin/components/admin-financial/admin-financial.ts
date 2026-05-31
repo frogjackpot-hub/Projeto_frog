@@ -118,6 +118,10 @@ export class AdminFinancialComponent implements OnInit, OnDestroy {
     return this.stats?.pendingWithdrawals ?? [];
   }
 
+  get approvedWithdrawals(): AdminFinancialStats['approvedWithdrawals'] {
+    return this.stats?.approvedWithdrawals ?? [];
+  }
+
   get partnerCommissions(): AdminFinancialStats['partnerCommissions'] {
     return this.stats?.partnerCommissions ?? [];
   }
@@ -165,17 +169,50 @@ export class AdminFinancialComponent implements OnInit, OnDestroy {
   }
 
   rejectPendingWithdrawal(withdrawalId: string): void {
-    this.reviewPendingWithdrawal(withdrawalId, 'rejected');
+    const reason = window.prompt('Informe o motivo da rejeicao do saque:');
+    if (!reason || !reason.trim()) {
+      this.notificationService.warning('Motivo obrigatorio', 'Informe um motivo para rejeitar o saque');
+      return;
+    }
+    this.reviewPendingWithdrawal(withdrawalId, 'rejected', reason.trim());
   }
 
-  private reviewPendingWithdrawal(withdrawalId: string, status: 'approved' | 'rejected'): void {
+  markWithdrawalProcessing(withdrawalId: string): void {
+    this.reviewPendingWithdrawal(withdrawalId, 'processing');
+  }
+
+  markWithdrawalCompleted(withdrawalId: string): void {
+    this.reviewPendingWithdrawal(withdrawalId, 'completed');
+  }
+
+  failApprovedWithdrawal(withdrawalId: string): void {
+    const reason = window.prompt('Informe o motivo da falha do pagamento:');
+    if (!reason || !reason.trim()) {
+      this.notificationService.warning('Motivo obrigatorio', 'Informe um motivo para marcar falha');
+      return;
+    }
+    this.reviewPendingWithdrawal(withdrawalId, 'failed', reason.trim());
+  }
+
+  private reviewPendingWithdrawal(
+    withdrawalId: string,
+    status: 'approved' | 'rejected' | 'processing' | 'completed' | 'failed',
+    reason?: string
+  ): void {
     this.isReviewingWithdrawal = true;
-    this.adminService.updateTransactionStatus(withdrawalId, status)
+    this.adminService.updateTransactionStatus(withdrawalId, status, reason)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
           this.isReviewingWithdrawal = false;
-          this.notificationService.success('Sucesso', `Saque ${status === 'approved' ? 'aprovado' : 'rejeitado'} com sucesso`);
+          const successMap: Record<string, string> = {
+            approved: 'aprovado',
+            rejected: 'rejeitado',
+            processing: 'em processamento',
+            completed: 'marcado como pago',
+            failed: 'marcado como falha',
+          };
+          this.notificationService.success('Sucesso', `Saque ${successMap[status] || status} com sucesso`);
           this.loadFinancialStats(true);
         },
         error: () => {
@@ -382,6 +419,10 @@ export class AdminFinancialComponent implements OnInit, OnDestroy {
         return 'Concluído';
       case 'pending':
         return 'Pendente';
+      case 'under_review':
+        return 'Em analise';
+      case 'processing':
+        return 'Em processamento';
       case 'failed':
         return 'Falhou';
       case 'cancelled':

@@ -145,7 +145,16 @@ export class TransactionsComponent implements OnInit, OnDestroy {
   }
 
   getStatusLabel(status: string): string {
-    const labels: Record<string, string> = { pending: 'Pendente', completed: 'Concluída', failed: 'Falhou', cancelled: 'Cancelada' };
+    const labels: Record<string, string> = {
+      pending: 'Pendente',
+      under_review: 'Em analise',
+      approved: 'Aprovado',
+      processing: 'Em processamento',
+      completed: 'Concluida',
+      rejected: 'Rejeitada',
+      failed: 'Falhou',
+      cancelled: 'Cancelada'
+    };
     return labels[status] || status;
   }
 

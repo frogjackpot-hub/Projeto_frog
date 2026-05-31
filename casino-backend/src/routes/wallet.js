@@ -14,6 +14,18 @@ const transactionSchema = Joi.object({
   }),
 });
 
+const withdrawSchema = Joi.object({
+  amount: Joi.number().precision(2).positive().required().messages({
+    'number.positive': 'Valor deve ser positivo',
+    'any.required': 'Valor e obrigatorio',
+  }),
+  pixKey: Joi.string().trim().min(4).max(140).required().messages({
+    'string.min': 'Chave PIX invalida',
+    'any.required': 'Chave PIX e obrigatoria',
+  }),
+  pixKeyType: Joi.string().valid('cpf', 'cnpj', 'email', 'phone', 'random').default('random'),
+});
+
 const pixDepositSchema = Joi.object({
   amount: Joi.number().precision(2).min(1).max(100).required().messages({
     'number.min': 'Valor minimo do deposito PIX e R$ 1,00',
@@ -38,7 +50,8 @@ router.post('/deposit/pix', authenticateToken, validate(pixDepositSchema), Walle
 router.get('/deposit/:transactionId/status', authenticateToken, validateParamUUID('transactionId'), WalletController.getPixDepositStatus);
 
 // Fazer saque (requer autenticação)
-router.post('/withdraw', authenticateToken, validate(transactionSchema), WalletController.withdraw);
+router.get('/withdraw/config', authenticateToken, WalletController.getWithdrawConfig);
+router.post('/withdraw', authenticateToken, validate(withdrawSchema), WalletController.withdraw);
 
 // Webhook Mercado Pago (nao autenticado)
 router.post('/mercadopago/webhook', WalletController.mercadoPagoWebhook);

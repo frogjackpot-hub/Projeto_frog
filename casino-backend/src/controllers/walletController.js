@@ -1,9 +1,59 @@
 const Transaction = require('../models/Transaction');
-const HouseBalanceService = require('../services/houseBalanceService');
 const MercadoPagoService = require('../services/mercadoPagoService');
 const TelegramService = require('../services/telegramService');
 const db = require('../config/database');
 const logger = require('../utils/logger');
+
+const WITHDRAW_CONFIG_DEFAULTS = {
+  minWithdrawal: 10,
+  maxWithdrawal: 500,
+  dailyLimit: 2000,
+  feePercent: 0,
+  processingWindowHours: 24,
+};
+
+function toNumber(value, fallback) {
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+async function getWithdrawalConfig() {
+  const result = await db.query(
+    `
+      SELECT key, value
+      FROM casino_config
+      WHERE key IN (
+        'min_withdrawal',
+        'max_withdrawal',
+        'withdrawal_daily_limit',
+        'withdrawal_fee_percent',
+        'withdrawal_processing_window_hours'
+      )
+    `
+  );
+
+  const configMap = result.rows.reduce((acc, row) => {
+    acc[row.key] = row.value;
+    return acc;
+  }, {});
+
+  return {
+    minWithdrawal: toNumber(configMap.min_withdrawal, WITHDRAW_CONFIG_DEFAULTS.minWithdrawal),
+    maxWithdrawal: toNumber(configMap.max_withdrawal, WITHDRAW_CONFIG_DEFAULTS.maxWithdrawal),
+    dailyLimit: toNumber(configMap.withdrawal_daily_limit, WITHDRAW_CONFIG_DEFAULTS.dailyLimit),
+    feePercent: toNumber(configMap.withdrawal_fee_percent, WITHDRAW_CONFIG_DEFAULTS.feePercent),
+    processingWindowHours: toNumber(
+      configMap.withdrawal_processing_window_hours,
+      WITHDRAW_CONFIG_DEFAULTS.processingWindowHours
+    ),
+  };
+}
+
+function maskPixKey(pixKey) {
+  if (!pixKey) return null;
+  if (pixKey.length <= 4) return pixKey;
+  return `${'*'.repeat(Math.max(0, pixKey.length - 4))}${pixKey.slice(-4)}`;
+}
 
 class WalletController {
   static async getBalance(req, res, next) {
@@ -179,6 +229,22 @@ class WalletController {
     }
   }
 
+  static async getWithdrawConfig(req, res, next) {
+    try {
+      const config = await getWithdrawalConfig();
+
+      return res.json({
+        success: true,
+        data: {
+          ...config,
+          currency: 'BRL',
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async mercadoPagoWebhook(req, res, next) {
     try {
       if (!MercadoPagoService.isConfigured()) {
@@ -343,10 +409,30 @@ class WalletController {
 
   static async withdraw(req, res, next) {
     try {
-      const { amount } = req.body;
+      const { amount, pixKey, pixKeyType = 'random' } = req.body;
       const user = req.user;
 
-      if (amount <= 0) {
+      const config = await getWithdrawalConfig();
+      const withdrawAmount = Number.parseFloat(Number(amount).toFixed(2));
+
+      if (!pixKey || typeof pixKey !== 'string' || pixKey.trim().length < 4) {
+        return res.status(400).json({
+          success: false,
+          error: 'Informe uma chave PIX valida para saque',
+          code: 'INVALID_PIX_KEY',
+        });
+      }
+
+      const validPixTypes = ['cpf', 'cnpj', 'email', 'phone', 'random'];
+      if (!validPixTypes.includes(pixKeyType)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Tipo de chave PIX invalido',
+          code: 'INVALID_PIX_KEY_TYPE',
+        });
+      }
+
+      if (!Number.isFinite(withdrawAmount) || withdrawAmount <= 0) {
         return res.status(400).json({
           success: false,
           error: 'Valor do saque deve ser positivo',
@@ -354,7 +440,36 @@ class WalletController {
         });
       }
 
-      if (user.balance < amount) {
+      if (withdrawAmount < config.minWithdrawal || withdrawAmount > config.maxWithdrawal) {
+        return res.status(400).json({
+          success: false,
+          error: `Valor do saque deve estar entre R$ ${config.minWithdrawal.toFixed(2)} e R$ ${config.maxWithdrawal.toFixed(2)}`,
+          code: 'WITHDRAW_AMOUNT_OUT_OF_RANGE',
+        });
+      }
+
+      const dailyResult = await db.query(
+        `
+          SELECT COALESCE(SUM(amount), 0) AS total
+          FROM transactions
+          WHERE user_id = $1
+            AND type = 'withdrawal'
+            AND status IN ('pending', 'under_review', 'approved', 'processing', 'completed')
+            AND created_at >= DATE_TRUNC('day', NOW())
+        `,
+        [user.id]
+      );
+
+      const dailyUsed = Number.parseFloat(dailyResult.rows[0]?.total || 0);
+      if (dailyUsed + withdrawAmount > config.dailyLimit) {
+        return res.status(400).json({
+          success: false,
+          error: `Limite diario de saque excedido. Limite atual: R$ ${config.dailyLimit.toFixed(2)}`,
+          code: 'WITHDRAW_DAILY_LIMIT_EXCEEDED',
+        });
+      }
+
+      if (Number(user.balance) < withdrawAmount) {
         return res.status(400).json({
           success: false,
           error: 'Saldo insuficiente',
@@ -362,33 +477,61 @@ class WalletController {
         });
       }
 
-      // Criar transação de saque
+      const feeAmount = Number.parseFloat(((withdrawAmount * config.feePercent) / 100).toFixed(2));
+      const netAmount = Number.parseFloat((withdrawAmount - feeAmount).toFixed(2));
+
       const transaction = await Transaction.create({
         userId: user.id,
         type: 'withdrawal',
-        amount: amount,
-        description: 'Saque da carteira',
+        amount: withdrawAmount,
+        description: `Saque PIX solicitado. Em analise administrativa (${config.processingWindowHours}h).`,
+        paymentProvider: 'manual',
+        paymentMethod: 'pix',
+        providerStatus: 'pending_manual_review',
+        providerMetadata: {
+          pixKey,
+          pixKeyMasked: maskPixKey(pixKey),
+          pixKeyType,
+          feePercent: config.feePercent,
+          feeAmount,
+          netAmount,
+          processingWindowHours: config.processingWindowHours,
+        },
       });
 
-      // Debitar valor da carteira
-      await user.updateBalance(amount, 'subtract');
-      await transaction.updateStatus('completed');
+      await db.query(
+        `
+          UPDATE users
+          SET balance = balance - $1, updated_at = NOW()
+          WHERE id = $2
+        `,
+        [withdrawAmount, user.id]
+      );
 
-      // Saque efetivado reduz o caixa operacional da casa.
-      await HouseBalanceService.adjustOperationalBalance(-parseFloat(amount));
+      const refreshedUserResult = await db.query(
+        'SELECT balance FROM users WHERE id = $1 LIMIT 1',
+        [user.id]
+      );
+      const newBalance = Number(refreshedUserResult.rows[0]?.balance || 0);
 
       logger.info('Saque realizado', {
         userId: user.id,
-        amount: amount,
+        amount: withdrawAmount,
         transactionId: transaction.id,
+        pixKeyType,
+        status: 'pending',
       });
 
       res.json({
         success: true,
-        message: 'Saque realizado com sucesso',
+        message: 'Saque solicitado com sucesso. Aguarde aprovacao do administrador.',
         data: {
           transaction: transaction,
-          newBalance: user.balance,
+          newBalance,
+          reviewStatus: 'pending',
+          feeAmount,
+          netAmount,
+          processingWindowHours: config.processingWindowHours,
         },
       });
     } catch (error) {

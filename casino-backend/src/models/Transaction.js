@@ -62,7 +62,7 @@ class Transaction {
       externalReference || id,
       providerPaymentId || null,
       providerStatus || null,
-      providerMetadata || null,
+      providerMetadata ? JSON.stringify(providerMetadata) : null,
     ];
     
     try {

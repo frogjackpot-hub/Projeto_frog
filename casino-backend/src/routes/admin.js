@@ -185,7 +185,8 @@ router.get('/transactions', authenticateToken, requireAdmin, AdminController.get
  * @access  Private (Admin only)
  */
 const transactionStatusSchema = Joi.object({
-  status: Joi.string().valid('approved', 'rejected').required()
+  status: Joi.string().valid('approved', 'rejected', 'under_review', 'processing', 'completed', 'failed', 'cancelled').required(),
+  reason: Joi.string().allow('', null).max(500)
 });
 
 router.patch('/transactions/:id/status', 

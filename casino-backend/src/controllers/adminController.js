@@ -831,9 +831,10 @@ class AdminController {
   static async updateTransactionStatus(req, res, next) {
     try {
       const { id } = req.params;
-      const { status } = req.body;
+      const { status, reason } = req.body;
 
-      if (!['approved', 'rejected'].includes(status)) {
+      const allowedStatuses = ['approved', 'rejected', 'under_review', 'processing', 'completed', 'failed', 'cancelled'];
+      if (!allowedStatuses.includes(status)) {
         return res.status(400).json({
           success: false,
           message: 'Status inválido'
@@ -862,21 +863,105 @@ class AdminController {
 
         const existingTransaction = existingResult.rows[0];
 
+        const isWithdrawal = existingTransaction.type === 'withdrawal';
+        const currentStatus = existingTransaction.status;
+
+        if (!isWithdrawal && !['approved', 'rejected'].includes(status)) {
+          await client.query('ROLLBACK');
+          return res.status(400).json({
+            success: false,
+            message: 'Somente saques aceitam este status'
+          });
+        }
+
+        if (isWithdrawal && ['rejected', 'failed', 'cancelled'].includes(status) && (!reason || !String(reason).trim())) {
+          await client.query('ROLLBACK');
+          return res.status(400).json({
+            success: false,
+            message: 'Informe o motivo da rejeicao/falha do saque'
+          });
+        }
+
+        let description = existingTransaction.description || 'Saque PIX';
+        let providerMetadata = existingTransaction.provider_metadata || {};
+        if (typeof providerMetadata === 'string') {
+          try {
+            providerMetadata = JSON.parse(providerMetadata);
+          } catch (_error) {
+            providerMetadata = {};
+          }
+        }
+
+        if (isWithdrawal) {
+          if (status === 'under_review') {
+            description = 'Saque PIX em analise administrativa';
+          }
+
+          if (status === 'approved') {
+            description = 'Saque PIX aprovado. Aguardando pagamento manual';
+          }
+
+          if (status === 'processing') {
+            description = 'Saque PIX em processamento manual';
+          }
+
+          if (status === 'completed') {
+            description = 'Saque PIX pago manualmente';
+          }
+
+          if (['rejected', 'failed', 'cancelled'].includes(status)) {
+            const safeReason = String(reason).trim();
+            description = `Saque PIX recusado. Motivo: ${safeReason}`;
+            providerMetadata.reviewReason = safeReason;
+          }
+
+          const needsRefund =
+            ['pending', 'under_review', 'approved', 'processing'].includes(currentStatus)
+            && ['rejected', 'failed', 'cancelled'].includes(status);
+
+          if (needsRefund) {
+            await client.query(
+              `
+                UPDATE users
+                SET balance = balance + $1, updated_at = NOW()
+                WHERE id = $2
+              `,
+              [existingTransaction.amount, existingTransaction.user_id]
+            );
+          }
+
+          if (status === 'completed' && currentStatus !== 'completed') {
+            await HouseBalanceService.adjustOperationalBalance(-parseFloat(existingTransaction.amount), client);
+          }
+
+          providerMetadata.reviewedBy = req.user.id;
+          providerMetadata.reviewedAt = new Date().toISOString();
+          providerMetadata.manualReviewStatus = status;
+        }
+
         const updateResult = await client.query(
-          'UPDATE transactions SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
-          [status, id]
+          `
+            UPDATE transactions
+            SET
+              status = $1,
+              provider_status = CASE WHEN $2 THEN $3 ELSE provider_status END,
+              provider_metadata = CASE WHEN $2 THEN $4 ELSE provider_metadata END,
+              description = $5,
+              updated_at = NOW()
+            WHERE id = $6
+            RETURNING *
+          `,
+          [
+            status,
+            isWithdrawal,
+            isWithdrawal ? `manual_${status}` : existingTransaction.provider_status,
+            isWithdrawal ? JSON.stringify(providerMetadata) : existingTransaction.provider_metadata,
+            description,
+            id,
+          ]
         );
 
         updatedTransaction = updateResult.rows[0];
-
-        // Saque pendente aprovado representa saída efetiva de caixa operacional.
-        if (
-          existingTransaction.type === 'withdrawal'
-          && existingTransaction.status !== 'approved'
-          && status === 'approved'
-        ) {
-          await HouseBalanceService.adjustOperationalBalance(-parseFloat(existingTransaction.amount), client);
-        }
 
         await client.query('COMMIT');
       } catch (transactionError) {
@@ -892,7 +977,7 @@ class AdminController {
         action: 'UPDATE_TRANSACTION',
         resourceType: 'transaction',
         resourceId: id,
-        details: { status },
+        details: { status, reason: reason || null },
         ipAddress: req.ip,
         userAgent: req.get('user-agent')
       });
@@ -1057,7 +1142,7 @@ class AdminController {
           SELECT
             COALESCE(SUM(CASE WHEN type = 'deposit' AND status IN ('completed', 'approved') THEN amount ELSE 0 END), 0) AS total_deposits,
             COALESCE(SUM(CASE WHEN type = 'withdrawal' AND status IN ('completed', 'approved') THEN amount ELSE 0 END), 0) AS total_withdrawals,
-            COALESCE(SUM(CASE WHEN type = 'withdrawal' AND status = 'pending' THEN amount ELSE 0 END), 0) AS pending_withdrawals,
+            COALESCE(SUM(CASE WHEN type = 'withdrawal' AND status IN ('pending', 'under_review', 'approved', 'processing') THEN amount ELSE 0 END), 0) AS pending_withdrawals,
             COALESCE(SUM(CASE WHEN type = 'bet' AND status IN ('completed', 'approved') THEN amount ELSE 0 END), 0) AS total_bets,
             COALESCE(SUM(CASE WHEN type = 'win' AND status IN ('completed', 'approved') THEN amount ELSE 0 END), 0) AS total_wins,
             COUNT(*) AS transaction_count,
@@ -1150,10 +1235,12 @@ class AdminController {
             t.amount,
             t.status,
             t.description,
+            t.payment_method,
+            t.provider_metadata,
             t.created_at
           FROM transactions t
           LEFT JOIN users u ON u.id = t.user_id
-          WHERE t.type = 'withdrawal' AND t.status = 'pending'
+          WHERE t.type = 'withdrawal' AND t.status IN ('pending', 'under_review')
           ORDER BY t.created_at ASC
           LIMIT 50
         `;
@@ -1165,8 +1252,44 @@ class AdminController {
           email: row.email,
           amount: toNumber(row.amount),
           status: row.status,
-          method: 'Carteira',
+          method: String(row.payment_method || 'pix').toUpperCase(),
+          pixKeyMasked: row.provider_metadata?.pixKeyMasked || null,
+          reason: row.provider_metadata?.reviewReason || null,
           createdAt: row.created_at
+        }));
+
+        const approvedWithdrawalsListQuery = `
+          SELECT
+            t.id,
+            t.user_id,
+            u.username,
+            u.email,
+            t.amount,
+            t.status,
+            t.description,
+            t.payment_method,
+            t.provider_metadata,
+            t.created_at,
+            t.updated_at
+          FROM transactions t
+          LEFT JOIN users u ON u.id = t.user_id
+          WHERE t.type = 'withdrawal' AND t.status IN ('approved', 'processing')
+          ORDER BY t.updated_at ASC
+          LIMIT 50
+        `;
+        const approvedWithdrawalsListResult = await db.query(approvedWithdrawalsListQuery);
+        const approvedWithdrawalsList = approvedWithdrawalsListResult.rows.map((row) => ({
+          id: row.id,
+          userId: row.user_id,
+          username: row.username,
+          email: row.email,
+          amount: toNumber(row.amount),
+          status: row.status,
+          method: String(row.payment_method || 'pix').toUpperCase(),
+          pixKeyMasked: row.provider_metadata?.pixKeyMasked || null,
+          reason: row.provider_metadata?.reviewReason || null,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
         }));
 
         const partnerCommissionsQuery = `
@@ -1400,6 +1523,7 @@ class AdminController {
             }
           },
           pendingWithdrawals: pendingWithdrawalsList,
+          approvedWithdrawals: approvedWithdrawalsList,
           partnerCommissions,
           balance: {
             totalBalance: houseOperationalBalance,

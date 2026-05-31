@@ -20,6 +20,17 @@ interface WithdrawMethod {
   processingTime: string;
 }
 
+interface WithdrawConfigResponse {
+  minWithdrawal: number;
+  maxWithdrawal: number;
+  dailyLimit: number;
+  feePercent: number;
+  processingWindowHours: number;
+  currency: string;
+}
+
+type PixKeyType = 'cpf' | 'cnpj' | 'email' | 'phone' | 'random';
+
 @Component({
   selector: 'app-withdraw',
   standalone: true,
@@ -33,41 +44,30 @@ export class WithdrawComponent implements OnInit, OnDestroy {
   selectedMethod: WithdrawMethod | null = null;
   amount: number | null = null;
   pixKey = '';
+  pixKeyType: PixKeyType = 'random';
   isProcessing = false;
   showSuccess = false;
   lastWithdrawAmount = 0;
   showConfirmation = false;
+  withdrawConfig: WithdrawConfigResponse = {
+    minWithdrawal: 10,
+    maxWithdrawal: 500,
+    dailyLimit: 2000,
+    feePercent: 0,
+    processingWindowHours: 24,
+    currency: 'BRL'
+  };
 
   withdrawMethods: WithdrawMethod[] = [
     {
       id: 'pix',
       name: 'PIX',
       icon: '⚡',
-      description: 'Receba em segundos',
+      description: 'Saque manual assistido',
       minWithdraw: 10,
-      maxWithdraw: 5000,
+      maxWithdraw: 500,
       fee: 0,
-      processingTime: 'Até 1 hora'
-    },
-    {
-      id: 'bank_transfer',
-      name: 'Transferência Bancária',
-      icon: '🏦',
-      description: 'TED para sua conta',
-      minWithdraw: 50,
-      maxWithdraw: 10000,
-      fee: 1.5,
-      processingTime: '1-2 dias úteis'
-    },
-    {
-      id: 'crypto',
-      name: 'Criptomoedas',
-      icon: '₿',
-      description: 'Bitcoin, Ethereum, USDT',
-      minWithdraw: 20,
-      maxWithdraw: 50000,
-      fee: 0.5,
-      processingTime: '10-60 min'
+      processingTime: 'Ate 24 horas'
     }
   ];
 
@@ -87,6 +87,7 @@ export class WithdrawComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       })
     );
+    this.loadWithdrawConfig();
     this.selectedMethod = this.withdrawMethods[0];
   }
 
@@ -107,8 +108,8 @@ export class WithdrawComponent implements OnInit, OnDestroy {
   }
 
   get feeAmount(): number {
-    if (!this.amount || !this.selectedMethod) return 0;
-    return parseFloat(((this.amount * this.selectedMethod.fee) / 100).toFixed(2));
+    if (!this.amount) return 0;
+    return parseFloat(((this.amount * this.withdrawConfig.feePercent) / 100).toFixed(2));
   }
 
   get receiveAmount(): number {
@@ -118,13 +119,16 @@ export class WithdrawComponent implements OnInit, OnDestroy {
 
   get isValidAmount(): boolean {
     if (!this.amount || !this.selectedMethod || !this.currentUser) return false;
-    return this.amount >= this.selectedMethod.minWithdraw
-      && this.amount <= this.selectedMethod.maxWithdraw
+    return this.amount >= this.withdrawConfig.minWithdrawal
+      && this.amount <= this.withdrawConfig.maxWithdrawal
       && this.amount <= this.currentUser.balance;
   }
 
   get canSubmit(): boolean {
-    return this.isValidAmount && !this.isProcessing && this.selectedMethod !== null;
+    return this.isValidAmount
+      && !this.isProcessing
+      && this.selectedMethod !== null
+      && this.pixKey.trim().length >= 4;
   }
 
   get insufficientBalance(): boolean {
@@ -150,15 +154,22 @@ export class WithdrawComponent implements OnInit, OnDestroy {
 
     this.subscription.add(
       this.apiService.post<{ transaction: any; newBalance: number }>('wallet/withdraw', {
-        amount: this.amount
+        amount: this.amount,
+        pixKey: this.pixKey.trim(),
+        pixKeyType: this.pixKeyType,
       }).subscribe({
         next: (response) => {
           if (response.success && response.data) {
             this.authService.updateBalanceLocally(response.data.newBalance);
             this.lastWithdrawAmount = this.amount!;
             this.showSuccess = true;
-            this.notificationService.success('Saque solicitado!', `R$ ${this.amount!.toFixed(2)} será enviado para sua conta.`);
+            this.notificationService.success(
+              'Saque solicitado!',
+              `Saque em analise. Prazo estimado: ate ${this.withdrawConfig.processingWindowHours} horas.`
+            );
             this.amount = null;
+            this.pixKey = '';
+            this.pixKeyType = 'random';
           }
           this.isProcessing = false;
           this.cdr.markForCheck();
@@ -176,5 +187,42 @@ export class WithdrawComponent implements OnInit, OnDestroy {
   newWithdraw(): void {
     this.showSuccess = false;
     this.amount = null;
+    this.pixKey = '';
+    this.pixKeyType = 'random';
+  }
+
+  private loadWithdrawConfig(): void {
+    this.subscription.add(
+      this.apiService.get<WithdrawConfigResponse>('wallet/withdraw/config').subscribe({
+        next: (response) => {
+          if (!response.success || !response.data) {
+            return;
+          }
+
+          this.withdrawConfig = response.data;
+          this.withdrawMethods = [
+            {
+              id: 'pix',
+              name: 'PIX',
+              icon: '⚡',
+              description: 'Saque manual assistido',
+              minWithdraw: this.withdrawConfig.minWithdrawal,
+              maxWithdraw: this.withdrawConfig.maxWithdrawal,
+              fee: this.withdrawConfig.feePercent,
+              processingTime: `Ate ${this.withdrawConfig.processingWindowHours} horas`
+            }
+          ];
+          this.selectedMethod = this.withdrawMethods[0];
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.notificationService.warning(
+            'Configuracao de saque',
+            'Nao foi possivel carregar as configuracoes. Valores padrao aplicados.'
+          );
+          this.cdr.markForCheck();
+        }
+      })
+    );
   }
 }

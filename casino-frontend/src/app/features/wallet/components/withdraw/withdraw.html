@@ -5,7 +5,7 @@
       <div class="success-icon">💸</div>
       <h2>Saque Solicitado!</h2>
       <p class="success-amount">{{ lastWithdrawAmount | appCurrency }}</p>
-      <p class="success-text">Seu saque está sendo processado.<br>Tempo estimado: {{ selectedMethod?.processingTime }}</p>
+      <p class="success-text">Seu saque foi enviado para analise.<br>Tempo estimado: {{ selectedMethod?.processingTime }}</p>
       <div class="success-actions">
         <button class="btn-primary" (click)="newWithdraw()">Novo Saque</button>
         <a class="btn-secondary" routerLink="/wallet/transactions">Ver Transações</a>
@@ -79,6 +79,34 @@
       </div>
     </div>
 
+    <!-- Chave PIX -->
+    <div class="section">
+      <h2>Chave PIX para recebimento</h2>
+
+      <div class="amount-limits">
+        <span>Limite diario: {{ withdrawConfig.dailyLimit | appCurrency }}</span>
+        <span>Taxa atual: {{ withdrawConfig.feePercent }}%</span>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-row">
+          <span>Tipo de chave</span>
+          <select [(ngModel)]="pixKeyType">
+            <option value="random">Aleatoria</option>
+            <option value="cpf">CPF</option>
+            <option value="cnpj">CNPJ</option>
+            <option value="email">Email</option>
+            <option value="phone">Telefone</option>
+          </select>
+        </div>
+
+        <div class="summary-row">
+          <span>Chave PIX</span>
+          <input type="text" [(ngModel)]="pixKey" placeholder="Digite a chave PIX" />
+        </div>
+      </div>
+    </div>
+
     <!-- Valor -->
     <div class="section">
       <h2>Valor do Saque</h2>
@@ -148,6 +176,9 @@
     <div class="amount-error" *ngIf="amount && !insufficientBalance && !isValidAmount && selectedMethod">
       <span *ngIf="amount < selectedMethod.minWithdraw">Valor mínimo: {{ selectedMethod.minWithdraw | appCurrency }}</span>
       <span *ngIf="amount > selectedMethod.maxWithdraw">Valor máximo: {{ selectedMethod.maxWithdraw | appCurrency }}</span>
+    </div>
+    <div class="amount-error" *ngIf="!isProcessing && pixKey.trim().length > 0 && pixKey.trim().length < 4">
+      Informe uma chave PIX valida.
     </div>
   </div>
 </div>
