@@ -1,4 +1,4 @@
--- Atualizar senha do admin para: Admin@123
+-- Atualizar senha do admin para o hash configurado no ambiente local
 UPDATE users 
 SET password = '$2a$12$SrpZG8Qu9Ws/FWBz/GcDA.6P2gKU6EVG0Zii4ItGB8Owlkid8NhGq' 
 WHERE email = 'admin@casino.com';

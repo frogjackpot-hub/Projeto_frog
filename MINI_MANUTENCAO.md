@@ -10,6 +10,28 @@ Copy-Item .env.example .env
 
 Depois edite o `.env` com seus valores reais (senhas, tokens e chaves).
 
+## ONDE FICAM MINHAS SENHAS E CHAVES
+
+Se esquecer, lembre assim:
+
+1. **Suas senhas e chaves ficam no arquivo local `.env`** (na raiz do projeto).
+2. **O GitHub nao recebe esse arquivo `.env`**.
+3. **O arquivo `.env.example` e so modelo**, sem segredo real.
+
+### O que editar no `.env`
+
+- `POSTGRES_PASSWORD` -> senha do banco local
+- `JWT_SECRET` -> chave dos tokens de login
+- `ADMIN_PASSWORD` -> senha inicial do admin local
+- `MERCADO_PAGO_*` -> chaves do Mercado Pago
+- `TELEGRAM_*` -> token e chat do bot
+
+### Regra simples para nao se perder
+
+1. Precisa achar senha/chave? Abra **`.env`**.
+2. Clonou em outro PC? Copie `.env.example` para `.env` e preencha.
+3. Nunca commitar `.env` no GitHub.
+
 No PowerShell, na raiz do projeto:
 
 ```powershell

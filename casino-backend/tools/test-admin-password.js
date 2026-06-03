@@ -1,8 +1,14 @@
-// Script para verificar se a senha Admin@123 bate com o hash no banco
+// Script para verificar se a senha de ADMIN_PASSWORD bate com o hash no banco
 const bcrypt = require('bcryptjs');
 
-const password = 'Admin@123';
+const password = process.env.ADMIN_PASSWORD;
 const hashNoSeed = '$2a$12$SrpZG8Qu9Ws/FWBz/GcDA.6P2gKU6EVG0Zii4ItGB8Owlkid8NhGq';
+
+if (!password) {
+  console.error('Erro: defina ADMIN_PASSWORD no ambiente antes de executar o script.');
+  console.error('Exemplo (PowerShell): $env:ADMIN_PASSWORD="SuaSenha"; node tools/test-admin-password.js');
+  process.exit(1);
+}
 
 async function testarSenha() {
   console.log('=== TESTE DE SENHA DO ADMIN ===\n');

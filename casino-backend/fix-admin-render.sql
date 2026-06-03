@@ -76,4 +76,4 @@ WHERE email = 'admin@casino.com';
 
 -- Credenciais:
 -- Email: admin@casino.com
--- Senha: Admin@123
+-- Senha: definida no ambiente local (nao versionar em texto puro)

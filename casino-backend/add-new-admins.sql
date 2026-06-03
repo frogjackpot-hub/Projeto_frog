@@ -3,7 +3,7 @@
 
 -- Admin Azul
 -- Email: pontadeflexaAzul@casino.com
--- Senha: CA9312206#d
+-- Senha: definida no ambiente local (nao versionar em texto puro)
 INSERT INTO users (id, email, username, password, first_name, last_name, balance, role, is_verified, is_active) 
 VALUES (
     'e5f6a7b8-c9d0-1234-efab-567890123456',
@@ -25,7 +25,7 @@ ON CONFLICT (email) DO UPDATE SET
 
 -- Admin Branco
 -- Email: pontadeflexaBranco@casino.com
--- Senha: Ti43!@#$
+-- Senha: definida no ambiente local (nao versionar em texto puro)
 INSERT INTO users (id, email, username, password, first_name, last_name, balance, role, is_verified, is_active) 
 VALUES (
     'f6a7b8c9-d0e1-2345-fabc-678901234567',

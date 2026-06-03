@@ -1,12 +1,12 @@
 -- Script para atualizar senhas dos administradores
 -- Execute este script para corrigir os hashes das senhas
 
--- Admin Azul - CA9312206#d
+-- Admin Azul - senha definida no ambiente local
 UPDATE users 
 SET password = '$2a$12$SOjMOpVsZNnnvAxFJZiYdu/sE0lX007EFUHVCDmJsIp7KUJRzQcLW'
 WHERE email = 'pontadeflexaAzul@casino.com';
 
--- Admin Branco - Ti43!@#$  
+-- Admin Branco - senha definida no ambiente local  
 UPDATE users 
 SET password = '$2a$12$v2/7GuWs8yXCUJ7hjx/Lw.ch5fWgKjNx2DggGWwLCl5BYSwUt6L.W'
 WHERE email = 'pontadeflexaBranco@casino.com';

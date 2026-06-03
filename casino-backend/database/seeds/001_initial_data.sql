@@ -47,8 +47,7 @@ ON CONFLICT (id) DO NOTHING;
 -- IMPORTANTE: Altere as senhas após o primeiro login!
 
 -- Admin Principal
--- Email: admin@casino.com
--- Senha: Admin@123
+-- Credenciais locais em .env
 INSERT INTO users (id, email, username, password, first_name, last_name, balance, role, is_verified) VALUES
 (
     'd4e5f6a7-b8c9-0123-defa-456789012345',
@@ -64,8 +63,7 @@ INSERT INTO users (id, email, username, password, first_name, last_name, balance
 ON CONFLICT DO NOTHING;
 
 -- Admin Azul
--- Email: pontadeflexaAzul@casino.com
--- Senha: CA9312206#d
+-- Credenciais locais em .env
 INSERT INTO users (id, email, username, password, first_name, last_name, balance, role, is_verified) VALUES
 (
     'e5f6a7b8-c9d0-1234-efab-567890123456',
@@ -81,8 +79,7 @@ INSERT INTO users (id, email, username, password, first_name, last_name, balance
 ON CONFLICT DO NOTHING;
 
 -- Admin Branco
--- Email: pontadeflexaBranco@casino.com
--- Senha: Ti43!@#$
+-- Credenciais locais em .env
 INSERT INTO users (id, email, username, password, first_name, last_name, balance, role, is_verified) VALUES
 (
     'f6a7b8c9-d0e1-2345-fabc-678901234567',
@@ -98,8 +95,7 @@ INSERT INTO users (id, email, username, password, first_name, last_name, balance
 ON CONFLICT DO NOTHING;
 
 -- Parceiro Padrão (criado automaticamente pelo sistema)
--- Email: bardoze@casino.com
--- Senha: bardoze!@#$
+-- Credenciais locais em .env
 INSERT INTO users (id, email, username, password, first_name, last_name, balance, role, is_verified) VALUES
 (
     'a7b8c9d0-e1f2-3456-bcde-789012345678',
