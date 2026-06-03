@@ -29,7 +29,7 @@ Write-Host 'Health checks HTTP:' -ForegroundColor Cyan
 function Test-HttpWithRetry {
     param(
         [string]$Url,
-        [int]$MaxAttempts = 10,
+        [int]$MaxAttempts = 20,
         [int]$TimeoutSec = 15,
         [switch]$AsJson
     )
@@ -49,7 +49,7 @@ function Test-HttpWithRetry {
                 return @{ Success = $false; Error = $_.Exception.Message }
             }
 
-            Start-Sleep -Seconds 2
+            Start-Sleep -Seconds 3
         }
     }
 }

@@ -3,16 +3,16 @@ services:
     image: postgres:13-alpine
     restart: always
     environment:
-      POSTGRES_DB: casino_db
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
     # Adicione essas configurações para maior estabilidade
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d casino_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,22 +23,22 @@ services:
       dockerfile: Dockerfile
     restart: always
     environment:
-      NODE_ENV: development
-      DATABASE_URL: postgres://user:password@db:5432/casino_db
-      JWT_SECRET: supersecretjwtkey
-      ADMIN_EMAIL: admin@casino.com
-      ADMIN_PASSWORD: Admin@123
-      CORS_ORIGIN: "http://localhost:4200,http://127.0.0.1:4200"
-      LOG_LEVEL: info
-      MERCADO_PAGO_ACCESS_TOKEN: TEST-1433561528876220-041921-f55abc7a0137ee17011048f948974d0c-3348309982
-      MERCADO_PAGO_PUBLIC_KEY: TEST-5a829dfc-d4e6-4343-bf11-36c332040e61
-      MERCADO_PAGO_WEBHOOK_SECRET: a0f5a6cee0d9d90ac334f576b6f6fdddc460149949fcf845d17ba2320317adca
-      MERCADO_PAGO_STATEMENT_DESCRIPTOR: FROGJACKPOT
-      MERCADO_PAGO_TEST_PAYER_EMAIL:
-      BACKEND_URL: https://three-oranges-design.loca.lt
-      FRONTEND_URL: http://localhost:4200
-      TELEGRAM_BOT_TOKEN: 8983894213:AAFHRJXFMKIvcJTRZ8rlAv7Gmx6F2tI21jk
-      TELEGRAM_CHAT_ID: -1003954387843
+      NODE_ENV: ${NODE_ENV}
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      LOG_LEVEL: ${LOG_LEVEL}
+      MERCADO_PAGO_ACCESS_TOKEN: ${MERCADO_PAGO_ACCESS_TOKEN}
+      MERCADO_PAGO_PUBLIC_KEY: ${MERCADO_PAGO_PUBLIC_KEY}
+      MERCADO_PAGO_WEBHOOK_SECRET: ${MERCADO_PAGO_WEBHOOK_SECRET}
+      MERCADO_PAGO_STATEMENT_DESCRIPTOR: ${MERCADO_PAGO_STATEMENT_DESCRIPTOR}
+      MERCADO_PAGO_TEST_PAYER_EMAIL: ${MERCADO_PAGO_TEST_PAYER_EMAIL}
+      BACKEND_URL: ${BACKEND_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
     ports:
       - "3000:3000"
     depends_on:

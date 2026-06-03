@@ -3,7 +3,13 @@
 
 const bcrypt = require('bcryptjs');
 
-const password = process.env.ADMIN_PASSWORD || 'Admin@123';
+const password = process.env.ADMIN_PASSWORD;
+
+if (!password) {
+  console.error('Erro: defina ADMIN_PASSWORD no ambiente antes de executar o script.');
+  console.error('Exemplo (PowerShell): $env:ADMIN_PASSWORD="SuaSenhaSegura"; node tools/generate-admin-hash.js');
+  process.exit(1);
+}
 
 async function generateHash() {
   try {

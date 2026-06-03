@@ -2,6 +2,14 @@
 
 ## Subir tudo e validar
 
+Antes do primeiro uso, garanta o arquivo de ambiente local:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Depois edite o `.env` com seus valores reais (senhas, tokens e chaves).
+
 No PowerShell, na raiz do projeto:
 
 ```powershell
