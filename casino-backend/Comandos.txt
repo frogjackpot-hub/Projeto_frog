@@ -2,6 +2,8 @@
 docker compose up -d db
 npm run dev
 
+.\dev-up-health.ps1
+
 # Executar migrações
 npm run migrate
 
@@ -27,3 +29,4 @@ docker stats
 
 # Ver logs de produção
 docker compose logs -f --tail=100
+
