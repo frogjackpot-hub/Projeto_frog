@@ -39,6 +39,8 @@ services:
         sync: false
       - key: TELEGRAM_SECURITY_CHAT_ID
         sync: false
+      - key: TELEGRAM_ADMIN_2FA_CHAT_ID
+        sync: false
       - key: TELEGRAM_PAYMENT_BOT_TOKEN
         sync: false
       - key: TELEGRAM_PAYMENT_CHAT_ID

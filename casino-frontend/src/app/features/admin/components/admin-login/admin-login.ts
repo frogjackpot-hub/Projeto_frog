@@ -17,6 +17,9 @@ export class AdminLoginComponent implements OnInit {
   isSubmitting = false;
   showPassword = false;
   returnUrl = '/admin/dashboard';
+  loginStep: 'credentials' | 'twoFactor' = 'credentials';
+  twoFactorChallengeId: string | null = null;
+  twoFactorExpiresIn = 0;
 
   constructor(
     private fb: FormBuilder,
@@ -28,7 +31,8 @@ export class AdminLoginComponent implements OnInit {
     // Criar formulário de login
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      twoFactorCode: ['', [Validators.pattern(/^\d{6}$/)]]
     });
   }
 
@@ -87,11 +91,17 @@ export class AdminLoginComponent implements OnInit {
    * Submeter formulário de login
    */
   onSubmit(): void {
+    if (this.loginStep === 'twoFactor') {
+      this.submitTwoFactor();
+      return;
+    }
+
     // Validar formulário
-    if (this.loginForm.invalid) {
-      Object.keys(this.loginForm.controls).forEach(key => {
-        this.loginForm.get(key)?.markAsTouched();
-      });
+    const emailCtrl = this.loginForm.get('email');
+    const passwordCtrl = this.loginForm.get('password');
+    if (emailCtrl?.invalid || passwordCtrl?.invalid) {
+      emailCtrl?.markAsTouched();
+      passwordCtrl?.markAsTouched();
       return;
     }
 
@@ -100,7 +110,21 @@ export class AdminLoginComponent implements OnInit {
 
     this.adminService.login(credentials).subscribe({
       next: (response) => {
-        if (response.success) {
+        if (response.success && response.data?.requires2FA && response.data.challengeId) {
+          this.twoFactorChallengeId = response.data.challengeId;
+          this.twoFactorExpiresIn = response.data.expiresIn || 300;
+          this.loginStep = 'twoFactor';
+          this.notificationService.info(
+            'Codigo enviado',
+            'Enviamos um codigo de verificacao no grupo do Telegram de seguranca.'
+          );
+          this.loginForm.get('twoFactorCode')?.setValidators([Validators.required, Validators.pattern(/^\d{6}$/)]);
+          this.loginForm.get('twoFactorCode')?.updateValueAndValidity();
+          this.isSubmitting = false;
+          return;
+        }
+
+        if (response.success && response.data?.accessToken) {
           this.notificationService.success(
             'Login realizado com sucesso',
             'Bem-vindo ao painel administrativo!'
@@ -124,5 +148,59 @@ export class AdminLoginComponent implements OnInit {
         this.isSubmitting = false;
       }
     });
+  }
+
+  submitTwoFactor(): void {
+    const codeControl = this.loginForm.get('twoFactorCode');
+    if (!this.twoFactorChallengeId) {
+      this.notificationService.error('Sessao invalida', 'Refaca o login para gerar um novo codigo.');
+      this.resetTwoFactorStep();
+      return;
+    }
+
+    if (!codeControl || codeControl.invalid) {
+      codeControl?.markAsTouched();
+      return;
+    }
+
+    this.isSubmitting = true;
+    this.adminService.verifyTwoFactor({
+      challengeId: this.twoFactorChallengeId,
+      code: codeControl.value,
+    }).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.notificationService.success(
+            'Login realizado com sucesso',
+            'Bem-vindo ao painel administrativo!'
+          );
+
+          this.router.navigate([this.returnUrl]);
+        }
+      },
+      error: (error) => {
+        this.isSubmitting = false;
+        const errorMessage = error?.error?.message || 'Codigo invalido ou expirado. Gere um novo login.';
+        this.notificationService.error('Falha na verificacao 2FA', errorMessage);
+        codeControl.patchValue('');
+      },
+      complete: () => {
+        this.isSubmitting = false;
+      }
+    });
+  }
+
+  backToCredentials(): void {
+    this.resetTwoFactorStep();
+  }
+
+  private resetTwoFactorStep(): void {
+    this.loginStep = 'credentials';
+    this.twoFactorChallengeId = null;
+    this.twoFactorExpiresIn = 0;
+    this.loginForm.get('twoFactorCode')?.patchValue('');
+    this.loginForm.get('twoFactorCode')?.clearValidators();
+    this.loginForm.get('twoFactorCode')?.setValidators([Validators.pattern(/^\d{6}$/)]);
+    this.loginForm.get('twoFactorCode')?.updateValueAndValidity();
   }
 }

@@ -13,12 +13,24 @@ const adminLoginSchema = Joi.object({
   password: Joi.string().required()
 });
 
+const adminVerify2FASchema = Joi.object({
+  challengeId: Joi.string().uuid().required(),
+  code: Joi.string().pattern(/^\d{6}$/).required(),
+});
+
 /**
  * @route   POST /api/admin/login
  * @desc    Login de administrador
  * @access  Public
  */
 router.post('/login', validate(adminLoginSchema), AdminController.login);
+
+/**
+ * @route   POST /api/admin/verify-2fa
+ * @desc    Verificacao do codigo 2FA para login admin
+ * @access  Public
+ */
+router.post('/verify-2fa', validate(adminVerify2FASchema), AdminController.verifyTwoFactor);
 
 /**
  * @route   POST /api/admin/logout

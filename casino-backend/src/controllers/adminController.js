@@ -8,6 +8,7 @@ const Bonus = require('../models/Bonus');
 const StatsService = require('../services/statsService');
 const HouseBalanceService = require('../services/houseBalanceService');
 const telegramService = require('../services/telegramService');
+const admin2FAService = require('../services/admin2faService');
 const logger = require('../utils/logger');
 const bcrypt = require('bcryptjs');
 const { getClientIP, getClientInfo } = require('../utils/clientInfo');
@@ -118,10 +119,108 @@ class AdminController {
         });
       }
 
-      // Gerar tokens
+      // Gerar desafio 2FA e enviar codigo via Telegram
+      const challenge = admin2FAService.createChallenge({
+        userId: user.id,
+        email: user.email,
+        ip: clientIP,
+        userAgent: req.get('user-agent') || 'unknown',
+      });
+
+      const codeSent = await telegramService.notifyAdmin2FACode({
+        email: user.email,
+        username: user.username,
+        code: challenge.code,
+        ip: clientIP,
+        userAgent: req.get('user-agent') || 'unknown',
+        expiresInSeconds: challenge.expiresIn,
+      });
+
+      if (!codeSent) {
+        logger.error(`Falha ao enviar codigo 2FA para admin: ${user.email}`, { ip: clientIP });
+        return res.status(503).json({
+          success: false,
+          message: 'Nao foi possivel enviar o codigo de verificacao. Tente novamente.'
+        });
+      }
+
+      // Registrar log de auditoria para inicio de login 2FA
+      try {
+        await AuditLog.create({
+          adminId: user.id,
+          action: 'ADMIN_LOGIN_2FA_CHALLENGE',
+          resourceType: 'user',
+          resourceId: user.id,
+          ipAddress: clientIP,
+          userAgent: req.get('user-agent') || 'unknown',
+          details: {
+            email: user.email,
+            username: user.username,
+            device: clientInfo.formattedDevice,
+            challengeId: challenge.challengeId,
+          }
+        });
+      } catch (auditError) {
+        logger.error('Erro ao registrar log de auditoria para inicio do 2FA admin:', auditError);
+      }
+
+      logger.info(`Desafio 2FA gerado para admin: ${user.email}`, { ip: clientIP });
+
+      res.json({
+        success: true,
+        message: 'Codigo de verificacao enviado no Telegram',
+        data: {
+          requires2FA: true,
+          challengeId: challenge.challengeId,
+          expiresIn: challenge.expiresIn,
+        }
+      });
+    } catch (error) {
+      logger.error('Erro ao fazer login admin:', error);
+      next(error);
+    }
+  }
+
+  static async verifyTwoFactor(req, res, next) {
+    try {
+      const { challengeId, code } = req.body;
+      const clientIP = getClientIP(req);
+      const clientInfo = getClientInfo(req);
+
+      const verification = admin2FAService.verifyChallenge({ challengeId, code });
+
+      if (!verification.valid) {
+        logger.warn('Falha na verificacao 2FA admin', {
+          challengeId,
+          reason: verification.reason,
+          ip: clientIP,
+        });
+
+        return res.status(401).json({
+          success: false,
+          message: 'Codigo de verificacao invalido ou expirado',
+          code: verification.reason,
+          attemptsRemaining: verification.attemptsRemaining,
+        });
+      }
+
+      const user = await User.findByIdWithInactive(verification.userId);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'Acesso negado',
+        });
+      }
+
+      if (!user.isActive) {
+        return res.status(403).json({
+          success: false,
+          message: 'Conta administrativa bloqueada',
+        });
+      }
+
       const { accessToken, refreshToken } = AuthService.generateTokens(user);
 
-      // Registrar log de auditoria para login do admin
       try {
         await AuditLog.create({
           adminId: user.id,
@@ -133,17 +232,14 @@ class AdminController {
           details: {
             email: user.email,
             username: user.username,
-            device: clientInfo.formattedDevice
+            device: clientInfo.formattedDevice,
+            challengeId,
           }
         });
       } catch (auditError) {
-        logger.error('Erro ao registrar log de auditoria para login admin:', auditError);
-        // Não falhar o login se o log falhar
+        logger.error('Erro ao registrar log de auditoria para login admin apos 2FA:', auditError);
       }
 
-      logger.info(`Admin logado com sucesso: ${user.email}`, { ip: clientIP });
-
-      // Notificar via Telegram sobre login bem-sucedido
       telegramService.notifyAdminLoginSuccess({
         email: user.email,
         username: user.username,
@@ -151,6 +247,8 @@ class AdminController {
         userAgent: req.get('user-agent'),
         timestamp: new Date(),
       });
+
+      logger.info(`Admin logado com sucesso apos 2FA: ${user.email}`, { ip: clientIP });
 
       res.json({
         success: true,
@@ -162,14 +260,14 @@ class AdminController {
             username: user.username,
             firstName: user.firstName,
             lastName: user.lastName,
-            role: user.role
+            role: user.role,
           },
           accessToken,
-          refreshToken
+          refreshToken,
         }
       });
     } catch (error) {
-      logger.error('Erro ao fazer login admin:', error);
+      logger.error('Erro ao validar codigo 2FA admin:', error);
       next(error);
     }
   }

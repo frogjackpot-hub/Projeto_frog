@@ -9,6 +9,7 @@ class TelegramService {
   constructor() {
     this.securityBotToken = process.env.TELEGRAM_SECURITY_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
     this.securityChatId = process.env.TELEGRAM_SECURITY_CHAT_ID || process.env.TELEGRAM_CHAT_ID;
+    this.admin2faChatId = process.env.TELEGRAM_ADMIN_2FA_CHAT_ID;
     this.paymentBotToken = process.env.TELEGRAM_PAYMENT_BOT_TOKEN || this.securityBotToken;
     this.paymentChatId = process.env.TELEGRAM_PAYMENT_CHAT_ID || this.securityChatId;
 
@@ -25,6 +26,10 @@ class TelegramService {
       logger.warn('TelegramService: bot de pagamentos nao configurado.');
     } else {
       logger.info('TelegramService: bot de pagamentos ativo');
+    }
+
+    if (!this.admin2faChatId) {
+      logger.warn('TelegramService: chat de 2FA admin nao configurado.');
     }
   }
 
@@ -43,6 +48,15 @@ class TelegramService {
       botToken: this.securityBotToken,
       chatId: this.securityChatId,
       channel: 'seguranca',
+    });
+  }
+
+  async sendSecurityMessageToChat(message, chatId, channel = 'seguranca') {
+    return this.sendMessageWithConfig({
+      message,
+      botToken: this.securityBotToken,
+      chatId,
+      channel,
     });
   }
 
@@ -147,6 +161,12 @@ class TelegramService {
 ✅ Saldo creditado automaticamente`;
 
     return this.sendPaymentMessage(message);
+  }
+
+  async notifyAdmin2FACode({ email, username, code, ip, userAgent, expiresInSeconds = 300 }) {
+    const message = `🔐 CODIGO 2FA ADMIN\n\n👤 Usuario: ${username || 'admin'}\n📧 Email: ${email || 'N/A'}\n🔢 Codigo: ${code}\n🌐 IP: ${ip || 'N/A'}\n🖥️ Navegador: ${this.truncateUserAgent(userAgent)}\n⏱️ Validade: ${Math.floor(expiresInSeconds / 60)} minutos\n\nSe nao foi voce, ignore este codigo e revise as credenciais.`;
+
+    return this.sendSecurityMessageToChat(message, this.admin2faChatId, 'seguranca-2fa');
   }
 
   /**

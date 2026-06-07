@@ -21,8 +21,8 @@ Adicione as seguintes variáveis:
 
 | Variável             | Valor                                            |
 | -------------------- | ------------------------------------------------ |
-| `TELEGRAM_BOT_TOKEN` | `8584488421:AAHyQQsEj1LwbFGmgjJG1-83cjqcmpJ-z3o` |
-| `TELEGRAM_CHAT_ID`   | `987654321`                                      |
+| `TELEGRAM_BOT_TOKEN` | `<SEU_TELEGRAM_BOT_TOKEN>`                       |
+| `TELEGRAM_CHAT_ID`   | `<SEU_TELEGRAM_CHAT_ID>`                         |
 
 ### Passo 3: Salvar e Fazer Redeploy
 
@@ -65,8 +65,8 @@ Adicione as seguintes variáveis:
 Para testar localmente, crie um arquivo `.env` na pasta `casino-backend`:
 
 ```env
-TELEGRAM_BOT_TOKEN=8584488421:AAHyQQsEj1LwbFGmgjJG1-83cjqcmpJ-z3o
-TELEGRAM_CHAT_ID=987654321
+TELEGRAM_BOT_TOKEN=<SEU_TELEGRAM_BOT_TOKEN>
+TELEGRAM_CHAT_ID=<SEU_TELEGRAM_CHAT_ID>
 ```
 
 Depois, reinicie o servidor e tente fazer login no painel admin.

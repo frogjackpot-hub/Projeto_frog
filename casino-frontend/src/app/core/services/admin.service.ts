@@ -9,10 +9,18 @@ export interface AdminLoginRequest {
   password: string;
 }
 
+export interface AdminVerify2FARequest {
+  challengeId: string;
+  code: string;
+}
+
 export interface AdminLoginResponse {
-  user: User;
-  accessToken: string;
-  refreshToken: string;
+  requires2FA?: boolean;
+  challengeId?: string;
+  expiresIn?: number;
+  user?: User;
+  accessToken?: string;
+  refreshToken?: string;
 }
 
 export interface AdminStats {
@@ -331,7 +339,7 @@ export class AdminService {
   login(credentials: AdminLoginRequest): Observable<ApiResponse<AdminLoginResponse>> {
     return this.apiService.post<AdminLoginResponse>('/admin/login', credentials).pipe(
       tap(response => {
-        if (response.success && response.data) {
+        if (response.success && response.data?.accessToken && response.data?.user) {
           // Limpar tokens de usuário regular se existirem
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
@@ -345,6 +353,26 @@ export class AdminService {
           this.notifyOtherTabs('admin_login');
           
           // Atualizar subjects
+          this.currentAdminSubject.next(response.data.user);
+          this.isAdminAuthenticatedSubject.next(true);
+        }
+      })
+    );
+  }
+
+  verifyTwoFactor(payload: AdminVerify2FARequest): Observable<ApiResponse<AdminLoginResponse>> {
+    return this.apiService.post<AdminLoginResponse>('/admin/verify-2fa', payload).pipe(
+      tap(response => {
+        if (response.success && response.data?.accessToken && response.data?.user) {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('currentUser');
+
+          localStorage.setItem(this.ADMIN_TOKEN_KEY, response.data.accessToken);
+          localStorage.setItem(this.ADMIN_USER_KEY, JSON.stringify(response.data.user));
+
+          this.notifyOtherTabs('admin_login');
+
           this.currentAdminSubject.next(response.data.user);
           this.isAdminAuthenticatedSubject.next(true);
         }

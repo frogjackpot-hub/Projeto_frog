@@ -142,8 +142,8 @@ DATABASE_URL=postgres://casino_user:SUA_SENHA@dpg-XXXXXXXX-a/casino_db
 **Outras variáveis importantes que devem estar configuradas:**
 
 ```env
-TELEGRAM_BOT_TOKEN=8584488421:AAHyQQsEj1LwbFGmgjJG1-83cjqcmpJ-z3o
-TELEGRAM_CHAT_ID=987654321
+TELEGRAM_BOT_TOKEN=<SEU_TELEGRAM_BOT_TOKEN>
+TELEGRAM_CHAT_ID=<SEU_TELEGRAM_CHAT_ID>
 JWT_SECRET=sua-chave-secreta-jwt
 NODE_ENV=production
 CORS_ORIGIN=https://seu-frontend.onrender.com

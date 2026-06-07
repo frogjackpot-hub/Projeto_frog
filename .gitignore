@@ -53,3 +53,5 @@ tmp/
 
 # ==================== PDFs e arquivos pessoais ====================
 *.pdf
+# ==================== Apresentações ====================
+apresentacoes/
