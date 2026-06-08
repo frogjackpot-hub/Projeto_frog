@@ -111,7 +111,10 @@ export class AdminLoginComponent implements OnInit, OnDestroy {
     }
 
     this.isSubmitting = true;
-    const credentials = this.loginForm.value;
+    const credentials = {
+      email: String(emailCtrl?.value || '').trim(),
+      password: String(passwordCtrl?.value || ''),
+    };
 
     this.adminService.login(credentials).subscribe({
       next: (response) => {
@@ -162,7 +165,10 @@ export class AdminLoginComponent implements OnInit, OnDestroy {
         this.isSubmitting = false;
         
         // Mostrar mensagem de erro
-        const errorMessage = error?.error?.message || 'Credenciais inválidas. Tente novamente.';
+        const validationMessage = Array.isArray(error?.error?.details) && error.error.details.length > 0
+          ? error.error.details[0]?.message
+          : null;
+        const errorMessage = error?.error?.message || validationMessage || 'Credenciais inválidas. Tente novamente.';
         this.notificationService.error('Erro ao fazer login', errorMessage);
         
         // Limpar senha
