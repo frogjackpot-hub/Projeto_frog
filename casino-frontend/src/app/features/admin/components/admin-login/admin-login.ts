@@ -110,9 +110,27 @@ export class AdminLoginComponent implements OnInit {
 
     this.adminService.login(credentials).subscribe({
       next: (response) => {
-        if (response.success && response.data?.requires2FA && response.data.challengeId) {
-          this.twoFactorChallengeId = response.data.challengeId;
-          this.twoFactorExpiresIn = response.data.expiresIn || 300;
+        const payload: any = response?.data || response;
+        const challengeId = payload?.challengeId || payload?.challenge_id || payload?.twoFactorChallengeId || null;
+        const requires2FA = Boolean(
+          payload?.requires2FA ||
+          payload?.requiresTwoFactor ||
+          payload?.twoFactorRequired ||
+          challengeId
+        );
+
+        if (response.success && requires2FA) {
+          if (!challengeId) {
+            this.isSubmitting = false;
+            this.notificationService.error(
+              'Falha ao iniciar 2FA',
+              'O servidor enviou o codigo, mas nao retornou o identificador do desafio. Tente novamente.'
+            );
+            return;
+          }
+
+          this.twoFactorChallengeId = challengeId;
+          this.twoFactorExpiresIn = payload?.expiresIn || payload?.expires_in || 300;
           this.loginStep = 'twoFactor';
           this.notificationService.info(
             'Codigo enviado',
@@ -124,7 +142,7 @@ export class AdminLoginComponent implements OnInit {
           return;
         }
 
-        if (response.success && response.data?.accessToken) {
+        if (response.success && payload?.accessToken) {
           this.notificationService.success(
             'Login realizado com sucesso',
             'Bem-vindo ao painel administrativo!'
