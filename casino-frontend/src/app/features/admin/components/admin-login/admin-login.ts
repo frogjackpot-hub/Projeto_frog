@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AdminService } from '../../../../core/services/admin.service';
@@ -12,7 +12,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule]
 })
-export class AdminLoginComponent implements OnInit {
+export class AdminLoginComponent implements OnInit, OnDestroy {
   loginForm: FormGroup;
   isSubmitting = false;
   showPassword = false;
@@ -20,6 +20,7 @@ export class AdminLoginComponent implements OnInit {
   loginStep: 'credentials' | 'twoFactor' = 'credentials';
   twoFactorChallengeId: string | null = null;
   twoFactorExpiresIn = 0;
+  private twoFactorCountdownInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -45,6 +46,10 @@ export class AdminLoginComponent implements OnInit {
 
     // Obter URL de retorno dos parâmetros da query
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/admin/dashboard';
+  }
+
+  ngOnDestroy(): void {
+    this.stopTwoFactorCountdown();
   }
 
   /**
@@ -132,6 +137,7 @@ export class AdminLoginComponent implements OnInit {
           this.twoFactorChallengeId = challengeId;
           this.twoFactorExpiresIn = payload?.expiresIn || payload?.expires_in || 300;
           this.loginStep = 'twoFactor';
+          this.startTwoFactorCountdown();
           this.notificationService.info(
             'Codigo enviado',
             'Enviamos um codigo de verificacao no grupo do Telegram de seguranca.'
@@ -213,6 +219,7 @@ export class AdminLoginComponent implements OnInit {
   }
 
   private resetTwoFactorStep(): void {
+    this.stopTwoFactorCountdown();
     this.loginStep = 'credentials';
     this.twoFactorChallengeId = null;
     this.twoFactorExpiresIn = 0;
@@ -220,5 +227,40 @@ export class AdminLoginComponent implements OnInit {
     this.loginForm.get('twoFactorCode')?.clearValidators();
     this.loginForm.get('twoFactorCode')?.setValidators([Validators.pattern(/^\d{6}$/)]);
     this.loginForm.get('twoFactorCode')?.updateValueAndValidity();
+  }
+
+  get twoFactorRemainingTimeLabel(): string {
+    const remaining = Math.max(0, this.twoFactorExpiresIn || 0);
+    const minutes = Math.floor(remaining / 60);
+    const seconds = remaining % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  }
+
+  private startTwoFactorCountdown(): void {
+    this.stopTwoFactorCountdown();
+    this.twoFactorCountdownInterval = setInterval(() => {
+      if (this.loginStep !== 'twoFactor') {
+        this.stopTwoFactorCountdown();
+        return;
+      }
+
+      this.twoFactorExpiresIn = Math.max(0, this.twoFactorExpiresIn - 1);
+
+      if (this.twoFactorExpiresIn <= 0) {
+        this.stopTwoFactorCountdown();
+        this.notificationService.warning(
+          'Codigo expirado',
+          'O codigo 2FA expirou. Faca login novamente para gerar um novo codigo.'
+        );
+        this.resetTwoFactorStep();
+      }
+    }, 1000);
+  }
+
+  private stopTwoFactorCountdown(): void {
+    if (this.twoFactorCountdownInterval) {
+      clearInterval(this.twoFactorCountdownInterval);
+      this.twoFactorCountdownInterval = null;
+    }
   }
 }

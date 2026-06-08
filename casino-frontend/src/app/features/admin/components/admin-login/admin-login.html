@@ -68,6 +68,9 @@
           <span class="error-message" *ngIf="hasError('twoFactorCode')">
             Digite um codigo numerico de 6 digitos.
           </span>
+          <span class="error-message" *ngIf="twoFactorExpiresIn > 0" style="color: #ffd166;">
+            Expira em {{ twoFactorRemainingTimeLabel }}
+          </span>
         </div>
 
         <button
